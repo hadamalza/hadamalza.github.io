@@ -181,6 +181,52 @@
     .kcal small{font-size:22px}
     #hint{font-size:12.5px}
   }
+  .tabs{display:none}
+  /* ---- phone, landscape: compact two-column rail ---- */
+  @media (max-height:520px) and (orientation:landscape){
+    :root{--rail:168px}
+    .top{padding-top:calc(10px + env(safe-area-inset-top))}
+    .panel .sect,.panel .examples .lbl{display:none}
+    .panel{padding:calc(54px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom)) 10px;width:calc(var(--rail) + 20px);gap:8px}
+    .panel .card{padding:7px 6px;gap:6px;border-radius:18px}
+    .pieces{grid-template-columns:1fr 1fr;gap:5px}
+    .tile{padding:4px 0 5px;border-radius:12px}
+    .tile img{width:34px;height:34px}
+    .tile span{font-size:10.5px}
+    .panel .examples{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+    .panel .examples .lbl{grid-column:1 / -1}
+    .panel .examples button{font-size:10.5px;padding:0 2px;height:26px;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .panel .primary{height:40px;flex-direction:row;gap:6px;font-size:14px}
+    .kcal{font-size:30px;left:16px}
+    .kcal small{font-size:18px}
+  }
+  /* ---- phone, portrait: everything moves into a dock along the bottom, with 재료 / 예시 tabs ---- */
+  @media (max-width:640px) and (orientation:portrait){
+    :root{--rail:0px}
+    .panel{left:0;right:0;top:auto;bottom:0;width:auto;padding:0 10px calc(10px + env(safe-area-inset-bottom));
+      flex-direction:row;align-items:stretch;justify-content:stretch;gap:8px}
+    .panel .card{flex:1 1 auto;padding:6px 8px 8px;gap:6px;border-radius:20px;overflow:visible}
+    .tabs{display:flex;gap:4px;background:var(--tile);border-radius:11px;padding:3px}
+    .tabs button{flex:1;height:28px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--muted)}
+    .tabs button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+    .panel .sect,.panel .rule,.panel .examples .lbl{display:none}
+    .pieces{grid-template-columns:repeat(4,1fr);gap:6px}
+    .tile{padding:4px 0 5px;border-radius:12px}
+    .tile img{width:40px;height:40px}
+    .tile span{font-size:11px}
+    .panel .examples{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-content:center}
+    .panel .examples button{font-size:12.5px;padding:0;height:31px}
+    .panel .card[data-tab="pieces"] .examples{display:none}
+    .panel .card[data-tab="ex"] .pieces{display:none}
+    .panel .card[data-tab="ex"] .examples{min-height:68px}
+    .panel .primary{width:66px;height:auto;border-radius:18px;font-size:13px;box-shadow:0 4px 0 var(--green-d)}
+    .kcal{left:16px;bottom:calc(var(--dock, 140px) + 10px) !important;font-size:32px}
+    .kcal small{font-size:19px}
+    .selbar,.selbar.show,#squeezeTip{bottom:calc(var(--dock, 140px) + 10px) !important}
+    .selbar,.selbar.show{left:10px;right:10px}
+    #squeezeTip{left:50%}
+    #toast{left:50%}
+  }
   .selbar{position:fixed;left:calc(50% - var(--rail)/2 - 12px);bottom:calc(20px + env(safe-area-inset-bottom));z-index:8;
     display:flex;align-items:center;gap:2px;padding:4px;
     background:var(--surface);border:1.5px solid var(--line);border-radius:14px;box-shadow:0 8px 24px var(--shadow);
@@ -248,10 +294,10 @@
 
 <div id="squeezeTip"><b>케첩 모드</b> <button id="sqDone">종료</button></div>
 
-<div class="kcal" id="kcal"><span id="kcalNum">0</span><small> kcal</small></div>
 
 <section class="panel" id="panel">
-  <div class="card">
+  <div class="card" data-tab="pieces">
+    <div class="tabs" role="tablist"><button data-tab="pieces" class="on" role="tab">재료</button><button data-tab="ex" role="tab">예시</button></div>
     <span class="sect">재료 추가</span>
     <div class="pieces" id="pieces"></div>
     <div class="rule"></div>
@@ -1316,9 +1362,6 @@ function replaceAll(newMeshes, stagger = 45){
   changed();
 }
 
-/* ---------- kcal ---------- */
-let kcalShown = 0;
-const totalKcal = () => build.children.reduce((s, m) => s + (m.userData.kcal || PIECES[m.userData.type].kcal), 0);
 function changed(){
   $('undoBtn').disabled = history.length === 0;
   $('redoBtn').disabled = redoStack.length === 0;
@@ -1892,14 +1935,27 @@ cv.addEventListener('pointercancel', e => endPointer(e, true));
 cv.addEventListener('contextmenu', e => e.preventDefault());
 
 /* resize */
+const dockMQ = matchMedia('(max-width:640px) and (orientation:portrait)');
 function resize(){
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w/h;
-  const pw = $('panel').offsetWidth;
-  camera.setViewOffset(w, h, pw*0.5, -h*0.03, w, h);
+  if (dockMQ.matches){
+    // bottom dock: frame the tray in the space above it
+    const dh = $('panel').offsetHeight;
+    document.documentElement.style.setProperty('--dock', dh + 'px');
+    camera.setViewOffset(w, h, 0, dh*0.5 - h*0.02, w, h);
+  } else {
+    const pw = $('panel').offsetWidth;
+    camera.setViewOffset(w, h, pw*0.5, -h*0.03, w, h);
+  }
   camera.updateProjectionMatrix();
 }
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  const card = b.closest('.card'); card.dataset.tab = b.dataset.tab;
+  card.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  blip(640, 0.04, 0.03);
+});
 addEventListener('resize', resize);
 new ResizeObserver(resize).observe($('panel'));
 resize();
@@ -1945,10 +2001,6 @@ function tick(now){
     if (t >= 1) camTween = null;
   }
   controls.update();
-  const target = totalKcal();
-  kcalShown += (target - kcalShown)*0.18;
-  if (Math.abs(target - kcalShown) < 1) kcalShown = target;
-  $('kcalNum').textContent = Math.round(kcalShown).toLocaleString();
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
