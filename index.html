@@ -1,15 +1,215 @@
 <!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>하다말 아카이브</title>
-  <style>body{max-width:980px;margin:40px auto;padding:0 24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#24292f;background:#fff}h1{font-size:32px;line-height:1.5;font-weight:600}a{color:inherit;text-underline-offset:4px}ul{padding-left:20px;line-height:1.8}</style>
-</head>
-<body>
-  <main>
-    <h1>하다말 아카이브</h1>
-    <ul><li><a href="./weed-license/">제초 자격증 시험</a></li></ul>
-  </main>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="HADAMAL ARCHIVE" />
+    <title>HADAMAL ARCHIVE</title>
+    <link rel="stylesheet" href="./site-assets/split-flap/split-flap.css">
+    <script src="./site-assets/split-flap/split-flap.js?v=english" defer></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        --paper: #141413;
+        --ink: #eeede8;
+        --muted: #96958e;
+        --line: #2b2b27;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: var(--paper);
+      }
+
+      body {
+        min-height: 100svh;
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: Arial, Helvetica, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button,
+      a {
+        color: inherit;
+        font: inherit;
+      }
+
+      .page {
+        min-height: 100svh;
+        display: grid;
+        padding: 22px 28px 18px;
+      }
+
+      .instagram-link {
+        display: inline-block;
+        margin-bottom: 14px;
+        color: var(--muted);
+        font-size: 12px;
+        text-decoration: none;
+      }
+      .instagram-link:hover { color: var(--ink); }
+      .instagram-link:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+
+      main {
+        width: min(540px, 100%);
+        justify-self: center;
+        align-self: start;
+        padding: clamp(64px, 16vh, 140px) 0 64px;
+      }
+
+      .intro {
+        margin-bottom: 28px;
+      }
+
+      .intro h1 {
+        width: fit-content;
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 1.1;
+        letter-spacing: -1px;
+      }
+
+      .split-flap-text {
+        --split-flap-tile-color: #252522;
+        --split-flap-text-color: #f4f2ec;
+        --split-flap-radius: 4px;
+        --split-flap-gap: clamp(3px, .8vw, 5px);
+        --split-flap-flip-duration: .14s;
+        --split-flap-drop: .12;
+        --split-flap-lift: .5;
+        padding: 0;
+        border: 0;
+        background: none;
+        font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        font-size: clamp(20px, 4.6vw, 36px);
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .split-flap-text__tile { width: .78em; height: 1.4em; }
+      .split-flap-text__tile.is-space { width: .42em; background: none; box-shadow: none; }
+      .split-flap-text__tile.is-space::before,
+      .split-flap-text__tile.is-space::after { display: none; }
+      .split-flap-text:focus-visible { outline: 1px solid var(--ink); outline-offset: 6px; }
+
+      .project-list {
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--line);
+        list-style: none;
+      }
+
+      .project-row {
+        position: relative;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 128px minmax(0, 1fr);
+        gap: 24px;
+        align-items: center;
+        min-height: 110px;
+        padding: 8px 0;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: transparent;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .project-row:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 4px;
+      }
+
+
+      .project-thumb {
+        display: block;
+        width: 128px;
+        height: 86px;
+        object-fit: cover;
+        background: #252522;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+
+      .project-name {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        transition: color 140ms ease;
+      }
+
+      .project-row:hover .project-name,
+      .project-row:focus-visible .project-name {
+        color: var(--muted);
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          padding: 18px 18px 16px;
+        }
+
+        main {
+          padding: 56px 0;
+        }
+
+        .intro {
+          margin-bottom: 24px;
+        }
+
+        .project-row {
+          grid-template-columns: 104px minmax(0, 1fr);
+          gap: 18px;
+          min-height: 94px;
+        }
+
+        .project-thumb {
+          width: 104px;
+          height: 70px;
+        }
+
+        .project-name {
+          font-size: 17px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <main>
+        <section class="intro" aria-labelledby="intro-title">
+          <a class="instagram-link" href="https://www.instagram.com/hadamalza/" target="_blank" rel="noreferrer">@hadamalza ↗</a>
+          <h1 id="intro-title" aria-label="HADAMAL ARCHIVE"><button class="split-flap-text" type="button" aria-label="HADAMAL ARCHIVE — 제목 애니메이션 다시 재생" data-text="HADAMAL ARCHIVE">HADAMAL ARCHIVE</button></h1>
+        </section>
+
+        <nav aria-label="프로젝트">
+          <ol class="project-list">
+            <li>
+              <a class="project-row" href="./weed-license/">
+                <img class="project-thumb" src="./site-assets/weed-license.jpg" alt="" width="128" height="86" />
+                <span class="project-name">제초 자격증 시험</span>
+              </a>
+            </li>
+          </ol>
+        </nav>
+      </main>
+
+    </div>
+
+  </body>
 </html>
