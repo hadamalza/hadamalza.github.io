@@ -6,6 +6,15 @@
 <meta name="theme-color" content="#d9f1f4" />
 <title>제초 자격증 시험</title>
 <meta name="description" content="15초 동안 풀을 쏙쏙 뽑고 나만의 제초 자격증을 받아보세요!" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="제초 자격증 시험" />
+<meta property="og:description" content="15초 동안 풀을 쏙쏙 뽑고 나만의 제초 자격증을 받아보세요!" />
+<meta property="og:url" content="https://hadamalza.github.io/weed-license/" />
+<meta property="og:image" content="https://hadamalza.github.io/weed-license/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://hadamalza.github.io/weed-license/og-image.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" rel="stylesheet" />
@@ -54,7 +63,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 /* ---------- intro ---------- */
 #intro{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(var(--safe-t) + clamp(26px,6vh,64px)) 20px calc(var(--safe-b) + clamp(28px,7vh,72px));pointer-events:none}
 #intro>*{pointer-events:auto}
-.title{margin:0;text-align:center;font-weight:400;font-size:clamp(58px,10vw,118px);line-height:.95;letter-spacing:-3px;color:var(--ink);
+.title{margin:0;word-break:keep-all;text-align:center;font-weight:400;font-size:clamp(58px,10vw,118px);line-height:.95;letter-spacing:-3px;color:var(--ink);
   text-shadow:0 0 18px rgba(255,255,255,.85),0 0 4px rgba(255,255,255,.9);animation:title-in .9s cubic-bezier(.2,.8,.2,1.2) both}
 .title .hl{position:relative;display:inline-block;color:#4f9a58}
 .title .hl:after{content:"";position:absolute;z-index:-1;left:-2%;right:-2%;bottom:8%;height:26%;background:var(--yellow);border-radius:50%;transform:rotate(-2deg)}
@@ -1139,17 +1148,23 @@ function stopCamera() {
   $('#cert').classList.remove('camera'); $('#camActions').classList.add('hidden'); $('#resultActions').classList.remove('hidden');
 }
 function cancelCamera() { stopCamera(); }
+let liveCamFailed = false;
+function canLiveCam() {
+  if (liveCamFailed || !window.isSecureContext || !navigator.mediaDevices?.getUserMedia) return false;
+  const pol = document.permissionsPolicy || document.featurePolicy;
+  try { if (pol && !pol.allowsFeature('camera')) return false; } catch (e) {}
+  return true;
+}
 $('#sheetCam').addEventListener('click', async () => {
-  // phones/tablets: the OS camera app via a capture input (works everywhere, even in sandboxed frames)
-  if (isMobile) { $('#capture').click(); return; }
+  // live preview inside the certificate everywhere it is allowed; phones fall back to the OS camera app
+  if (!canLiveCam()) { if (isMobile) { $('#capture').click(); return; } sheet.classList.add('hidden'); toast('카메라를 열 수 없어요'); return; }
   sheet.classList.add('hidden');
-  if (!navigator.mediaDevices?.getUserMedia) { toast('카메라를 열 수 없어요'); return; }
   try {
     camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
     const v = $('#camVideo'); v.srcObject = camStream; v.classList.remove('hidden');
     $('#cert').classList.add('camera'); $('#camActions').classList.remove('hidden'); $('#resultActions').classList.add('hidden');
     await v.play();
-  } catch (err) { console.error(err); stopCamera(); toast('카메라를 열 수 없어요'); }
+  } catch (err) { console.error(err); stopCamera(); liveCamFailed = true; toast('카메라를 열 수 없어요'); if (isMobile) { renderPresets(); sheet.classList.remove('hidden'); } }
 });
 $('#camCancel').addEventListener('click', cancelCamera);
 $('#camShoot').addEventListener('click', () => {
