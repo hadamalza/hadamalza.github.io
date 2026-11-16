@@ -1,0 +1,78 @@
+<!doctype html><html lang="ko"><head><meta charset="UTF-8"><style>html.booting{background:#070504}html.booting body>*{visibility:hidden!important}</style><script>document.documentElement.classList.add('booting');let startupDone=false;window.finishBujeokStartup=()=>{if(startupDone)return;startupDone=true;clearTimeout(window.bujeokBootTimer);Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1500))]).then(()=>requestAnimationFrame(()=>document.documentElement.classList.remove('booting')));};window.bujeokBootTimer=setTimeout(window.finishBujeokStartup,8000);</script><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#120b08"><title>부적소 — 나만의 부적</title><meta name="description" content="바라는 문구로 나만의 부적을 만들고, 친구에게 재밌는 연출로 보내보세요."><meta property="og:title" content="부적소 — 부적이 도착했어요"><meta property="og:description" content="링크를 열어 부적을 받아보세요."><meta property="og:type" content="website"><meta property="og:image" content="https://hadamalza.github.io/bujeok-studio/assets/share-preview.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1892"><meta property="og:image:height" content="1338"><meta property="og:image:alt" content="촛불이 켜진 책상 위 붉은 붓글씨 부적"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="부적소 — 부적이 도착했어요"><meta name="twitter:description" content="바라는 문구로 나만의 부적을 만들어보세요."><meta name="twitter:image" content="https://hadamalza.github.io/bujeok-studio/assets/share-preview.png"><meta name="twitter:image:alt" content="촛불이 켜진 책상 위 붉은 붓글씨 부적"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Brush+Script&display=swap"><link rel="stylesheet" href="style.css?v=60"></head><body>
+<div class="room" aria-hidden="true"><div class="glow"></div><div class="smoke s1"></div><div class="smoke s2"></div><div class="passing"></div><div class="vignette"></div></div>
+<header><a class="brand" href="./"><span class="brand-mark">符</span><span class="brand-text"><b>부적소</b></span></a><div class="language-picker"><button id="language-toggle" type="button" aria-label="언어 변경" title="언어 변경" aria-haspopup="menu" aria-expanded="false" aria-controls="language-menu"><svg class="lucide lucide-globe" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg></button><div id="language-menu" role="menu" hidden><button type="button" role="menuitemradio" data-lang="ko" aria-checked="true">한국어</button><button type="button" role="menuitemradio" data-lang="en" aria-checked="false">English</button><button type="button" role="menuitemradio" data-lang="ja" aria-checked="false">日本語</button></div></div></header>
+<main>
+<div class="order-tools"><aside class="order"><span class="tack" aria-hidden="true"></span><div class="panel-title"><h1>소원을 이루어드립니다</h1></div><form id="form"><section><div class="input-wrap"><input id="wish" value="수능대박" maxlength="12" autocomplete="off" placeholder="바라는 문구 입력" aria-label="바라는 문구 입력"><span id="count">4 / 12</span></div><div class="presets"><button type="button" data-wish="수능대박">수능대박</button><button type="button" data-wish="월요일죽어" data-locale="ko">월요일죽어</button><button type="button" data-wish="사랑해넌내꺼야">사랑해넌내꺼야</button><button type="button" data-wish="취업성공">취업성공</button><button type="button" data-wish="퇴사하겠습니다" data-locale="ko">퇴사하겠습니다</button><button type="button" data-wish="로또당첨기원">로또당첨기원</button></div><div class="remix-row"><button id="remix" type="button"><svg aria-hidden="true"
+  class="lucide lucide-rotate-cw"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+  <path d="M21 3v5h-5" />
+</svg><span>다른 구성</span></button></div><p id="error" role="alert"></p></section></form></aside><span class="actions"><button id="download" type="button"><svg viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg>부적 저장</button><button id="share-open" type="button"><svg viewBox="0 0 24 24"><path d="M12 15V3m-4 4 4-4 4 4M6 11H5v9h14v-9h-1"/></svg>공유하기</button></span></div>
+<div class="workspace">
+<div class="props" aria-hidden="true">
+<div class="candle"><span class="halo"></span><span class="flame"></span><span class="wick"></span><span class="wax"></span><span class="dish"></span></div>
+<svg class="inkstone" viewBox="0 0 200 130"><defs><radialGradient id="ink" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#2b2420"/><stop offset=".7" stop-color="#0c0908"/><stop offset="1" stop-color="#050404"/></radialGradient><linearGradient id="stone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b3632"/><stop offset="1" stop-color="#151311"/></linearGradient></defs><rect x="6" y="10" width="188" height="114" rx="14" fill="#0a0807" opacity=".55"/><rect x="2" y="2" width="188" height="114" rx="14" fill="url(#stone)"/><rect x="14" y="14" width="164" height="90" rx="9" fill="#1d1a17"/><ellipse cx="72" cy="59" rx="50" ry="36" fill="url(#ink)"/><ellipse cx="60" cy="47" rx="16" ry="6" fill="#fff" opacity=".07"/><rect x="128" y="24" width="38" height="70" rx="6" fill="#151210"/><rect x="134" y="30" width="26" height="58" rx="4" fill="#24201c"/></svg>
+<svg class="brush" viewBox="0 0 60 420"><defs><linearGradient id="shaft" x1="0" x2="1"><stop offset="0" stop-color="#5a3519"/><stop offset=".5" stop-color="#a06a3a"/><stop offset="1" stop-color="#4a2a13"/></linearGradient></defs><rect x="24" y="0" width="12" height="16" rx="5" fill="#8e1f17"/><rect x="22" y="14" width="16" height="285" rx="7" fill="url(#shaft)"/><g stroke="#2a170b" stroke-width="1" opacity=".5"><path d="M22 90h16M22 180h16M22 260h16"/></g><rect x="20" y="294" width="20" height="18" rx="3" fill="#2c2119"/><path d="M20 312c-2 40 4 74 10 104 6-30 12-64 10-104z" fill="#0d0a08"/><path d="M24 316c0 30 3 56 6 80" stroke="#fff" stroke-opacity=".08" stroke-width="2" fill="none"/></svg>
+<div class="cinnabar"><span></span></div>
+</div>
+<div class="workspace-top"><div class="history-actions"><button id="history-back" type="button" aria-label="되돌리기" title="되돌리기" disabled><svg aria-hidden="true"
+  class="lucide lucide-undo-2"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M9 14 4 9l5-5" />
+  <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" />
+</svg></button><button id="history-forward" type="button" aria-label="다시 실행" title="다시 실행" disabled><svg aria-hidden="true"
+  class="lucide lucide-redo-2"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m15 14 5-5-5-5" />
+  <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13" />
+</svg></button></div><button id="clear-all" type="button" aria-label="모두 지우기" title="모두 지우기"><svg aria-hidden="true"
+  class="lucide lucide-trash-2"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M3 6h18" />
+  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+  <line x1="10" x2="10" y1="11" y2="17" />
+  <line x1="14" x2="14" y1="11" y2="17" />
+</svg></button></div>
+<div class="artboard"><div id="paper" role="img" aria-label="수능대박 부적"></div></div>
+
+</div>
+</main>
+<dialog id="share" aria-labelledby="share-title"><div class="share-inner"><div class="share-head"><h2 id="share-title">부적 띄워 보내기</h2><button id="share-close" type="button" aria-label="닫기">×</button></div><p class="share-sub" id="share-effect-label">어떤 유형의 부적으로 전하겠소?</p><fieldset class="effects" aria-labelledby="share-effect-label"><label class="effect"><input type="radio" name="effect" value="moneygun" checked><span class="fx-icon">💥</span><span class="fx-name">부적폭격</span><span class="fx-desc">부적이 촤라라 쏟아져요</span></label><label class="effect"><input type="radio" name="effect" value="exorcism"><span class="fx-icon">💀</span><span class="fx-name">퇴마하기</span><span class="fx-desc">잡귀를 부적 한 장으로 날려버려요</span></label><label class="effect"><input type="radio" name="effect" value="descent"><span class="fx-icon">🍀</span><span class="fx-name">행운가득</span><span class="fx-desc">네잎클로버와 꽃잎이 화사하게 흩날려요</span></label></fieldset><button id="share-preview" type="button">공유화면 미리보기</button><div class="share-actions"><button id="share-send" class="create" type="button">공유하기</button><button id="share-copy" type="button">링크 복사</button></div></div></dialog>
+<div id="toast" popover="manual" role="status" aria-live="polite"></div><script src="vendor/brush-fonts/core.js?v=1"></script><script src="brush-fonts.js?v=2"></script><script src="i18n.js?v=13"></script><script>window.bujeokLocaleReady.then(()=>{const app=document.createElement("script");app.src="app.js?v=65";app.onerror=()=>window.finishBujeokStartup();document.body.append(app);});</script><script type="module" src="draw.js?v=17"></script><script type="module" src="desk.js?v=11" onerror="window.finishBujeokStartup()"></script></body></html>
