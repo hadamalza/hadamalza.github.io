@@ -292,7 +292,14 @@ async function startInline(openBtn) {
   }
   const undo = () => { if(cur)return;if(strokes.length)undone.push(strokes.pop());compose();window.syncBujeokHistory?.(); };
   const redo = () => { if(cur)return;if(undone.length)strokes.push(undone.pop());compose();window.syncBujeokHistory?.(); };
-  window.bujeokDrawing={undo,redo,canUndo:()=>strokes.length>0,canRedo:()=>undone.length>0,
+  window.bujeokDrawing={undo,redo,
+    async snapshot(){
+      const all=structuredClone(prevStrokes.concat(strokes,cur?[cur]:[]));
+      const snapshotBase=base?{...base}:null;
+      const svg=strokesToSVG(all,baseSvg);
+      return {svg,drawn:all.length?{code:await encodeStrokes(all),base:snapshotBase}:null};
+    },
+    hasInk:()=>prevStrokes.length>0||strokes.length>0||!!cur,canUndo:()=>strokes.length>0,canRedo:()=>undone.length>0,
     updateBase(svg, nextBase) {
       base=nextBase;baseSvg=svg;
       document.querySelector('#paper').setAttribute('aria-label',base.wish+' 부적 (붓글씨 편집 중)');
@@ -301,6 +308,7 @@ async function startInline(openBtn) {
   };
   window.syncBujeokHistory?.();
   const onKey = (e) => {
+    if(document.querySelector('dialog[open],.rv'))return;
     if (e.key === 'Escape') finish(true);
     if (!e.target.matches?.('input,textarea') && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey?redo():undo(); }
   };
@@ -453,6 +461,7 @@ function openPad() {
   q('.pad-clear').onclick = () => { strokes.length = 0; redraw(); };
   const close = () => { dwell.stop(); cur = null; root.remove(); document.documentElement.classList.remove('rv-lock'); removeEventListener('keydown', onKey); };
   const onKey = (e) => {
+    if(document.querySelector('dialog[open],.rv'))return;
     if (e.key === 'Escape') close();
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); strokes.pop(); redraw(); }
   };

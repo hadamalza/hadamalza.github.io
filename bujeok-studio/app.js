@@ -189,7 +189,13 @@ function talismanSVG(wish,seed){random=rng([...wish].reduce((a,c,i)=>Math.imul(a
 let flecks='';for(let i=0;i<1300;i++){let x=random()*300,y=random()*600;flecks+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(.15+random()*random()*.9).toFixed(2)}" fill="#4a3214" opacity="${(.03+random()*.08).toFixed(3)}"/>`}
 const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1800" viewBox="0 0 300 600"><defs><filter id="fiber" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".55 .32" numOctaves="3" seed="${seed%97}"/><feColorMatrix values="0 0 0 0 .42 0 0 0 0 .28 0 0 0 0 .1 0 0 0 -1.5 .62"/></filter><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="4" seed="${seed%89+3}"/><feColorMatrix values="0 0 0 0 .55 0 0 0 0 .36 0 0 0 0 .12 0 0 0 1.1 -.5"/></filter><filter id="bleed" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".45" numOctaves="2" seed="${seed%71}" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.4" result="d"/><feColorMatrix in="n" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -.9 1.4" result="m"/><feComposite in="d" in2="m" operator="in"/></filter><radialGradient id="age" cx=".5" cy=".46" r=".75"><stop offset=".55" stop-color="#7a4a14" stop-opacity="0"/><stop offset=".92" stop-color="#7a4a14" stop-opacity=".28"/><stop offset="1" stop-color="#4a2a08" stop-opacity=".55"/></radialGradient></defs><rect width="300" height="600" fill="#edcc59"/><rect width="300" height="600" filter="url(#grain)"/>${flecks}<rect width="300" height="600" filter="url(#fiber)"/><g color="#a82b1e" filter="url(#bleed)">${ink}</g><rect width="300" height="600" fill="url(#age)"/></svg>`;return svg}
 const versions=[];let versionIndex=-1;
+function syncExportButtons(){
+ const hasInk=window.bujeokDrawing?.hasInk()||!!window.drawnTalisman;
+ const hasText=!!state.wish&&WISH_RE.test(state.wish);
+ for(const id of ['download','share-open'])$('#'+id).disabled=!(hasText||hasInk);
+}
 function syncHistory(){
+ syncExportButtons();
  const drawing=window.bujeokDrawing;
  $('#history-back').disabled=!(drawing?.canUndo()||versionIndex>0);
  $('#history-forward').disabled=!(drawing?.canRedo()||versionIndex<versions.length-1);
@@ -234,7 +240,7 @@ function render(){
   window.ensureBrushGlyphs(state.wish).then(()=>{if(state.wish===requested.wish&&state.seed===requested.seed){$('#download').disabled=false;$('#share-open').disabled=false;render();}}).catch(()=>{if(state.wish===requested.wish){$('#error').textContent='이 글자는 아직 지원하지 않아요. 다른 글자로 입력해주세요.';}});
   return;
  }
- const svg=state.wish?talismanSVG(state.wish,state.seed):emptyPaper();if(window.bujeokDrawing){window.bujeokDrawing.updateBase(svg,{wish:state.wish,seed:state.seed});return;}window.drawnTalisman=null;$('#paper').innerHTML=svg;$('#paper').setAttribute('aria-label',state.wish?state.wish+' 부적':'빈 부적 종이'); remember(); }
+ const svg=state.wish?talismanSVG(state.wish,state.seed):emptyPaper();if(window.bujeokDrawing){window.bujeokDrawing.updateBase(svg,{wish:state.wish,seed:state.seed});syncExportButtons();return;}window.drawnTalisman=null;$('#paper').innerHTML=svg;$('#paper').setAttribute('aria-label',state.wish?state.wish+' 부적':'빈 부적 종이'); remember(); }
 function message(s){const toast=$('#toast');toast.textContent=s;clearTimeout(message.timer);if(toast.showPopover){if(toast.hidePopover&&toast.matches(':popover-open'))toast.hidePopover();toast.showPopover()}else{(document.querySelector('dialog[open]')||document.body).append(toast)}toast.classList.add('show');message.timer=setTimeout(()=>{toast.classList.remove('show');if(toast.hidePopover&&toast.matches(':popover-open'))toast.hidePopover()},2400)}
 function generate(){const wish=$('#wish').value.trim().normalize('NFC');if(!wish){$('#error').textContent='바라는 문구를 입력해주세요.';$('#wish').focus();return false}if(!WISH_RE.test(wish)){$('#error').textContent='한글, 영어, 일본어, 숫자로 12자까지 적어주세요.';return false}$('#error').textContent='';state.wish=wish;render();return true}
 function updateWish(event){
@@ -253,7 +259,7 @@ $('#remix').onclick=()=>{state.seed++;render();};
 $('#clear-all').onclick=async()=>{
  const resume=!!window.bujeokDrawing;
  await window.finishBujeokDrawing?.();
- const {blankPaperSVG}=await import('./draw.js?v=17');
+ const {blankPaperSVG}=await import('./draw.js?v=19');
  state.wish='';window.drawnTalisman=null;
  $('#wish').value='';$('#count').textContent='0 / 12';$('#error').textContent='';
  $('#paper').innerHTML=blankPaperSVG();$('#paper').setAttribute('aria-label','빈 부적 종이');
@@ -262,7 +268,7 @@ $('#clear-all').onclick=async()=>{
  remember();
  if(resume)await window.startBujeokDrawing?.();
 };
-$('#download').onclick=async()=>{await window.finishBujeokDrawing?.();const b=$('#download');b.disabled=true;let url;try{const svg=$('#paper svg').outerHTML,urlBlob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});url=URL.createObjectURL(urlBlob);const img=new Image();img.src=url;await img.decode();const canvas=document.createElement('canvas');canvas.width=900;canvas.height=1800;canvas.getContext('2d').drawImage(img,0,0,900,1800);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('image');const output=URL.createObjectURL(blob),a=document.createElement('a');a.href=output;a.download=`부적소_${state.wish.replace(/\s/g,'')}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(output),30000);message('부적 이미지를 저장했어요.')}catch{message('저장에 실패했어요. 다시 시도해주세요.')}finally{if(url)URL.revokeObjectURL(url);b.disabled=false}};
+$('#download').onclick=async()=>{const b=$('#download');b.disabled=true;let url;try{const snapshot=await window.bujeokDrawing?.snapshot();const svg=snapshot?.svg||$('#paper svg').outerHTML,urlBlob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});url=URL.createObjectURL(urlBlob);const img=new Image();img.src=url;await img.decode();const canvas=document.createElement('canvas');canvas.width=900;canvas.height=1800;canvas.getContext('2d').drawImage(img,0,0,900,1800);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('image');const output=URL.createObjectURL(blob),a=document.createElement('a');a.href=output;a.download=`부적소_${state.wish.replace(/\s/g,'')}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(output),30000);message('부적 이미지를 저장했어요.')}catch{message('저장에 실패했어요. 다시 시도해주세요.')}finally{if(url)URL.revokeObjectURL(url);b.disabled=false}};
 const initialPresets=[...document.querySelectorAll('[data-wish]')].filter(b=>!b.hidden).map(b=>b.dataset.wish);
 state.wish=initialPresets[Math.floor(Math.random()*initialPresets.length)];
 try{localStorage.removeItem('bujeok')}catch{}
@@ -276,11 +282,12 @@ function b64urlDecode(s){s=s.replace(/-/g,'+').replace(/_/g,'/');return new Text
 function shareURL(p){const data={v:1,w:p.wish,s:p.seed,e:p.effect};if(p.from)data.n=p.from;if(p.drawn){data.d=p.drawn;if(!p.base){delete data.w;delete data.s}}return location.origin+location.pathname+'#b='+b64urlEncode(JSON.stringify(data))}
 function readShare(){const m=location.hash.match(/^#b=([A-Za-z0-9_-]{1,24000})$/);if(!m)return null;try{const d=JSON.parse(b64urlDecode(m[1])),wish=String(d.w||'').normalize('NFC');if(typeof d.d==='string'&&/^[zr][A-Za-z0-9_-]{2,20000}$/.test(d.d))return{...(WISH_RE.test(wish)&&wish.trim()&&Number.isInteger(d.s)&&d.s>0&&d.s<=1e6?{wish,seed:d.s,base:true}:{wish:'직접 쓴 부적',seed:1}),drawn:d.d,effect:d.e in EFFECTS?d.e:'exorcism',from:typeof d.n==='string'?d.n.replace(/[\u0000-\u001f]/g,'').trim().slice(0,10):''};if(!WISH_RE.test(wish)||!wish.trim()||!Number.isInteger(d.s)||d.s<1||d.s>1e6)return null;return{wish,seed:d.s,effect:d.e in EFFECTS?d.e:'exorcism',from:typeof d.n==='string'?d.n.replace(/[\u0000-\u001f]/g,'').trim().slice(0,10):''}}catch{return null}}
 function clearShareHash(){if(location.hash)history.replaceState(null,'',location.pathname+location.search)}
-async function reveal(p,preview=false){try{await window.ensureBrushGlyphs(p.wish||'');const m=await import('./reveal.js?v=25');m.play({...p,svg:p.drawn?await(await import('./draw.js?v=17')).codeToSVG(p.drawn,p.base?{wish:p.wish,seed:p.seed}:null):talismanSVG(p.wish,p.seed),preview,onClose:preview?restoreShareDialog:clearShareHash})}catch(e){console.error(e);message('연출을 불러오지 못했어요.');if(preview)restoreShareDialog();else clearShareHash()}}
+async function reveal(p,preview=false){try{await window.ensureBrushGlyphs(p.wish||'');const m=await import('./reveal.js?v=25');m.play({...p,svg:p.drawn?await(await import('./draw.js?v=19')).codeToSVG(p.drawn,p.base?{wish:p.wish,seed:p.seed}:null):talismanSVG(p.wish,p.seed),preview,onClose:preview?restoreShareDialog:clearShareHash})}catch(e){console.error(e);message('연출을 불러오지 못했어요.');if(preview)restoreShareDialog();else clearShareHash()}}
 const shareDlg=$('#share');
+let shareDrawingSnapshot=null;
 function restoreShareDialog(){if(!shareDlg.open)shareDlg.showModal();$('#share-preview').focus()}
-function currentShare(){const dr=window.drawnTalisman;return{wish:dr&&!dr.base?'직접 쓴 부적':state.wish,seed:state.seed,drawn:dr?dr.code:undefined,base:!!(dr&&dr.base),effect:shareDlg.querySelector('input[name=effect]:checked').value}}
-$('#share-open').onclick=async()=>{await window.finishBujeokDrawing?.();shareDlg.showModal()};
+function currentShare(){const dr=shareDrawingSnapshot?shareDrawingSnapshot.drawn:window.drawnTalisman;return{wish:dr&&!dr.base?'직접 쓴 부적':state.wish,seed:state.seed,drawn:dr?dr.code:undefined,base:!!(dr&&dr.base),effect:shareDlg.querySelector('input[name=effect]:checked').value}}
+$('#share-open').onclick=async()=>{try{shareDrawingSnapshot=await window.bujeokDrawing?.snapshot()||null;shareDlg.showModal()}catch(e){console.error(e);message('공유창을 열지 못했어요. 다시 시도해주세요.')}};
 $('#share-close').onclick=()=>shareDlg.close();
 shareDlg.addEventListener('click',e=>{if(e.target===shareDlg)shareDlg.close()});
 $('#share-preview').onclick=()=>{const p=currentShare();shareDlg.close();reveal(p,true)};
