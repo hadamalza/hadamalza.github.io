@@ -276,13 +276,13 @@ $('#wish').value=state.wish;$('#wish').dispatchEvent(new Event('input'));
 
 
 // ---- 공유하기: 부적(문구+획 시드)과 연출을 URL 해시에 담습니다. 서버 없이 동작해요. ----
-const EFFECTS={exorcism:'퇴마하기',moneygun:'부적폭격',descent:'행운가득'};
+const EFFECTS={exorcism:'염원 붙이기',moneygun:'부적폭격',descent:'행운가득',hearts:'하트하트'};
 function b64urlEncode(str){let bin='';new TextEncoder().encode(str).forEach(b=>bin+=String.fromCharCode(b));return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function b64urlDecode(s){s=s.replace(/-/g,'+').replace(/_/g,'/');return new TextDecoder().decode(Uint8Array.from(atob(s+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0)))}
 function shareURL(p){const data={v:1,w:p.wish,s:p.seed,e:p.effect};if(p.from)data.n=p.from;if(p.drawn){data.d=p.drawn;if(!p.base){delete data.w;delete data.s}}return location.origin+location.pathname+'#b='+b64urlEncode(JSON.stringify(data))}
 function readShare(){const m=location.hash.match(/^#b=([A-Za-z0-9_-]{1,24000})$/);if(!m)return null;try{const d=JSON.parse(b64urlDecode(m[1])),wish=String(d.w||'').normalize('NFC');if(typeof d.d==='string'&&/^[zr][A-Za-z0-9_-]{2,20000}$/.test(d.d))return{...(WISH_RE.test(wish)&&wish.trim()&&Number.isInteger(d.s)&&d.s>0&&d.s<=1e6?{wish,seed:d.s,base:true}:{wish:'직접 쓴 부적',seed:1}),drawn:d.d,effect:d.e in EFFECTS?d.e:'exorcism',from:typeof d.n==='string'?d.n.replace(/[\u0000-\u001f]/g,'').trim().slice(0,10):''};if(!WISH_RE.test(wish)||!wish.trim()||!Number.isInteger(d.s)||d.s<1||d.s>1e6)return null;return{wish,seed:d.s,effect:d.e in EFFECTS?d.e:'exorcism',from:typeof d.n==='string'?d.n.replace(/[\u0000-\u001f]/g,'').trim().slice(0,10):''}}catch{return null}}
 function clearShareHash(){if(location.hash)history.replaceState(null,'',location.pathname+location.search)}
-async function reveal(p,preview=false){try{await window.ensureBrushGlyphs(p.wish||'');const m=await import('./reveal.js?v=25');m.play({...p,svg:p.drawn?await(await import('./draw.js?v=19')).codeToSVG(p.drawn,p.base?{wish:p.wish,seed:p.seed}:null):talismanSVG(p.wish,p.seed),preview,onClose:preview?restoreShareDialog:clearShareHash})}catch(e){console.error(e);message('연출을 불러오지 못했어요.');if(preview)restoreShareDialog();else clearShareHash()}}
+async function reveal(p,preview=false){try{await window.ensureBrushGlyphs(p.wish||'');const m=await import('./reveal.js?v=36');m.play({...p,svg:p.drawn?await(await import('./draw.js?v=19')).codeToSVG(p.drawn,p.base?{wish:p.wish,seed:p.seed}:null):talismanSVG(p.wish,p.seed),preview,onClose:preview?restoreShareDialog:clearShareHash})}catch(e){console.error(e);message('연출을 불러오지 못했어요.');if(preview)restoreShareDialog();else clearShareHash()}}
 const shareDlg=$('#share');
 let shareDrawingSnapshot=null;
 function restoreShareDialog(){if(!shareDlg.open)shareDlg.showModal();$('#share-preview').focus()}

@@ -368,7 +368,7 @@ function createStage(THREE, canvas, img, effect, ui) {
     halo.position.set(hero.position.x, hero.position.y, hero.position.z - 0.3);
     if (!ended && t >= fx.endAt) { ended = true; api.fast = false; ui.end(); }
     // 결과 패널이 올라오면 부적이 가리지 않도록 살짝 위로.
-    camY += ((ended ? -0.45 : 0) - camY) * Math.min(1, dt * 3);
+    camY += ((ended ? (fx.endCameraY ?? -0.45) : 0) - camY) * Math.min(1, dt * 3);
     shake *= Math.exp(-dt * 6);
   }
 
@@ -434,6 +434,7 @@ const EFFECTS = {
 
     return {
       endAt: land + 0.6,
+      endCameraY: -0.3, // 가까이 있는 폭격 부적은 결과 화면에서 덜 올립니다.
       gravity: -2,
       update(t, dt, at) {
         at(t, fireFrom, 'burst', () => { for (let i = 0; i < 28; i++) fire(t); k.shake(0.25); });
@@ -659,6 +660,247 @@ const EFFECTS = {
           halo.material.opacity = 0.3 + 0.45 * Math.exp(-s * 1.4);
           if (Math.random() < dt * 14) sparks.spawn(rand(-2.5, 2.5), rand(-2, 2.5), rand(-0.5, 1), rand(-0.1, 0.1), rand(0.1, 0.4), 0, rand(1, 2), Math.random() < 0.5 ? 0xffe39a : 0xffffff);
         }
+      },
+    };
+  },
+  // 하트하트: 반짝이는 하트 풍선 다발이 부적을 들고 둥실 떠오르고, 자리 잡으면 풍선들이 놓여 날아가며 작은 하트가 쏟아집니다.
+  hearts(k) {
+    const { THREE, scene, hero, paperMat, sparks, halo, ui } = k;
+    scene.background = canvasTex(THREE, 512, 512, (g, w, h) => {
+      const r = g.createRadialGradient(w / 2, h * 0.42, 0, w / 2, h * 0.5, w * 0.78);
+      r.addColorStop(0, '#fff3f7'); r.addColorStop(0.35, '#ffd3e2'); r.addColorStop(0.75, '#f7a3c0'); r.addColorStop(1, '#d9708f');
+      g.fillStyle = r; g.fillRect(0, 0, w, h);
+    });
+    k.hemi.color.set(0xffffff); k.hemi.groundColor.set(0xffc6d6); k.hemi.intensity = 1.6;
+    k.key.intensity = 2.2; k.key.position.set(-3, 4, 6);
+    const fill = new THREE.PointLight(0xffe6ee, 2.2, 30, 1.2); fill.position.set(3, -1, 6); scene.add(fill);
+    halo.material.color.set(0xffd0de);
+
+    // 은은한 빛망울
+    const glowMap = glowTexture(THREE), bokeh = [];
+    for (let i = 0; i < 34; i++) {
+      const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowMap, color: [0xffffff, 0xffd6e4, 0xfff0f4][i % 3], transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+      const sc = rand(0.8, 3); m.scale.set(sc, sc, 1);
+      m.position.set(rand(-9, 9), rand(-6, 6), rand(-12, -5));
+      m.userData = { base: rand(0.08, 0.22), ph: rand(0, 6.3), vy: rand(0.1, 0.35) };
+      bokeh.push(m); scene.add(m);
+    }
+
+    // 하트 모양: 통통하게 부푼 풍선 / 납작한 하트 조각
+    const hs = new THREE.Shape();
+    hs.moveTo(0, 0.25); hs.bezierCurveTo(0, 0.25, -0.05, 0, -0.25, 0); hs.bezierCurveTo(-0.55, 0, -0.55, 0.35, -0.55, 0.35);
+    hs.bezierCurveTo(-0.55, 0.55, -0.35, 0.77, 0, 0.95); hs.bezierCurveTo(0.35, 0.77, 0.55, 0.55, 0.55, 0.35);
+    hs.bezierCurveTo(0.55, 0.35, 0.55, 0, 0.25, 0); hs.bezierCurveTo(0.1, 0, 0, 0.25, 0, 0.25);
+    // 둥근 앞면에서 가장자리로 갈 때만 하트 윤곽으로 변형합니다.
+    // 안쪽 링까지 골/꼬리를 축소 복제하지 않아 중앙에 접힌 능선이 생기지 않습니다.
+    const balloonGeo = (() => {
+      const outline=new THREE.Shape();
+      outline.moveTo(0,0.38);
+      outline.bezierCurveTo(0.17,0.58,0.39,0.58,0.51,0.39);
+      outline.bezierCurveTo(0.68,0.12,0.37,-0.22,0.025,-0.58);
+      outline.quadraticCurveTo(0,-0.605,-0.025,-0.58);
+      outline.bezierCurveTo(-0.37,-0.22,-0.68,0.12,-0.51,0.39);
+      outline.bezierCurveTo(-0.39,0.58,-0.17,0.58,0,0.38);
+      const segments=160,rings=48,edge=outline.getSpacedPoints(segments),positions=[],indices=[];
+      const depth=0.39;
+      positions.push(0,0,depth);
+      for(let ring=1;ring<rings;ring++){
+        const phi=Math.PI*ring/rings,r=Math.sin(phi),z=depth*Math.cos(phi);
+        const blend=r**4;
+        for(let i=0;i<segments;i++){
+          const p=edge[i],angle=Math.atan2(p.y,p.x);
+          const cx=0.49*Math.cos(angle),cy=0.49*Math.sin(angle);
+          positions.push(1.055*r*(cx+(p.x-cx)*blend),0.97*r*(cy+(p.y-cy)*blend),z);
+        }
+      }
+      const back=positions.length/3;positions.push(0,0,-depth);
+      for(let i=0;i<segments;i++){
+        const next=(i+1)%segments;
+        indices.push(0,1+next,1+i);
+        for(let ring=0;ring<rings-2;ring++){
+          const a=1+ring*segments+i,b=1+ring*segments+next;
+          indices.push(a,b,a+segments,b,b+segments,a+segments);
+        }
+        const last=1+(rings-2)*segments;
+        indices.push(last+i,last+next,back);
+      }
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+      g.setIndex(indices);g.computeVertexNormals();g.computeBoundingSphere();
+      return g;
+    })();
+    balloonGeo.computeBoundingBox();
+    const tipY=balloonGeo.boundingBox.min.y;
+    // 작은 둥근 매듭으로 몸통 끝과 줄을 연결합니다.
+    const knotGeo=new THREE.LatheGeometry([
+      new THREE.Vector2(0.023,-0.055),new THREE.Vector2(0.018,-0.043),
+      new THREE.Vector2(0.011,-0.025),new THREE.Vector2(0.014,-0.01),
+      new THREE.Vector2(0.018,0.004)
+    ],20);
+    knotGeo.translate(0,tipY,0);
+    const confGeo = new THREE.ShapeGeometry(hs, 10); confGeo.center(); confGeo.rotateZ(Math.PI); confGeo.scale(0.22, 0.22, 0.22);
+
+    const PAL = [0xff4f7a, 0xff7aa2, 0xff2d55, 0xffa3bd, 0xff8a80, 0xe8355f, 0xffc2d4, 0xd92b5a];
+    const balloonMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.24, metalness: 0.12, clearcoat: 1, clearcoatRoughness: 0.18, sheen: 0.6, sheenColor: 0xffe0ea, emissive: 0x5a1424, emissiveIntensity: 0.2, transparent: false, opacity: 1 });
+    const o = new THREE.Object3D(), col = new THREE.Color();
+
+    // 떠오르는 풍선 무리 (+ 부적을 든 다발)
+    const N = 46, CL = 5, NT = N + CL;
+    const balloons = new THREE.InstancedMesh(balloonGeo, balloonMat, NT);
+    const knots = new THREE.InstancedMesh(knotGeo, balloonMat, NT);
+    for (const m of [balloons, knots]) { m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; }
+    for (let i = 0; i < NT; i++) { col.set(PAL[i % PAL.length]).offsetHSL(0, rand(-0.05, 0.05), rand(-0.04, 0.04)); balloons.setColorAt(i, col); knots.setColorAt(i, col); }
+    scene.add(balloons, knots);
+    // 반투명 풍선은 개별 메시로 그려 카메라 거리순 정렬을 지원합니다.
+    const translucent=new Map();
+    for(let i=2;i<N;i+=5){
+      const mat=balloonMat.clone();
+      balloons.getColorAt(i,mat.color);
+      mat.transparent=true;mat.opacity=0.74;mat.depthWrite=false;mat.metalness=0;
+      const mesh=new THREE.Mesh(balloonGeo,mat);mesh.visible=false;
+      scene.add(mesh);translucent.set(i,mesh);
+    }
+    const SEG = 7;
+    const strPos = new Float32Array(NT * SEG * 2 * 3);
+    const strGeo = new THREE.BufferGeometry(); strGeo.setAttribute('position', new THREE.BufferAttribute(strPos, 3));
+    const strings = new THREE.LineSegments(strGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 }));
+    strings.frustumCulled = false; scene.add(strings);
+
+    const B = [];
+    function spawn(b, first) {
+      const near = Math.random() < 0.16;
+      b.x = near ? (Math.random() < 0.5 ? -1 : 1) * rand(1.9, 5) : rand(-5.5, 5.5); b.z = near ? rand(-2.6, -1.6) : rand(-7, -1.8);
+      b.y = first ? rand(-9, -3.5) : rand(-6.5, -5); b.vy = rand(0.9, 1.9) * (near ? 1.3 : 1);
+      b.s = near ? rand(1.1, 1.5) : rand(0.55, 1.05); b.ph = rand(0, 6.3); b.on = true; b.len = rand(1.1, 1.7);
+      // 회전한 풍선의 가장 앞부분도 종이 뒤에 머물도록 전체 반경을 확보합니다.
+      b.z=Math.min(b.z,-0.65-balloonGeo.boundingSphere.radius*b.s);
+    }
+    for (let i = 0; i < N; i++) { const b = {}; spawn(b, true); b.on = i < 22; if (b.on) b.y = rand(-7, -1.5); B.push(b); }
+    const OFF = [[-1.42,3.48,-0.12],[0.16,4.02,0.08],[1.45,3.16,-0.2],[-0.63,2.55,0.14],[0.65,2.49,0.02]];
+    const sizes=[0.98,0.77,0.86,0.63,0.72];
+    const C=OFF.map((d,i)=>({
+      d:[d[0]+rand(-0.12,0.12),d[1]+rand(-0.12,0.12),d[2]],
+      x:0,y:0,z:0,s:sizes[i]*rand(0.96,1.04),ph:rand(0,6.3),
+      sway:rand(0.035,0.085),pace:rand(1.05,1.65),tilt:rand(-0.09,0.09),
+      free:false,vy:0,vx:rand(-0.4,0.4)
+    }));
+
+    // 작은 하트 조각 (자리 잡을 때 화면 쪽으로 쏟아짐)
+    const NC = 260;
+    const conf = new THREE.InstancedMesh(confGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, side: THREE.DoubleSide, roughness: 0.4, emissive: 0x501020, emissiveIntensity: 0.5 }), NC);
+    conf.instanceMatrix.setUsage(THREE.DynamicDrawUsage); conf.frustumCulled = false;
+    const CP = new Float32Array(NC * 3), CV = new Float32Array(NC * 3), CR = new Float32Array(NC * 3), CW = new Float32Array(NC * 3), CS = new Float32Array(NC), CA = new Uint8Array(NC), CPH = new Float32Array(NC);
+    o.scale.setScalar(0); o.updateMatrix();
+    for (let i = 0; i < NC; i++) { conf.setMatrixAt(i, o.matrix); conf.setColorAt(i, col.set(PAL[(i * 3) % PAL.length])); }
+    scene.add(conf);
+    let cn = 0;
+    function fireConf(x, y, toward) {
+      const i = cn++ % NC, j = i * 3; CA[i] = 1; CPH[i] = rand(0, 6.3); CS[i] = Math.random() < 0.15 ? rand(2, 3.4) : rand(0.6, 1.4);
+      const a = rand(0, Math.PI * 2), sp = rand(2, 6);
+      CP[j] = x; CP[j + 1] = y; CP[j + 2] = toward ? rand(-3, 0) : 0.4;
+      CV[j] = Math.cos(a) * sp * (toward ? 0.45 : 1); CV[j + 1] = Math.sin(a) * sp * (toward ? 0.45 : 1) + 1.5; CV[j + 2] = toward ? rand(5, 10) : rand(-1.5, 1.5);
+      CR[j] = rand(0, 6); CR[j + 1] = rand(0, 6); CR[j + 2] = rand(0, 6); CW[j] = rand(-8, 8); CW[j + 1] = rand(-8, 8); CW[j + 2] = rand(-8, 8);
+    }
+
+    const rise = 0.4, land = 3.1, burst = land - 0.55, release = burst + 0.15;
+    hero.position.set(0, -8, 0.3);
+    let emitAcc = 0;
+
+    function setString(idx, ax, ay, az, bx, by, bz, t, ph) {
+      for (let sgi = 0; sgi < SEG; sgi++) {
+        const u0 = sgi / SEG, u1 = (sgi + 1) / SEG, base = (idx * SEG + sgi) * 6;
+        for (const [u, off] of [[u0, 0], [u1, 3]]) {
+          const w = Math.sin(u * Math.PI) * 0.12 * Math.sin(t * 3 + ph + u * 5);
+          strPos[base + off] = ax + (bx - ax) * u + w; strPos[base + off + 1] = ay + (by - ay) * u; strPos[base + off + 2] = az + (bz - az) * u;
+        }
+      }
+    }
+    function put(mesh, i, x, y, z, s, rx, ry, rz) {
+      const glass=mesh===balloons?translucent.get(i):null;
+      if(glass){
+        glass.visible=s>0;glass.position.set(x,y,z);glass.rotation.set(rx,ry,rz);glass.scale.setScalar(s);
+        o.scale.setScalar(0);o.updateMatrix();mesh.setMatrixAt(i,o.matrix);return;
+      }
+      o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.scale.setScalar(s); o.updateMatrix(); mesh.setMatrixAt(i, o.matrix); }
+
+    return {
+      endAt: land + 1.7,
+      gravity: -0.3,
+      update(t, dt, at) {
+        at(t, burst, 'land', () => {
+          ui.flash('#fff2f6', 0.5);
+          k.ring(0, 0, 0.3, { color: 0xff8fb0, grow: 5, dur: 1.1 });
+          k.ring(0, 0, 0.2, { color: 0xffffff, grow: 3.4, dur: 1.2, start: 0.2 });
+          sparks.burst(0, 0.2, 0.6, 120, 4.5, 1.4, [0xffffff, 0xffc2d4, 0xff7aa2]);
+          for (let i = 0; i < 40; i++) fireConf(rand(-0.6, 0.6), rand(-0.5, 1), false);
+          for (let i = 0; i < 70; i++) fireConf(rand(-1.6, 1.6), rand(-1.2, 1.6), true);
+        });
+        at(t, release, 'release', () => { C.forEach((c) => { c.free = true; c.vy = rand(1.2, 2); }); });
+
+        for (const b of bokeh) { const u = b.userData; b.position.y += u.vy * dt; if (b.position.y > 7) b.position.y = -7; b.material.opacity = u.base * seg(t, 0, 0.8) * (0.7 + 0.3 * Math.sin(t * 1.4 + u.ph)); }
+
+        // 풍선 무리 띄우기
+        emitAcc += dt * (t < land + 1 ? 9 : 4);
+        while (emitAcc >= 1) { emitAcc--; const b = B.find((x) => !x.on); if (b) spawn(b, false); }
+        for (let i = 0; i < N; i++) {
+          const b = B[i];
+          if (!b.on) { put(balloons, i, 0, 0, 0, 0, 0, 0, 0); put(knots, i, 0, 0, 0, 0, 0, 0, 0); setString(i, 0, -50, 0, 0, -50, 0, t, 0); continue; }
+          b.y += b.vy * dt;
+          const x = b.x + Math.sin(t * 0.9 + b.ph) * 0.35, ry = Math.sin(t * 0.7 + b.ph) * 0.6, rz = Math.sin(t * 1.2 + b.ph) * 0.14;
+          if (b.y > 7.5) b.on = false;
+          put(balloons, i, x, b.y, b.z, b.s, 0, ry, rz); put(knots, i, x, b.y, b.z, b.s, 0, ry, rz);
+          const ty = b.y + tipY * b.s, tx = x - Math.sin(rz) * tipY * b.s;
+          setString(i, tx, ty, b.z, tx + Math.sin(t * 0.9 + b.ph + 1) * 0.15, ty - b.len * b.s, b.z, t, b.ph);
+        }
+
+        // 부적과 그 위 풍선 다발
+        const e = ease.outCubic(seg(t, rise, land));
+        if (t < land) {
+          hero.position.set(Math.sin(t * 1.3) * 0.3 * (1 - e), -8 + 8 * e, 0.3);
+          hero.rotation.set(0, Math.sin(t * 1.1) * 0.35 * (1 - e), Math.sin(t * 1.7) * 0.08 * (1 - e));
+        } else {
+          const s = t - land;
+          hero.position.set(0, Math.sin(s * 1.3) * 0.08, 0.3);
+          hero.rotation.set(0, Math.sin(s * 0.8) * 0.22, Math.sin(s * 1.1) * 0.03);
+          paperMat.emissiveIntensity = 0.18 + 1.1 * Math.exp(-s * 2.2);
+          halo.material.opacity = 0.35 + 0.45 * Math.exp(-s * 1.4);
+          if (Math.random() < dt * 10) sparks.spawn(rand(-2.5, 2.5), rand(-2, 2.5), rand(-0.5, 1), 0, rand(0.1, 0.4), 0, rand(1, 2), Math.random() < 0.5 ? 0xffffff : 0xffc2d4);
+        }
+        const topX = hero.position.x, topY = hero.position.y + 1.55, topZ = hero.position.z;
+        C.forEach((c) => {
+          if (!c.free) { c.x = topX + c.d[0] + Math.sin(t*c.pace+c.ph)*c.sway; c.y = hero.position.y + c.d[1] + Math.sin(t*(c.pace+0.35)+c.ph)*c.sway*0.65; c.z = topZ + c.d[2]; }
+          else { c.vy += dt * 0.8; c.y += c.vy * dt; c.x += c.vx * dt; }
+        });
+        // 묶여 있을 때와 풀려난 뒤 모두 풍선 몸통 사이에 여유를 둡니다.
+        for(let pass=0;pass<3;pass++)for(let i=0;i<C.length;i++)for(let j=i+1;j<C.length;j++){
+          const a=C[i],b=C[j],dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z;
+          const dist=Math.hypot(dx,dy,dz),min=balloonGeo.boundingSphere.radius*(a.s+b.s)+0.08;
+          if(dist<min&&dist>0.0001){const push=(min-dist)/2;a.x-=dx/dist*push;a.y-=dy/dist*push;b.x+=dx/dist*push;b.y+=dy/dist*push;}
+        }
+        C.forEach((c,n)=>{
+          const i=N+n;
+          const rz = c.tilt + Math.sin(t*c.pace+c.ph)*0.07 + (c.x-topX)*0.12;
+          put(balloons, i, c.x, c.y, c.z, c.s, 0, Math.sin(t * 0.8 + c.ph) * 0.4, rz); put(knots, i, c.x, c.y, c.z, c.s, 0, 0, rz);
+          const tx = c.x, ty = c.y + tipY * c.s;
+          if (!c.free) setString(i, tx, ty, c.z, topX, topY, topZ, t, c.ph);
+          else setString(i, tx, ty, c.z, tx + Math.sin(t + c.ph) * 0.2, ty - 1.4, c.z, t, c.ph);
+        });
+        balloons.instanceMatrix.needsUpdate = true; knots.instanceMatrix.needsUpdate = true; strGeo.attributes.position.needsUpdate = true;
+
+        // 하트 조각
+        for (let i = 0; i < NC; i++) {
+          if (!CA[i]) continue; const j = i * 3;
+          if (CV[j + 2] > 2.5) { CP[j] += CV[j] * dt; CP[j + 1] += CV[j + 1] * dt; CP[j + 2] += CV[j + 2] * dt; }
+          else {
+            CV[j + 1] -= 6 * dt;
+            if (CV[j + 1] < 0) { const d = Math.max(0, 1 - 2.4 * dt); CV[j] = CV[j] * d + Math.sin(t * 2.6 + CPH[i]) * 2.4 * dt; CV[j + 1] = Math.max(CV[j + 1], -0.9); }
+            CP[j] += CV[j] * dt; CP[j + 1] += CV[j + 1] * dt; CP[j + 2] += CV[j + 2] * dt;
+          }
+          CR[j] += CW[j] * dt; CR[j + 1] += CW[j + 1] * dt; CR[j + 2] += CW[j + 2] * dt;
+          if (CP[j + 1] < -6 || CP[j + 2] > k.camera.position.z - 0.4) { CA[i] = 0; o.scale.setScalar(0); o.updateMatrix(); conf.setMatrixAt(i, o.matrix); continue; }
+          put(conf, i, CP[j], CP[j + 1], CP[j + 2], CS[i], CR[j], CR[j + 1], CR[j + 2]);
+        }
+        conf.instanceMatrix.needsUpdate = true;
       },
     };
   },

@@ -3,10 +3,10 @@
 로컬 미리보기:
 
 ```sh
-python3 -m http.server 4175 --bind 127.0.0.1
+python3 -m http.server 8000 --bind 127.0.0.1
 ```
 
-http://127.0.0.1:4175/ 에서 확인합니다.
+http://127.0.0.1:8000/ 에서 확인합니다.
 
 - `index.html`: 아카이브 홈
 - `site-assets/`: 홈 썸네일
