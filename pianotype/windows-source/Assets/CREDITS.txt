@@ -1,0 +1,41 @@
+Pianotype — Third-party notices
+
+Piano audio: Salamander Grand Piano by Alexander Holm.
+Creative Commons Attribution 3.0: https://creativecommons.org/licenses/by/3.0/
+Source: https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html
+MP3 subset from https://tonejs.github.io/audio/salamander/
+17 samples; transposed to nearest pitch with reverb during playback.
+
+Mozart — Rondo alla Turca (Turkish March), K.331.
+Edition by Rune Zedeler and Chris Sawer, Mutopia, Public Domain.
+https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=108
+
+Beethoven — Moonlight Sonata, Op.27 No.2, movement III.
+Edition by Stewart Holmes, Mutopia-2007/02/11-276.
+Creative Commons Attribution-ShareAlike 2.5:
+https://creativecommons.org/licenses/by-sa/2.5/
+https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=276
+MIDI converted to grouped keystroke events; quarter-note tempo restored to 160.
+The adapted Moonlight score in songs.json remains under CC BY-SA 2.5.
+
+James Lord Pierpont — Jingle Bells.
+MIDI arrangement by RC Digital (Piano Learning), Public Domain.
+https://piano.rc-digital.it/en/jingle-bells.html
+Converted to grouped keystroke events.
+
+Twinkle Twinkle Little Star and Für Elise: short theme arrangements
+created for Pianotype from public-domain compositions.
+
+Scores advance on eligible keystrokes, rather than the original MIDI clock.
+No endorsement by any third-party creator is implied.
+
+Additional piano arrangements included in this build:
+Flight of the Bumblebee, Can Can and Hungarian Dance No.5: piano arrangements from 8notes / Red Balloon Technology.
+https://www.8notes.com/scores/2859.asp
+https://www.8notes.com/scores/460.asp
+https://www.8notes.com/scores/9699.asp
+Secret — Piano Battle 1: transcription by Karashome; underlying composition and arrangement rights belong to their respective owners.
+https://music.karashome.pl/downloads/18,secret-jay-chou-piano-battle-1.html
+Carol of the Bells: intermediate arrangement from Playable Notes, converted for keystrokes.
+https://playablenotes.com/easy-piano/carol-of-the-bells
+Canon: user-supplied MIDI; arranger and redistribution rights not identified.
