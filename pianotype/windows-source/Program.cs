@@ -21,8 +21,8 @@ sealed class Preferences {
 sealed class MainWindow:Form {
  readonly Preferences settings=Preferences.Load();readonly List<Song> songs;
  readonly AudioEngine audio;readonly KeyboardHook hook;readonly Cursor cursor=new();
- readonly ComboBox selector=new();readonly TrackBar timeline=new(),volume=new();readonly Label elapsed=new(),total=new();
- readonly Button preview=new(),listen=new(),piano=new();readonly ToolTip tips=new(){InitialDelay=150,ReshowDelay=100};
+ readonly RoundedComboBox selector=new();readonly TrackBar timeline=new(),volume=new();readonly Label elapsed=new(),total=new();
+ readonly RoundedButton preview=new(),listen=new(),piano=new();readonly ToolTip tips=new(){InitialDelay=150,ReshowDelay=100};
  readonly System.Windows.Forms.Timer timer=new(){Interval=16};readonly NotifyIcon tray;readonly FloatingPiano floating;
  readonly Stopwatch clock=Stopwatch.StartNew();double previewAnchor,previewStart,lastStrike=-10;int previewIndex;bool previewing,listening=true,seeking;double position;
  Song Current=>songs[selector.SelectedIndex];
@@ -32,17 +32,17 @@ sealed class MainWindow:Form {
   using(var icon=Assets.Open("Pianotype.ico"))Icon=new Icon(icon);
   songs=Song.Load(Assets.Text("songs.json")).ToList();audio=new AudioEngine{Volume=Math.Clamp(settings.Volume,0,1)};floating=new FloatingPiano{Icon=Icon};
   selector.SetBounds(24,23,462,34);selector.DropDownStyle=ComboBoxStyle.DropDownList;selector.DrawMode=DrawMode.OwnerDrawFixed;selector.ItemHeight=27;selector.AccessibleName="곡 선택";selector.Items.AddRange(songs.Cast<object>().ToArray());selector.DrawItem+=DrawSong;Controls.Add(selector);
-  Button add=ButtonAt("+",496,22,40,36,Import);tips.SetToolTip(add,"MIDI 파일 추가");add.AccessibleName="MIDI 파일 추가";
-  preview=ButtonAt("▶",24,79,32,32,TogglePreview);tips.SetToolTip(preview,"곡 미리듣기 / 일시정지");preview.AccessibleName="곡 미리듣기";
-  Button reset=ButtonAt("↺",60,79,32,32,()=>Seek(0));tips.SetToolTip(reset,"처음부터");reset.AccessibleName="처음부터";
+  var add=ButtonAt("",496,22,40,36,Import);add.Icon=ButtonIcon.Add;tips.SetToolTip(add,"MIDI 파일 추가");add.AccessibleName="MIDI 파일 추가";
+  preview=ButtonAt("",24,79,32,32,TogglePreview);preview.Icon=ButtonIcon.Play;tips.SetToolTip(preview,"곡 미리듣기 / 일시정지");preview.AccessibleName="곡 미리듣기";
+  var reset=ButtonAt("",60,79,32,32,()=>Seek(0));reset.Icon=ButtonIcon.Restart;tips.SetToolTip(reset,"처음부터");reset.AccessibleName="처음부터";
   elapsed.SetBounds(100,84,43,25);elapsed.Text="0:00";Controls.Add(elapsed);
   timeline.SetBounds(145,79,335,32);timeline.TickStyle=TickStyle.None;timeline.Maximum=10000;timeline.AutoSize=false;timeline.AccessibleName="곡 위치";timeline.MouseDown+=(_,_)=>{seeking=true;StopPreview();};timeline.MouseUp+=(_,_)=>{Seek(timeline.Value/10000.0*Current.Duration);seeking=false;};timeline.KeyUp+=(_,e)=>{if(e.KeyCode is Keys.Left or Keys.Right or Keys.Home or Keys.End or Keys.PageUp or Keys.PageDown)Seek(timeline.Value/10000.0*Current.Duration);};Controls.Add(timeline);
   total.SetBounds(490,84,46,25);total.TextAlign=ContentAlignment.MiddleRight;Controls.Add(total);
   var line=new Panel{BackColor=Color.FromArgb(218,218,208)};line.SetBounds(24,127,512,1);Controls.Add(line);
   var volLabel=new Label{Text="음량",AutoSize=true};volLabel.Location=new Point(24,155);Controls.Add(volLabel);
   volume.SetBounds(70,148,152,35);volume.TickStyle=TickStyle.None;volume.Maximum=100;volume.Value=(int)(audio.Volume*100);volume.AccessibleName="음량";volume.ValueChanged+=(_,_)=>{audio.Volume=volume.Value/100f;settings.Volume=audio.Volume;};volume.MouseUp+=(_,_)=>settings.Save();Controls.Add(volume);
-  piano=ButtonAt("▥",300,146,42,36,()=>SetFloating(!settings.Floating));piano.AccessibleName="화면에 피아노 건반 표시";tips.SetToolTip(piano,"화면에 피아노 건반 표시 / 숨기기");
-  var minimize=ButtonAt("—",348,146,38,36,()=>WindowState=FormWindowState.Minimized);tips.SetToolTip(minimize,"창 최소화");minimize.AccessibleName="창 최소화";
+  piano=ButtonAt("",300,146,42,36,()=>SetFloating(!settings.Floating));piano.Icon=ButtonIcon.Piano;piano.AccessibleName="화면에 피아노 건반 표시";tips.SetToolTip(piano,"화면에 피아노 건반 표시 / 숨기기");
+  var minimize=ButtonAt("",348,146,38,36,()=>WindowState=FormWindowState.Minimized);minimize.Icon=ButtonIcon.Minimize;tips.SetToolTip(minimize,"창 최소화");minimize.AccessibleName="창 최소화";
   listen=ButtonAt("연주 끄기",400,146,136,36,()=>SetListening(!listening));listen.BackColor=Green;listen.ForeColor=Color.White;listen.AccessibleName="타이핑 연주 켜기 / 끄기";
   selector.SelectedIndexChanged+=(_,_)=>{StopPreview();Seek(0);settings.Song=Current.Title;settings.Save();};selector.SelectedIndex=Math.Max(0,songs.FindIndex(s=>s.Title==settings.Song));
   tray=new NotifyIcon{Icon=Icon,Text="Pianotype",Visible=true};var menu=new ContextMenuStrip();menu.Items.Add("Pianotype 열기",null,(_,_)=>Restore());menu.Items.Add("연주 켜기 / 끄기",null,(_,_)=>SetListening(!listening));menu.Items.Add("건반 표시 / 숨기기",null,(_,_)=>SetFloating(!settings.Floating));menu.Items.Add("종료",null,(_,_)=>Close());tray.ContextMenuStrip=menu;tray.DoubleClick+=(_,_)=>Restore();
@@ -51,15 +51,15 @@ sealed class MainWindow:Form {
   timer.Tick+=(_,_)=>Tick();timer.Start();Shown+=(_,_)=>SetFloating(settings.Floating);
   FormClosing+=(_,_)=>{settings.Save();timer.Stop();hook.Dispose();tray.Dispose();floating.Dispose();audio.Dispose();tips.Dispose();};
  }
- Button ButtonAt(string text,int x,int y,int w,int h,Action action){var b=new Button{Text=text,FlatStyle=FlatStyle.Flat,BackColor=Color.White,ForeColor=Ink,Cursor=Cursors.Hand,TabStop=true};b.FlatAppearance.BorderColor=Color.FromArgb(220,220,210);b.SetBounds(x,y,w,h);b.Click+=(_,_)=>action();Controls.Add(b);return b;}
- void DrawSong(object? sender,DrawItemEventArgs e){if(e.Index<0)return;e.DrawBackground();var s=songs[e.Index];var foreground=(e.State&DrawItemState.Selected)!=0?SystemColors.HighlightText:Ink;TextRenderer.DrawText(e.Graphics,s.Title,Font,new Rectangle(e.Bounds.X+8,e.Bounds.Y,e.Bounds.Width-95,e.Bounds.Height),foreground,TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis);TextRenderer.DrawText(e.Graphics,s.Speed,Font,new Rectangle(e.Bounds.Right-84,e.Bounds.Y,76,e.Bounds.Height),(e.State&DrawItemState.Selected)!=0?foreground:Color.Gray,TextFormatFlags.Right|TextFormatFlags.VerticalCenter);e.DrawFocusRectangle();}
+ RoundedButton ButtonAt(string text,int x,int y,int w,int h,Action action){var b=new RoundedButton{Text=text,FlatStyle=FlatStyle.Flat,BackColor=Color.White,ForeColor=Ink,Cursor=Cursors.Hand,TabStop=true};b.FlatAppearance.BorderColor=Color.FromArgb(220,220,210);b.SetBounds(x,y,w,h);b.Click+=(_,_)=>action();Controls.Add(b);return b;}
+ void DrawSong(object? sender,DrawItemEventArgs e){if(e.Index<0)return;bool selected=(e.State&DrawItemState.Selected)!=0&&(e.State&DrawItemState.ComboBoxEdit)==0;using(var background=new SolidBrush(selected?Color.FromArgb(232,238,224):Color.White))e.Graphics.FillRectangle(background,e.Bounds);var s=songs[e.Index];var foreground=Ink;TextRenderer.DrawText(e.Graphics,s.Title,Font,new Rectangle(e.Bounds.X+8,e.Bounds.Y,e.Bounds.Width-95,e.Bounds.Height),foreground,TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis);TextRenderer.DrawText(e.Graphics,s.Speed,Font,new Rectangle(e.Bounds.Right-84,e.Bounds.Y,76,e.Bounds.Height),Color.FromArgb(130,137,120),TextFormatFlags.Right|TextFormatFlags.VerticalCenter);e.DrawFocusRectangle();}
  void Restore(){Show();WindowState=FormWindowState.Normal;Activate();}
  void SetListening(bool enabled){listening=enabled;if(!enabled){StopPreview();audio.Hush();floating.Keys=[];floating.Invalidate();}listen.Text=enabled?"연주 끄기":"연주 켜기";listen.BackColor=enabled?Green:Color.White;listen.ForeColor=enabled?Color.White:Ink;tray.Text=enabled?"Pianotype · 연주 켜짐":"Pianotype · 연주 꺼짐";}
  void SetFloating(bool enabled){settings.Floating=enabled;settings.Save();piano.BackColor=enabled?Color.FromArgb(222,232,210):Color.White;if(enabled){if(!floating.Visible)floating.Show();}else floating.Hide();}
  void Strike(){if(!listening||previewing)return;double now=clock.Elapsed.TotalSeconds;var e=cursor.Strike(Current);int index=cursor.Index-1;double scoreGap=index+1<Current.Events.Length?Current.Events[index+1].Time-e.Time:.4;double actual=lastStrike<0?.18:Math.Clamp(now-lastStrike,.04,.6);audio.Play(e,true,Math.Clamp(actual/Math.Max(.025,scoreGap),.2,3));position=cursor.Index==Current.Events.Length?Current.Duration:e.Time;Highlight(e);lastStrike=now;UpdateTimeline();}
  void Highlight(ScoreEvent e){floating.Keys=e.Notes.Select(n=>n.Midi).ToHashSet();floating.Invalidate();lastStrike=clock.Elapsed.TotalSeconds;}
- void TogglePreview(){if(previewing){StopPreview();return;}if(position>=Current.Duration)Seek(0);previewStart=position;previewAnchor=clock.Elapsed.TotalSeconds;previewIndex=Array.FindIndex(Current.Events,e=>e.Time>=position);if(previewIndex<0)previewIndex=Current.Events.Length;previewing=true;preview.Text="Ⅱ";audio.Hush();}
- void StopPreview(){if(!previewing)return;previewing=false;preview.Text="▶";cursor.Seek(Current,position);audio.Hush();}
+ void TogglePreview(){if(previewing){StopPreview();return;}if(position>=Current.Duration)Seek(0);previewStart=position;previewAnchor=clock.Elapsed.TotalSeconds;previewIndex=Array.FindIndex(Current.Events,e=>e.Time>=position);if(previewIndex<0)previewIndex=Current.Events.Length;previewing=true;preview.Icon=ButtonIcon.Pause;audio.Hush();}
+ void StopPreview(){if(!previewing)return;previewing=false;preview.Icon=ButtonIcon.Play;cursor.Seek(Current,position);audio.Hush();}
  void Seek(double value){StopPreview();position=Math.Clamp(value,0,Current.Duration);cursor.Seek(Current,position);audio.Hush();floating.Keys=[];floating.Invalidate();lastStrike=-10;UpdateTimeline();}
  void Tick(){if(previewing){position=Math.Min(Current.Duration,previewStart+clock.Elapsed.TotalSeconds-previewAnchor);while(previewIndex<Current.Events.Length&&Current.Events[previewIndex].Time<=position){var e=Current.Events[previewIndex++];audio.Play(e,false);Highlight(e);}if(position>=Current.Duration)StopPreview();UpdateTimeline();}if(clock.Elapsed.TotalSeconds-lastStrike>.18&&floating.Keys.Count>0){floating.Keys=[];floating.Invalidate();}}
  void UpdateTimeline(){if(!seeking)timeline.Value=Math.Clamp((int)(position/Current.Duration*10000),0,10000);elapsed.Text=Time(position);total.Text=Time(Current.Duration);}

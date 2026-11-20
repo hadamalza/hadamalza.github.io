@@ -13,6 +13,7 @@ static class Assets {
 sealed class AudioEngine : ISampleProvider, IDisposable {
  sealed class Voice(float[] samples,double rate,double release,double fade,double gain,int midi){public float[] Samples=samples; public double Position; public double Rate=rate;public int Age;public double Release=release;public double Fade=fade;public double Gain=gain;public int Midi=midi;}
  readonly Dictionary<int,float[]> samples=[];readonly List<Voice> voices=[];readonly object gate=new();readonly IWavePlayer? output;
+ readonly MMDevice? outputDevice;
  public WaveFormat WaveFormat {get;}=WaveFormat.CreateIeeeFloatWaveFormat(44100,2);
  public float Volume=.7f;
  internal AudioEngine(Dictionary<int,float[]> buffers){foreach(var pair in buffers)samples.Add(pair.Key,pair.Value);}
@@ -27,7 +28,17 @@ sealed class AudioEngine : ISampleProvider, IDisposable {
    if(input.WaveFormat.Channels!=2)throw new InvalidDataException("지원하지 않는 음원 채널이에요.");
    var data=new List<float>();float[] buffer=new float[8192];int read;while((read=input.Read(buffer,0,buffer.Length))>0)data.AddRange(buffer.AsSpan(0,read).ToArray());samples[(octave+1)*12+i*3]=data.ToArray();
   }
-  output=new WasapiOut(AudioClientShareMode.Shared,true,50);output.Init(this);output.Play();
+  using var devices = new MMDeviceEnumerator();
+  outputDevice = devices.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+  output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, true, 50);
+  // Match the device rate before WASAPI initialization. Its automatic conversion
+  // corrupts the continuous mixer stream on 48 kHz Windows output devices.
+  ISampleProvider playback = this;
+  int deviceRate = outputDevice.AudioClient.MixFormat.SampleRate;
+  if (deviceRate != WaveFormat.SampleRate)
+   playback = new NAudio.Wave.SampleProviders.WdlResamplingSampleProvider(playback, deviceRate);
+  try { output.Init(playback); output.Play(); }
+  catch { output.Dispose(); outputDevice.Dispose(); throw; }
  }
  public void Play(ScoreEvent score,bool sustain,double scale=1){lock(gate){foreach(var note in score.Notes){int nearest=samples.Keys.MinBy(k=>Math.Abs(k-note.Midi));
   // Release the previous strike of the same key instead of cutting its tail.
@@ -47,5 +58,5 @@ sealed class AudioEngine : ISampleProvider, IDisposable {
   }
   for(int n=offset;n<offset+count;n++)buffer[n]=Math.Clamp(buffer[n],-.98f,.98f);
  }return count;}
- public void Dispose(){output?.Stop();output?.Dispose();}
+ public void Dispose(){output?.Stop();output?.Dispose();outputDevice?.Dispose();}
 }

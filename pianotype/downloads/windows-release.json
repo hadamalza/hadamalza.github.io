@@ -1,7 +1,7 @@
 {
-  "version": "1.2.1",
+  "version": "1.2.3",
   "platform": "win-x64",
-  "file": "Pianotype-1.2.1-Windows.zip",
-  "bytes": 71591985,
-  "sha256": "6651d954681fb411ca345282f8b460db0fe131f49b1269ee55c8388b570f4805"
+  "file": "Pianotype-1.2.3-Windows.zip",
+  "bytes": 72133236,
+  "sha256": "a824c42cbde2cc7ef5fe6a7dd792af3790452b8fce476d4289ce953a0266191e"
 }
