@@ -1,1 +1,2 @@
 e517f9ebbc57251ae965a9d2d009aa27e0b85487cc05d4af5f84eacdf26b18f6  Pianotype-1.2.dmg
+670aca3c396869ccd547f9a972b0a50c200b9d9d80315684b9a49fa732f6f6d1  Pianotype-1.2-Windows.zip

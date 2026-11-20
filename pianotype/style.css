@@ -94,3 +94,5 @@ body{background:#fdfdfd;color:#171717}
 .floating-piano{transition:transform 600ms cubic-bezier(.22,1,.36,1),opacity 450ms ease;will-change:transform,opacity}
 .floating-piano.is-hidden{transform:translate(-50%,calc(100% + 28px));opacity:0}
 @media(prefers-reduced-motion:reduce){.floating-piano{transition:none}}
+
+.install-tabs{display:flex;justify-content:center;gap:4px;margin:0 auto 24px;padding:4px;width:max-content;border:1px solid #e5e5e5;border-radius:12px;background:#f6f6f6}.install-tabs button{border:0;border-radius:8px;background:transparent;padding:7px 20px;font:inherit;font-size:14px;color:#777;cursor:pointer}.install-tabs button[aria-selected="true"]{background:#fff;color:#171717;box-shadow:0 1px 3px #00000012}#mobile-windows{color:#222}@media(max-width:600px){.install-tabs button{font-size:15px}}
