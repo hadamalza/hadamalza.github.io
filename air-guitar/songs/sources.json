@@ -1,0 +1,32 @@
+[
+  {
+    "id": "thunderstruck",
+    "name": "Thunderstruck — AC/DC",
+    "url": "songs/thunderstruck.mid",
+    "source": "https://bitmidi.com/ac_dc-thunderstruck-mid"
+  },
+  {
+    "id": "the-final-countdown",
+    "name": "The Final Countdown — Europe",
+    "url": "songs/the-final-countdown.mid",
+    "source": "https://bitmidi.com/the-final-countdown-mid"
+  },
+  {
+    "id": "sweet-child-o-mine",
+    "name": "Sweet Child O’ Mine — Guns N’ Roses",
+    "url": "songs/sweet-child-o-mine.mid",
+    "source": "https://bitmidi.com/guns_n_roses-sweet_child_o_mine-mid"
+  },
+  {
+    "id": "smoke-on-the-water",
+    "name": "Smoke on the Water — Deep Purple",
+    "url": "songs/smoke-on-the-water.mid",
+    "source": "https://bitmidi.com/smoke_on_the_water-mid"
+  },
+  {
+    "id": "smells-like-teen-spirit",
+    "name": "Smells Like Teen Spirit — Nirvana",
+    "url": "songs/smells-like-teen-spirit.mid",
+    "source": "https://bitmidi.com/smells-like-teen-spirit-1-mid"
+  }
+]

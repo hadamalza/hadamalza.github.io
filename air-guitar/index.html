@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirGuitarist</title>
+<style>
+  @font-face{ font-family:"Firjar"; src:url("fonts/Firjar-Variable.ttf") format("truetype"); font-style:normal; font-weight:100 800; font-stretch:75% 125%; font-display:swap; }
+  :root{ --bg:#0c0e13; --fg:#f2f4f8; --dim:#9aa3b2; --accent:#79a8ff; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family:system-ui,-apple-system,sans-serif; overflow:hidden; }
+  #stage{ position:relative; width:100vw; height:100vh; }
+  #cam,#camera-frame,#gl,#hands{ position:absolute; inset:0; width:100%; height:100%; }
+  #cam{ opacity:0; pointer-events:none; }
+  #camera-frame{ background:#000; pointer-events:none; }
+  #gl,#hands{ pointer-events:none; }
+
+  #youtube-card{ width:100%; flex-basis:100%; background:#0c0e13; border-radius:12px; overflow:hidden; }
+  .youtube-header{ display:flex; justify-content:space-between; align-items:center; padding:6px 10px; font-size:12px; }
+  .youtube-header button{ background:#202530; color:var(--fg); }
+  #youtube-player{ width:100%; height:200px; }
+  #youtube-card iframe{ display:block; width:100%; height:200px; }
+  #youtube-form{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  #youtube-url{ width:240px; max-width:100%; padding:8px; color:var(--fg); background:#202530; border:1px solid #454d5d; border-radius:8px; font:inherit; }
+  #status{ color:var(--dim); font-size:12px; }
+  #panel{ position:absolute; top:16px; left:16px; bottom:16px; width:300px; max-width:42vw; z-index:3; display:flex;
+    flex-direction:column; align-items:stretch; gap:12px; background:rgba(12,14,19,.85); padding:12px 14px;
+    border-radius:12px; backdrop-filter:blur(6px); font-size:13px; overflow-y:auto; }
+  #panel-content{ display:contents; }
+  #panel.collapsed{ bottom:auto; }
+  #panel-toggle{ margin-left:auto; background:transparent; color:var(--fg); display:flex; align-items:center; gap:5px; padding:6px 2px; font-weight:600; }
+  #panel-toggle svg{ width:12px; height:12px; flex-shrink:0; }
+  #panel.collapsed #panel-toggle svg{ transform:rotate(180deg); }
+  #panel label,.settings label{ display:flex; align-items:center; gap:6px; color:var(--dim); }
+  .settings{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:12px; max-width:680px; font-size:13px; }
+  #panel .settings{ flex-direction:column; flex-wrap:nowrap; align-items:stretch; justify-content:flex-start; max-width:none; gap:10px; }
+  #panel .notice{ flex-basis:auto; }
+  #panel #youtube-form{ flex-wrap:wrap; }
+  select{ font:inherit; color:var(--fg); background:#202530; border:1px solid #454d5d; border-radius:8px; padding:7px; max-width:200px; }
+  button.small,.file-button{ font-size:13px; padding:8px 12px; border-radius:8px; }
+  .file-button{ cursor:pointer; background:#202530; border:1px solid #454d5d; color:var(--fg) !important; }
+  .file-button input{ position:absolute; width:1px; height:1px; opacity:0; }
+  .file-button:focus-within{ outline:2px solid var(--accent); outline-offset:3px; }
+  .notice{ flex-basis:100%; font-size:12px; color:var(--dim); line-height:1.5; overflow-wrap:anywhere; }
+  #model-status[data-error="true"],#audio-status[data-error="true"]{ color:#ff8a8a; }
+  #model-status:empty{ display:none; }
+  @media(max-width:600px){
+    #panel{ width:auto; max-width:72vw; gap:10px; }
+    #panel input[type=range]{ width:100px; }
+  }
+  input[type=range]{ accent-color:var(--accent); }
+
+  #overlay{ position:absolute; inset:0; z-index:5; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:18px; text-align:center; padding:24px;
+    background:radial-gradient(circle at 50% 40%, rgba(121,168,255,.18), rgba(12,14,19,.92)); }
+  #service-name, #app-logo{ font-family:"Firjar",system-ui,sans-serif; font-synthesis:none; }
+  #service-name{ margin:0 0 10px; font-size:clamp(31px,7.2vw,65px); font-weight:700; letter-spacing:-0.025em; line-height:1.1; white-space:nowrap; }
+  #app-logo{ margin:0; font-size:clamp(16px,4.6vw,21px); font-weight:700; letter-spacing:-0.025em; line-height:1.1; white-space:nowrap; text-shadow:0 2px 12px rgba(0,0,0,.6); }
+  #service-name .brand-air, #app-logo .brand-air{ font-weight:700; color:var(--accent); letter-spacing:-0.025em; }
+  #overlay p{ max-width:440px; color:var(--dim); margin:0; line-height:1.5; }
+  #err:empty{ display:none; }
+  button{ font:inherit; font-weight:700; color:#101c35; background:var(--accent);
+    border:0; padding:14px 30px; border-radius:999px; cursor:pointer; font-size:17px; }
+  button:disabled{ opacity:.5; cursor:default; }
+  .hide{ display:none !important; }
+
+  /* ── 사이드바 컴팩트 정리 ── */
+  #panel{ width:264px; max-width:40vw; gap:12px; padding:12px 14px; font-size:12.5px; }
+  #panel-content{ display:flex; flex-direction:column; gap:14px; }
+  #panel-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  #panel-toggle{ margin:0; }
+  /* 섹션 구분 */
+  .group{ display:flex; flex-direction:column; gap:8px; }
+  .group-title{ margin:0; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--dim); border-top:1px solid #3a4150; padding-top:12px; }
+  #panel-content > .group:first-of-type .group-title{ border-top:0; padding-top:0; }
+  /* 라벨+컨트롤 그리드 정렬 */
+  #panel .group label:has(select){ display:grid; grid-template-columns:30px 1fr; align-items:center; gap:8px; }
+  #panel .group label:has(input[type=range]){ display:grid; grid-template-columns:38px 1fr; align-items:center; gap:8px; }
+  #panel label.check{ display:flex; align-items:center; gap:8px; }
+  /* 드롭다운 커스텀 화살표(오른쪽 여백 확보) */
+  #panel select{ width:100%; max-width:none; padding:6px 30px 6px 10px;
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%239aa3b2' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat; background-position:right 10px center; }
+  #panel #preview, #panel .file-button{ width:100%; justify-content:center; text-align:center; }
+  #panel #youtube-form{ gap:6px; }
+  #panel #youtube-url{ width:100%; flex-basis:100%; }
+  #panel #youtube-form button{ flex:1 1 auto; }
+  #panel .notice{ flex-basis:auto; font-size:11px; margin:0; }
+  #panel #status{ font-size:11.5px; }
+  #panel input[type=range]{ width:100%; }
+  #audio-status:empty, #youtube-status:empty, #hand-status:empty{ display:none; }
+  @media(max-width:600px){ #panel{ width:264px; max-width:calc(100vw - 32px); } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="cam" playsinline muted></video>
+  <canvas id="camera-frame"></canvas>
+  <canvas id="gl"></canvas>
+  <canvas id="hands"></canvas>
+
+  <div id="panel" class="hide">
+    <div id="panel-header">
+      <h2 id="app-logo"><span class="brand-air">Air</span>Guitarist</h2>
+      <button id="panel-toggle" class="small" type="button" aria-expanded="true" aria-controls="panel-content"><span id="panel-toggle-label">접기</span><svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="m3 9 4-4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div id="panel-content">
+    <section class="group">
+      <label>기타 <select id="model"><option value="fender">Fender Electric</option><option value="squier">Squier by Fender</option><option value="strat-blue">Fender Stratocaster Blue</option><option value="lowpoly">Low Poly Electric</option></select></label>
+      <label>곡 <select id="midi-song"><option value="">선택 없음</option><option value="__upload__">＋ 곡 추가…</option></select></label>
+      <button id="preview" class="small" type="button" aria-pressed="false">재생</button>
+      <input id="track-file" type="file" accept="audio/*,.mid,.midi" aria-label="곡 파일 추가" hidden>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">유튜브</h3>
+      <form id="youtube-form">
+        <input id="youtube-url" type="url" placeholder="유튜브 링크 붙여넣기" aria-label="유튜브 영상 링크" required>
+        <div id="youtube-card" class="hide"><div class="youtube-header"><span>YouTube</span><button id="youtube-hide" class="small" type="button" aria-label="유튜브 화면만 숨기기">화면 숨기기 ×</button></div><div id="youtube-mount"><div id="youtube-player"></div></div></div>
+        <button id="youtube-load" class="small" type="submit" disabled>유튜브 연결</button>
+        <button id="youtube-show" class="small hide" type="button">영상 화면 보기</button>
+      </form>
+      <span id="youtube-status" class="notice" role="status"></span>
+      <span id="audio-status" class="notice" role="status"></span>
+    </section>
+
+    <section class="group">
+      <h3 class="group-title">조절</h3>
+      <label>볼륨 <input id="vol" type="range" min="0" max="1" step="0.01" value="0.4"></label>
+      <label>민감도 <input id="sens" type="range" min="1.2" max="5" step="0.1" value="2.6"></label>
+      <label class="check"><input id="skel" type="checkbox" checked> 관절·손가락 표시</label>
+    </section>
+
+    <span id="status" class="notice" role="status">준비됨</span>
+    <span id="model-status" class="notice" role="status"></span>
+    <span id="hand-status" class="notice" role="status"></span>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <h1 id="service-name"><span class="brand-air">Air</span>Guitarist</h1>
+    <button id="go">시작하기</button>
+    <p id="err" role="alert" style="color:#ff8a8a"></p>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUniformsLib.js";
+import { FilesetResolver, PoseLandmarker, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+// 각 파일의 원래 축을 앱의 넥=+X, 앞면=+Z 좌표로 보정한다.
+const MODELS = {
+  fender:{ url:"models/fender_electric_guitar_3d_model.glb", basis:[[0,0,-1],[1,0,0],[0,-1,0]] },
+  // Squier 파일은 넥이 이미 +X를 향하므로 원래 축을 유지한다.
+  squier:{ url:"models/electric_guitar_squier_by_fender.glb", rotation:[0,0,0], angle:-1.02 },
+  "strat-blue":{ url:"models/fender_stratocaster_guitar_blue.glb", rotation:[0,0,0], angle:-1.02, sizeScale:0.95, materialOverrides:{Guitar:{metalness:0.1,envMapIntensity:0.65,woodTone:"#aa9278"},Buttons:{color:"#bba68b"}} },
+  lowpoly:{ url:"models/electric_guitar_lowpoly_model.glb", rotation:[Math.PI,0,-Math.atan2(0.2972196746895285,0.954809124892222)], angle:-0.82, down:0.57 },
+};
+// 기타 배치 조정 — angle: 척추 대비 넥 각도(rad), size: 어깨폭 대비 길이, down: 어깨 아래로(어깨폭 비율)
+const GUITAR = { angle: -0.42, size: 3.3, down: 0.65, yaw: 0.65 };
+
+const video   = document.getElementById("cam");
+const glCanvas = document.getElementById("gl");
+const cameraCanvas = document.getElementById("camera-frame");
+const cameraCtx = cameraCanvas.getContext("2d", {colorSpace:"srgb"});
+const capturedFrame = document.createElement("canvas");
+const capturedCtx = capturedFrame.getContext("2d", {colorSpace:"srgb"});
+let capturedFrameReady = false;
+function captureVideoFrame(){
+  if(capturedFrame.width!==video.videoWidth || capturedFrame.height!==video.videoHeight){
+    capturedFrame.width = video.videoWidth; capturedFrame.height = video.videoHeight;
+  }
+  capturedCtx.drawImage(video,0,0);
+  capturedFrameReady = true;
+  return capturedFrame;
+}
+const handCanvas = document.getElementById("hands");
+const handCtx = handCanvas.getContext("2d", {colorSpace:"srgb"});
+const personMaskCanvas = document.createElement("canvas");
+const personMaskCtx = personMaskCanvas.getContext("2d");
+const occlusionCanvas = document.createElement("canvas");
+const occlusionCtx = occlusionCanvas.getContext("2d");
+let personMaskReady = false, personMaskPixels = null;
+function updatePersonMask(mask){
+  personMaskReady = false;
+  if(!mask) return;
+  const width=Math.min(mask.width,480), height=Math.max(1,Math.round(mask.height*width/mask.width));
+  if(personMaskCanvas.width!==width || personMaskCanvas.height!==height || !personMaskPixels){
+    personMaskCanvas.width=width; personMaskCanvas.height=height;
+    personMaskPixels=personMaskCtx.createImageData(width,height);
+  }
+  const confidence=mask.getAsFloat32Array(), pixels=personMaskPixels.data;
+  // 원본 추론 해상도는 유지하고 합성용 알파만 줄여 프레임당 복사 비용을 제한한다.
+  for(let i=0;i<width*height;i++){
+    const x=Math.min(mask.width-1,Math.floor((i%width+0.5)*mask.width/width));
+    const y=Math.min(mask.height-1,Math.floor((Math.floor(i/width)+0.5)*mask.height/height));
+    const alpha=Math.max(0,Math.min(1,(confidence[y*mask.width+x]-0.28)/0.34));
+    pixels[i*4]=pixels[i*4+1]=pixels[i*4+2]=255;
+    pixels[i*4+3]=Math.round(alpha*alpha*(3-2*alpha)*255);
+  }
+  personMaskCtx.putImageData(personMaskPixels,0,0);
+  personMaskReady = true;
+}
+function composeOcclusionMask(forearm, hands, fingers = hands){
+  if(occlusionCanvas.width!==innerWidth || occlusionCanvas.height!==innerHeight){
+    occlusionCanvas.width=innerWidth; occlusionCanvas.height=innerHeight;
+  }
+  occlusionCtx.clearRect(0,0,innerWidth,innerHeight);
+  occlusionCtx.save();
+  occlusionCtx.fillStyle="white";
+  if(forearm) occlusionCtx.fill(forearm);
+  for(const hand of hands) if(hand) occlusionCtx.fill(hand);
+  if(personMaskReady){
+    // 손등과 손목도 실제 사람 윤곽으로 제한해 바깥으로 부푸는 부분을 줄인다.
+    occlusionCtx.globalCompositeOperation="destination-in";
+    const scale=Math.max(innerWidth/video.videoWidth,innerHeight/video.videoHeight);
+    const w=video.videoWidth*scale,h=video.videoHeight*scale;
+    occlusionCtx.save(); occlusionCtx.translate(innerWidth,0); occlusionCtx.scale(-1,1);
+    occlusionCtx.drawImage(personMaskCanvas,(innerWidth-w)/2,(innerHeight-h)/2,w,h);
+    occlusionCtx.restore();
+    occlusionCtx.globalCompositeOperation="source-over";
+  }
+  // 손가락만 별도로 보강해 얇은 손끝이 사람 분할에서 잘리지 않게 한다.
+  for(const finger of fingers) if(finger) occlusionCtx.fill(finger);
+  occlusionCtx.restore();
+  return occlusionCanvas;
+}
+const handStatusEl = document.getElementById("hand-status");
+const statusEl = document.getElementById("status");
+const overlay = document.getElementById("overlay");
+const panel   = document.getElementById("panel");
+const panelToggle = document.getElementById("panel-toggle");
+panelToggle.addEventListener("click", () => {
+  const collapsed = panel.classList.toggle("collapsed");
+  document.getElementById("panel-content").classList.toggle("hide", collapsed);
+  panelToggle.setAttribute("aria-expanded", String(!collapsed));
+  document.getElementById("panel-toggle-label").textContent = collapsed ? "펼치기" : "접기";
+});
+const errEl   = document.getElementById("err");
+const goBtn   = document.getElementById("go");
+const volEl   = document.getElementById("vol");
+const sensEl  = document.getElementById("sens");
+const skelEl  = document.getElementById("skel");
+const modelEl = document.getElementById("model");
+const modelStatusEl = document.getElementById("model-status");
+const playModeEl = {value:""};
+const midiSelect = document.getElementById("midi-song");
+const midiLibrary = new Map();
+const BUILTIN_SONGS = [{"id": "thunderstruck", "name": "Thunderstruck — AC/DC", "url": "songs/thunderstruck.mid", "source": "https://bitmidi.com/ac_dc-thunderstruck-mid"}, {"id": "the-final-countdown", "name": "The Final Countdown — Europe", "url": "songs/the-final-countdown.mid", "source": "https://bitmidi.com/the-final-countdown-mid"}, {"id": "sweet-child-o-mine", "name": "Sweet Child O’ Mine — Guns N’ Roses", "url": "songs/sweet-child-o-mine.mid", "source": "https://bitmidi.com/guns_n_roses-sweet_child_o_mine-mid"}, {"id": "smoke-on-the-water", "name": "Smoke on the Water — Deep Purple", "url": "songs/smoke-on-the-water.mid", "source": "https://bitmidi.com/smoke_on_the_water-mid"}, {"id": "smells-like-teen-spirit", "name": "Smells Like Teen Spirit — Nirvana", "url": "songs/smells-like-teen-spirit.mid", "source": "https://bitmidi.com/smells-like-teen-spirit-1-mid"}];
+for(const entry of BUILTIN_SONGS){
+  midiLibrary.set(entry.id,{...entry,song:null});
+  const option = document.createElement("option");
+  option.value = entry.id; option.textContent = entry.name;
+  midiSelect.insertBefore(option,midiSelect.querySelector('option[value="__upload__"]'));
+}
+let selectedMidiId = "", midiEntryId = 0;
+const previewBtn = document.getElementById("preview");
+const trackFileEl = document.getElementById("track-file");
+const audioStatusEl = document.getElementById("audio-status");
+
+// ---------- 코드(저음→고음 현) ----------
+const CHORDS = [
+  { name:"Em", f:[82.41,123.47,164.81,196.00,246.94,329.63] },
+  { name:"G",  f:[98.00,123.47,146.83,196.00,246.94,392.00] },
+  { name:"C",  f:[130.81,164.81,196.00,261.63,329.63] },
+  { name:"D",  f:[146.83,220.00,293.66,369.99] },
+];
+let chordIndex = 0;
+
+// ---------- Web Audio (Karplus–Strong) ----------
+let audio, master, lp, performanceGain, drive, cabinet, compressor, audioTick;
+let lastMotionT = -Infinity, previewUntil = 0, performanceActive = false;
+let nextNoteTime = 0, riffStep = 0;
+let trackBuffer = null, trackSource = null, trackOffset = 0, trackStartedAt = 0;
+let trackLoadRequest = 0;
+let midiSong = null, midiOffset = 0, midiStartedAt = 0, midiCursor = 0, midiRunning = false;
+function prepareMidi(parsed){
+  const pitched = parsed.tracks.filter(track => !track.instrument.percussion && track.notes.length);
+  const guitars = pitched.filter(track => track.instrument.family === "guitar");
+  const selected = guitars.length ? guitars : pitched;
+  const notes = selected.flatMap(track => track.notes.map(note => ({
+    time:note.time, duration:note.duration, midi:note.midi, velocity:note.velocity
+  }))).filter(note => Number.isFinite(note.time) && note.time>=0 &&
+    Number.isFinite(note.duration) && note.duration>0 && Number.isInteger(note.midi) && note.midi>=0 && note.midi<=127)
+    .sort((a,b) => a.time-b.time);
+  if(!notes.length) throw new Error("연주할 음표가 없는 MIDI예요.");
+  // 곡 앞의 긴 무음은 생략하고 실제 연주 시작점부터 재생한다.
+  const firstTime = notes[0].time;
+  for(const note of notes) note.time -= firstTime;
+  const duration = notes.reduce((end,note) => Math.max(end,note.time+note.duration),0);
+  return {notes, duration, guitarTracks:guitars.length};
+}
+function playMidiNote(note, time, duration){
+  playNote(440*Math.pow(2,(note.midi-69)/12),time,Math.max(0.02,Math.min(duration,1.9)),
+    0.12*Math.max(0.05,Math.min(1,note.velocity || 0.7)));
+}
+function startMidi(){
+  if(!midiSong || midiRunning) return;
+  midiStartedAt = audio.currentTime-midiOffset;
+  midiRunning = true;
+  midiCursor = midiSong.notes.findIndex(note => note.time>=midiOffset);
+  if(midiCursor<0) midiCursor=midiSong.notes.length;
+  // 일시정지 시 끊긴 긴 음도 남은 길이만큼 다시 울린다.
+  for(const note of midiSong.notes){
+    if(note.time>=midiOffset) break;
+    if(note.time+note.duration>midiOffset) playMidiNote(note,audio.currentTime+0.005,note.time+note.duration-midiOffset);
+  }
+}
+function pauseMidi(){
+  if(!midiRunning) return;
+  midiOffset = Math.max(0,audio.currentTime-midiStartedAt) % midiSong.duration;
+  midiRunning = false;
+}
+function scheduleMidi(){
+  if(!midiSong || !midiRunning) return;
+  const position = audio.currentTime-midiStartedAt;
+  if(position>=midiSong.duration){
+    midiOffset = position % midiSong.duration;
+    midiRunning = false; startMidi();
+  }
+  const horizon = audio.currentTime+0.045;
+  while(midiCursor<midiSong.notes.length){
+    const note = midiSong.notes[midiCursor];
+    const time = midiStartedAt+note.time;
+    if(time>horizon) break;
+    midiCursor++;
+    if(time+note.duration<=audio.currentTime) continue;
+    playMidiNote(note,Math.max(time,audio.currentTime+0.005),note.duration-Math.max(0,audio.currentTime-time));
+  }
+}
+
+let youtubePlayer = null, youtubeReady = false, youtubeApiPromise = null;
+let youtubeRequest = 0, youtubeHidden = false;
+const youtubeCard = document.getElementById("youtube-card");
+const youtubeStatus = document.getElementById("youtube-status");
+function parseYoutubeLink(value){
+  const url = new URL(value);
+  if(!["https:", "http:"].includes(url.protocol)) throw new Error("유튜브 링크를 입력해주세요.");
+  const host = url.hostname.toLowerCase().replace(/^www\./, "");
+  let id;
+  if(host === "youtu.be") id = url.pathname.split("/")[1];
+  else if(["youtube.com", "m.youtube.com", "music.youtube.com"].includes(host)){
+    id = url.pathname === "/watch" ? url.searchParams.get("v") :
+      /^\/(?:shorts|embed|live)\/([^/]+)/.exec(url.pathname)?.[1];
+  }
+  if(!/^[a-zA-Z0-9_-]{11}$/.test(id || "")) throw new Error("올바른 유튜브 영상 링크를 입력해주세요.");
+  const time = url.searchParams.get("t") || url.searchParams.get("start") || "0";
+  const match = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/.exec(time);
+  const startSeconds = match ? (+match[1]||0)*3600+(+match[2]||0)*60+(+match[3]||0) : 0;
+  return {videoId:id, startSeconds};
+}
+function loadYoutubeApi(){
+  if(window.YT?.Player) return Promise.resolve();
+  if(youtubeApiPromise) return youtubeApiPromise;
+  youtubeApiPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    const timer = setTimeout(() => fail(), 15000);
+    function fail(){ clearTimeout(timer); script.remove(); youtubeApiPromise = null; reject(new Error("유튜브에 연결하지 못했어요. 다시 시도해주세요.")); }
+    window.onYouTubeIframeAPIReady = () => { clearTimeout(timer); resolve(); };
+    script.src = "https://www.youtube.com/iframe_api";
+    script.onerror = fail;
+    document.head.append(script);
+  });
+  return youtubeApiPromise;
+}
+// 곡 재생은 방향 전환 중의 짧은 공백을 허용해 끊김을 줄인다.
+function motionHoldMs(){ return ["youtube","midi"].includes(playModeEl.value) ? 420 : 180; }
+function syncYoutube(){
+  if(!youtubeReady) return;
+  // 재생 판단은 updatePerformance에 모아, 플레이어 알림 시각 차이로 멈추지 않게 한다.
+  const moving = playModeEl.value === "youtube" && !document.hidden && performanceActive;
+  const state=youtubePlayer.getPlayerState();
+  if(moving){
+    if(state!==1 && state!==3) youtubePlayer.playVideo();
+  }else if(state!==2 && state!==5 && state!==-1){
+    youtubePlayer.pauseVideo();
+  }
+}
+function refreshPlaybackMode(){
+  midiSelect.value = playModeEl.value === "midi" ? selectedMidiId : "";
+  previewBtn.disabled = !playModeEl.value;
+  youtubeCard.classList.toggle("hide", playModeEl.value !== "youtube" || youtubeHidden);
+  document.getElementById("youtube-show").classList.toggle("hide", playModeEl.value !== "youtube" || !youtubeHidden);
+}
+
+const voices = new Set();
+// 원곡을 채보한 리프가 아닌, 동작 확인용 창작 E 마이너 리프.
+const RIFF = [82.41,82.41,null,98,82.41,123.47,110,null,82.41,82.41,146.83,123.47,110,98,73.42,null];
+const bufCache = new Map();
+async function initAudio(){
+  if(audio){ await audio.resume(); return; }
+  audio = new (window.AudioContext || window.webkitAudioContext)();
+  performanceGain = audio.createGain(); performanceGain.gain.value = 0;
+  lp = audio.createBiquadFilter(); lp.type = "highpass"; lp.frequency.value = 65;
+  drive = audio.createWaveShaper(); drive.oversample = "4x";
+  cabinet = audio.createBiquadFilter(); cabinet.type = "lowpass";
+  compressor = audio.createDynamicsCompressor();
+  compressor.threshold.value = -16; compressor.knee.value = 12; compressor.ratio.value = 8;
+  compressor.attack.value = 0.003; compressor.release.value = 0.1;
+  master = audio.createGain(); master.gain.value = parseFloat(volEl.value);
+  performanceGain.connect(lp); lp.connect(drive); drive.connect(cabinet);
+  cabinet.connect(compressor); compressor.connect(master); master.connect(audio.destination);
+  setTone();
+  await audio.resume();
+  audioTick = setInterval(() => updatePerformance(performance.now()), 25);
+}
+function setTone(){
+  if(!audio) return;
+  const amount = 32; // 기본 일렉 톤
+  const curve = new Float32Array(4096);
+  for(let i=0; i<curve.length; i++){
+    const x = i*2/(curve.length-1)-1;
+    curve[i] = amount ? Math.tanh(x*amount)/Math.tanh(amount) : x;
+  }
+  drive.curve = curve;
+  cabinet.frequency.setTargetAtTime(amount ? 4300 : 7000, audio.currentTime, 0.03);
+}
+function playNote(freq, time, duration, volume){
+  const src = audio.createBufferSource(); src.buffer = stringBuffer(freq);
+  const gain = audio.createGain();
+  gain.gain.setValueAtTime(0.0001, time);
+  gain.gain.exponentialRampToValueAtTime(volume, time+0.004);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time+duration);
+  src.connect(gain); gain.connect(performanceGain);
+  voices.add(src);
+  src.onended = () => { voices.delete(src); src.disconnect(); gain.disconnect(); };
+  src.start(time); src.stop(time+duration+0.01);
+}
+function startTrack(){
+  if(!trackBuffer || trackSource) return;
+  const src = audio.createBufferSource();
+  src.buffer = trackBuffer; src.loop = true;
+  // 완성된 음원은 앰프 왜곡을 거치지 않고 동작에 따른 재생과 볼륨만 적용.
+  const gain = audio.createGain(); gain.gain.value = 0;
+  gain.connect(compressor); src.connect(gain);
+  gain.gain.setTargetAtTime(1, audio.currentTime, 0.008);
+  src.onended = () => { src.disconnect(); gain.disconnect(); };
+  trackStartedAt = audio.currentTime;
+  trackSource = {src, gain};
+  src.start(0, trackOffset);
+}
+function pauseTrack(){
+  if(!trackSource) return;
+  trackOffset = (trackOffset + audio.currentTime-trackStartedAt) % trackBuffer.duration;
+  trackSource.gain.gain.cancelScheduledValues(audio.currentTime);
+  trackSource.gain.gain.setTargetAtTime(0, audio.currentTime, 0.008);
+  trackSource.src.stop(audio.currentTime+0.04);
+  trackSource = null;
+}
+function stopPerformance(){
+  lastMotionT = -Infinity; previewUntil = 0;
+  previewBtn.textContent = "재생"; previewBtn.setAttribute("aria-pressed","false");
+  if(youtubeReady && [1,3].includes(youtubePlayer.getPlayerState())) youtubePlayer.pauseVideo();
+  if(!audio) return;
+  pauseMidi();
+  performanceActive = false;
+  performanceGain.gain.cancelScheduledValues(audio.currentTime);
+  performanceGain.gain.setTargetAtTime(0, audio.currentTime, 0.008);
+  pauseTrack();
+  for(const src of voices) src.stop(audio.currentTime+0.04);
+  voices.clear();
+}
+function updatePerformance(now){
+  if(!playModeEl.value) return;
+  const moving = now < previewUntil || now-lastMotionT < motionHoldMs();
+  if(!moving){
+    if(performanceActive) stopPerformance();
+    return;
+  }
+  if(!audio || audio.state !== "running") return;
+  if(!performanceActive){
+    performanceActive = true;
+    previewBtn.textContent = "멈춤"; previewBtn.setAttribute("aria-pressed","true");
+    performanceGain.gain.setTargetAtTime(1, audio.currentTime, 0.008);
+    nextNoteTime = audio.currentTime+0.01;
+    if(playModeEl.value === "track") startTrack();
+    if(playModeEl.value === "midi") startMidi();
+    if(playModeEl.value === "youtube") syncYoutube();
+  }
+  if(playModeEl.value === "midi"){ scheduleMidi(); return; }
+  if(playModeEl.value !== "riff") return;
+  // Only schedule a short distance ahead so a stopped hand silences the riff promptly.
+  while(nextNoteTime < audio.currentTime+0.045){
+    const root = RIFF[riffStep % RIFF.length];
+    if(root){
+      playNote(root, nextNoteTime, 0.14, 0.3);
+      playNote(root*1.5, nextNoteTime+0.004, 0.12, 0.13);
+    }
+    riffStep++; nextNoteTime += 60/144/4;
+  }
+}
+function stringBuffer(freq){
+  const key = Math.round(freq);
+  if(bufCache.has(key)) return bufCache.get(key);
+  const sr = audio.sampleRate, dur = 2.0, N = Math.max(2, Math.round(sr/freq));
+  const buf = audio.createBuffer(1, Math.floor(sr*dur), sr);
+  const out = buf.getChannelData(0), ring = new Float32Array(N);
+  for(let i=0;i<N;i++) ring[i] = Math.random()*2 - 1;
+  let idx = 0;
+  for(let i=0;i<out.length;i++){
+    const cur = ring[idx], nxt = ring[(idx+1)%N];
+    out[i] = cur;
+    ring[idx] = (cur + nxt) * 0.5 * 0.996;
+    idx = (idx+1) % N;
+  }
+  bufCache.set(key, buf);
+  return buf;
+}
+function strum(dir, power){
+  if(!audio) return;
+  const freqs = CHORDS[chordIndex].f.slice();
+  if(dir < 0) freqs.reverse();            // 업스트럼은 현 순서를 뒤집음
+  const t0 = audio.currentTime + 0.01;
+  const stagger = 0.02;
+  freqs.forEach((fr, i) => {
+    const vol = Math.min(0.28, 0.09 + power*0.04) * (0.85 + Math.random()*0.15);
+    const t = t0 + i*stagger;
+    playNote(fr, t, 1.2, vol);
+  });
+}
+
+// ---------- Three.js 장면 ----------
+let renderer, scene, camera, guitar, guitarYaw, jointDots, environmentTarget, daylightFill;
+let guitarBaseScale = 1;
+let strumRegion = null, strumBounds = null;
+function setStrumRegion(model){
+  // 넥 반대쪽의 기타 몸통에 연주 영역을 배치한다.
+  const box = new THREE.Box3().setFromObject(model);
+  const width = box.max.x-box.min.x;
+  strumBounds = { minX:box.min.x+width*0.04, maxX:box.min.x+width*0.46,
+    minY:box.min.y*0.82, maxY:box.max.y*0.82, z:box.max.z+0.015 };
+  const b = strumBounds;
+  if(strumRegion){ guitarYaw.remove(strumRegion); disposeObject(strumRegion); }
+  const points = [[b.minX,b.minY],[b.maxX,b.minY],[b.maxX,b.maxY],[b.minX,b.maxY]];
+  strumRegion = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(
+    points.map(([x,y]) => new THREE.Vector3(x,y,b.z))),
+    new THREE.LineBasicMaterial({color:0x79a8ff, transparent:true, opacity:0.8, depthTest:false}));
+  strumRegion.renderOrder = 10;
+  strumRegion.visible = skelEl.checked;
+  guitarYaw.add(strumRegion);
+  resetStrum();
+}
+function strumPoint(point){
+  if(!strumBounds) return null;
+  guitar.updateWorldMatrix(true, true);
+  const z = strumBounds.z;
+  const o = guitarYaw.localToWorld(new THREE.Vector3(0,0,z));
+  const x = guitarYaw.localToWorld(new THREE.Vector3(1,0,z)).sub(o);
+  const y = guitarYaw.localToWorld(new THREE.Vector3(0,1,z)).sub(o);
+  const det = x.x*y.y-x.y*y.x;
+  if(Math.abs(det)<1) return null;
+  const dx = point.x-o.x, dy = point.y-o.y;
+  const local = {x:(dx*y.y-dy*y.x)/det, y:(x.x*dy-x.y*dx)/det};
+  const b = strumBounds;
+  return local.x>=b.minX && local.x<=b.maxX && local.y>=b.minY && local.y<=b.maxY ? local : null;
+}
+function resetStrum(allowBriefGap = false, now = performance.now()){
+  wrist[16].y = null; wrist[16].dir = 0; wrist[16].start = 0;
+  if(strumRegion) strumRegion.material.color.setHex(0x79a8ff);
+  const grace=allowBriefGap && playModeEl.value==="youtube" && performanceActive && now-lastMotionT<motionHoldMs();
+  if(now>=previewUntil && !grace) stopPerformance();
+}
+
+let modelRequest = 0, loadedModelId = null;
+const JOINT_IDS = [11,12,13,14,15,16,23,24];
+const BONES = [[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24]];
+function disposeObject(root){
+  const geometries = new Set(), materials = new Set(), textures = new Set();
+  root.traverse(node => {
+    if(node.geometry) geometries.add(node.geometry);
+    if(node.material){
+      for(const material of Array.isArray(node.material) ? node.material : [node.material]){
+        materials.add(material);
+        for(const value of Object.values(material)) if(value?.isTexture) textures.add(value);
+      }
+    }
+  });
+  geometries.forEach(value => value.dispose());
+  materials.forEach(value => value.dispose());
+  textures.forEach(value => value.dispose());
+}
+function initThree(){
+  renderer = new THREE.WebGLRenderer({ canvas:glCanvas, alpha:true, antialias:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;    // 자연스러운 명암 톤
+  renderer.toneMappingExposure = 1.05;
+  scene = new THREE.Scene();
+  camera = new THREE.OrthographicCamera(0, 1, 0, 1, -2000, 2000);
+  // 사방에서 부드럽게 비추는 환경광(이미지 기반) — 한 방향 조명의 밋밋함 제거
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const room = new RoomEnvironment();
+  environmentTarget = pmrem.fromScene(room, 0.04);
+  scene.environment = environmentTarget.texture;
+  disposeObject(room);
+  pmrem.dispose();
+  // 하늘/바닥 색의 은은한 보조광
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x4a4a55, 0.55));
+  // 3점 조명: 키(앞-위) · 필(반대쪽, 차갑게) · 림(뒤에서 윤곽)
+  const key  = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(0.6,-0.9,1.0); scene.add(key);
+  const fill = new THREE.DirectionalLight(0xcfe0ff, 0.5); fill.position.set(-0.9,0.2,0.5); scene.add(fill);
+  const rim  = new THREE.DirectionalLight(0xffffff, 0.8); rim.position.set(-0.2,0.7,-1.0); scene.add(rim);
+  // 큰 창에서 들어오는 빛처럼 넓고 약한 면광원으로 명암을 보완한다.
+  RectAreaLightUniformsLib.init();
+  daylightFill = new THREE.RectAreaLight(0xfff5e8,0.32,innerWidth,innerHeight);
+  scene.add(daylightFill);
+  guitar = new THREE.Group(); guitar.visible = false; scene.add(guitar);
+  guitarYaw = new THREE.Group(); guitar.add(guitarYaw);   // 몸 회전(yaw)용 내부 노드
+  const fallback = buildGuitar();
+  setStrumRegion(fallback);
+  guitarYaw.add(fallback); // 모델 로드 전까지 보여줄 임시 도형
+  loadModel();                      // 실제 glb 모델로 교체
+  jointDots = buildJoints(); scene.add(jointDots);
+  resize();
+}
+function buildGuitar(){
+  // 로컬 좌표: 몸통 중심 x=0, +x 방향으로 넥, 넥 끝 x≈1
+  const g = new THREE.Group();
+  const wood = new THREE.MeshStandardMaterial({ color:0xb5651d, roughness:0.55, metalness:0.05 });
+  const dark = new THREE.MeshStandardMaterial({ color:0x3a2412, roughness:0.6 });
+  const pale = new THREE.MeshStandardMaterial({ color:0xe9e2d0, roughness:0.4 });
+  const steel = new THREE.MeshStandardMaterial({ color:0xd9dde4, roughness:0.3, metalness:0.7 });
+
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.33, 36, 24), wood);
+  body.scale.set(1.0, 1.15, 0.33); body.position.x = -0.02; g.add(body);
+
+  const hole = new THREE.Mesh(new THREE.CircleGeometry(0.1, 32), dark);
+  hole.position.set(0.1, 0, 0.115); g.add(hole);
+
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.16,0.03), dark);
+  bridge.position.set(-0.16, 0, 0.11); g.add(bridge);
+
+  const neck = new THREE.Mesh(new THREE.BoxGeometry(0.62,0.075,0.06), dark);
+  neck.position.set(0.52, 0, 0.05); g.add(neck);
+  const fret = new THREE.Mesh(new THREE.BoxGeometry(0.62,0.075,0.012), new THREE.MeshStandardMaterial({color:0x241208, roughness:0.7}));
+  fret.position.set(0.52, 0, 0.086); g.add(fret);
+
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.11,0.05), wood);
+  head.position.set(0.9, 0, 0.05); g.add(head);
+
+  // 6현: 브리지에서 헤드까지
+  for(let i=0;i<6;i++){
+    const y = (i-2.5)*0.022;
+    const str = new THREE.Mesh(new THREE.BoxGeometry(1.08,0.004,0.004), steel);
+    str.position.set(0.36, y, 0.1); g.add(str);
+  }
+  const nut = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.08,0.03), pale);
+  nut.position.set(0.82, 0, 0.07); g.add(nut);
+  return g;
+}
+
+function applyWoodTone(material,tone){
+  material.onBeforeCompile=shader=>{
+    shader.uniforms.airWoodTone={value:new THREE.Color(tone)};
+    shader.fragmentShader="uniform vec3 airWoodTone;\n"+shader.fragmentShader;
+    shader.fragmentShader=shader.fragmentShader.replace("#include <map_fragment>",`
+      #include <map_fragment>
+      float yellowChroma=min(diffuseColor.r,diffuseColor.g)-diffuseColor.b;
+      float yellowHue=diffuseColor.r/max(diffuseColor.g,0.0001);
+      float woodMask=smoothstep(0.015,0.07,yellowChroma)*smoothstep(0.7,1.0,yellowHue);
+      float brightness=dot(diffuseColor.rgb,vec3(0.2126,0.7152,0.0722));
+      float woodBrightness=dot(airWoodTone,vec3(0.2126,0.7152,0.0722));
+      vec3 woodShade=airWoodTone*(brightness/max(woodBrightness,0.001))*0.88;
+      diffuseColor.rgb=mix(diffuseColor.rgb,woodShade,woodMask*0.6);
+    `);
+  };
+  material.customProgramCacheKey=()=>"air-wood-tone-v1";
+}
+function normalizeModel(inner, config){
+  if(config.materialOverrides){
+    inner.traverse(node => {
+      for(const material of node.material ? (Array.isArray(node.material) ? node.material : [node.material]) : []){
+        const overrides=config.materialOverrides[material.name];
+        if(overrides){
+          const {color,woodTone,...properties}=overrides;
+          Object.assign(material,properties);
+          if(color!==undefined) material.color.set(color);
+          if(woodTone) applyWoodTone(material,woodTone);
+        }
+      }
+    });
+  }
+  const oriented = new THREE.Group();
+  oriented.add(inner);
+  if(config.basis){
+    oriented.applyMatrix4(new THREE.Matrix4().makeBasis(
+      ...config.basis.map(axis => new THREE.Vector3(...axis))));
+  }else{
+    oriented.rotation.set(...config.rotation);
+  }
+  const box = new THREE.Box3().setFromObject(oriented);
+  const size = box.getSize(new THREE.Vector3());
+  oriented.position.sub(box.getCenter(new THREE.Vector3()));
+  const holder = new THREE.Group();
+  holder.add(oriented);
+  holder.scale.setScalar(1/(size.x || 1));
+  return holder;
+}
+async function loadModel(id = modelEl.value){
+  const target = guitarYaw;
+  const request = ++modelRequest;
+  modelStatusEl.dataset.error = "false";
+  modelStatusEl.textContent = "기타 모델 불러오는 중…";
+  try{
+    const gltf = await new GLTFLoader().loadAsync(MODELS[id].url);
+    if(request !== modelRequest || target !== guitarYaw){ disposeObject(gltf.scene); return; }
+    const holder = normalizeModel(gltf.scene, MODELS[id]);
+    strumRegion = null;
+    disposeObject(target);
+    target.clear();                                   // 임시 도형 제거
+    setStrumRegion(holder);
+    target.add(holder);
+    loadedModelId = id;
+    modelStatusEl.textContent = "";
+  }catch(err){
+    if(request !== modelRequest || target !== guitarYaw) return;
+    if(loadedModelId) modelEl.value = loadedModelId;
+    modelStatusEl.dataset.error = "true";
+    modelStatusEl.textContent = "모델을 불러오지 못했어요. 현재 기타를 유지합니다. 다른 모델을 선택해 다시 시도하세요.";
+    console.warn("기타 모델 로드 실패:", err);
+  }
+}
+
+function resize(){
+  if(!renderer || !camera) return;
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  if(daylightFill){
+    daylightFill.width=w*1.2; daylightFill.height=h*1.2;
+    daylightFill.position.set(w*0.15,h*0.1,Math.max(w,h)*0.65);
+    daylightFill.lookAt(w*0.5,h*0.55,0);
+  }
+  const handDpr = Math.min(devicePixelRatio, 2);
+  handCanvas.width = Math.round(w*handDpr); handCanvas.height = Math.round(h*handDpr);
+  handCtx.setTransform(handDpr,0,0,handDpr,0,0);
+  cameraCanvas.width = handCanvas.width; cameraCanvas.height = handCanvas.height;
+  cameraCtx.setTransform(handDpr,0,0,handDpr,0,0);
+  camera.left = 0; camera.right = w; camera.top = 0; camera.bottom = h;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize);
+
+// ---------- 좌표 매핑(object-fit:cover + 좌우반전) ----------
+function mapPoint(nx, ny){
+  const Wc = innerWidth, Hc = innerHeight;
+  const Wv = video.videoWidth || Wc, Hv = video.videoHeight || Hc;
+  const s = Math.max(Wc/Wv, Hc/Hv);
+  const offX = (Wc - Wv*s)/2, offY = (Hc - Hv*s)/2;
+  const x = offX + nx*Wv*s;
+  const y = offY + ny*Hv*s;
+  return { x: Wc - x, y };   // 화면이 거울상이라 x 반전
+}
+
+// ---------- 포즈 인식 ----------
+let pose, handTracker;
+let handLandmarks = [], handWorldLandmarks = [], latestPose = null;
+let rightHandCache = null;
+function stabilizeStrumHand(result, lm, now){
+  const landmarks=[...(result.landmarks || [])];
+  const worldLandmarks=landmarks.map((_,i)=>result.worldLandmarks?.[i] || []);
+  if(!lm || !visOk(lm[11],0.3) || !visOk(lm[12],0.3) || !visOk(lm[16],0.5)){
+    rightHandCache=null;
+    return {landmarks,worldLandmarks};
+  }
+  const anchor=mapPoint(lm[16].x,lm[16].y);
+  const left=visOk(lm[15],0.5) ? mapPoint(lm[15].x,lm[15].y) : null;
+  const a=mapPoint(lm[11].x,lm[11].y),b=mapPoint(lm[12].x,lm[12].y);
+  const span=Math.hypot(a.x-b.x,a.y-b.y);
+  const candidates=landmarks.map((hand,index)=>{
+    const p=mapPoint(hand[0].x,hand[0].y);
+    const distance=Math.hypot(p.x-anchor.x,p.y-anchor.y);
+    const leftDistance=left ? Math.hypot(p.x-left.x,p.y-left.y) : Infinity;
+    return {index,distance,leftDistance};
+  }).filter(entry=>entry.distance<span*0.6 && entry.distance<=entry.leftDistance)
+    .sort((a,b)=>a.distance-b.distance);
+  if(candidates.length){
+    const index=candidates[0].index;
+    rightHandCache={time:now,anchor:{x:lm[16].x,y:lm[16].y},
+      hand:landmarks[index].map(p=>({...p})),world:worldLandmarks[index]?.map(p=>({...p})) || []};
+  }else if(rightHandCache){
+    const cache=rightHandCache;
+    const previous=mapPoint(cache.anchor.x,cache.anchor.y);
+    if(now-cache.time<=250 && Math.hypot(anchor.x-previous.x,anchor.y-previous.y)<span*0.65){
+      // 외삽하지 않고 현재 포즈 손목의 이동량만 적용한다. 실제 영상 픽셀은 현재 프레임을 사용한다.
+      const dx=lm[16].x-cache.anchor.x,dy=lm[16].y-cache.anchor.y;
+      landmarks.push(cache.hand.map(p=>({...p,x:p.x+dx,y:p.y+dy})));
+      worldLandmarks.push(cache.world);
+    }else rightHandCache=null;
+  }
+  return {landmarks,worldLandmarks};
+}
+async function createAcceleratedTracker(Task,files,options){
+  try{
+    return await Task.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:"GPU"}});
+  }catch(err){
+    console.info("GPU 인식을 사용할 수 없어 CPU로 전환합니다.",err);
+    return Task.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:"CPU"}});
+  }
+}
+async function initPose(){
+  const files = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  pose = await createAcceleratedTracker(PoseLandmarker,files, {
+    baseOptions:{ modelAssetPath:
+      "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task" },
+    runningMode:"VIDEO", numPoses:1, outputSegmentationMasks:true });
+  try{
+    handStatusEl.textContent = "손가락 인식 모델 불러오는 중…";
+    handTracker = await createAcceleratedTracker(HandLandmarker,files, {
+      baseOptions:{ modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task" },
+      runningMode:"VIDEO", numHands:2,
+      minHandDetectionConfidence:0.45, minHandPresenceConfidence:0.45, minTrackingConfidence:0.4
+    });
+    handStatusEl.textContent = "";
+  }catch(err){
+    handStatusEl.textContent = "손가락 인식을 불러오지 못했어요. 기본 연주는 사용할 수 있습니다. 새로고침하면 다시 시도합니다.";
+    console.warn("손 추적 모델 로드 실패:", err);
+  }
+}
+
+// ---------- 손 전경 합성 · 21개 손 관절 ----------
+const HAND_FINGERS = [[0,1,2,3,4],[0,5,6,7,8],[5,9,10,11,12],[9,13,14,15,16],[13,17,18,19,20],[0,17]];
+function addCapsule(path, a, b, radiusA, radiusB = radiusA){
+  const length = Math.hypot(b.x-a.x,b.y-a.y);
+  if(length < 0.01){
+    path.moveTo(a.x+radiusA,a.y); path.arc(a.x,a.y,radiusA,0,Math.PI*2);
+    return;
+  }
+  const nx = -(b.y-a.y)/length, ny = (b.x-a.x)/length;
+  path.moveTo(a.x+nx*radiusA,a.y+ny*radiusA);
+  path.lineTo(a.x-nx*radiusA,a.y-ny*radiusA);
+  path.lineTo(b.x-nx*radiusB,b.y-ny*radiusB);
+  path.lineTo(b.x+nx*radiusB,b.y+ny*radiusB); path.closePath();
+  for(const [point,radius] of [[a,radiusA],[b,radiusB]]){
+    path.moveTo(point.x+radius,point.y); path.arc(point.x,point.y,radius,0,Math.PI*2);
+  }
+}
+function addRoundedContour(path, points){
+  const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+  const start=mix(points[0],points[points.length-1],0.2);
+  path.moveTo(start.x,start.y);
+  for(let i=0;i<points.length;i++){
+    const p=points[i],next=points[(i+1)%points.length],end=mix(p,next,0.2);
+    path.quadraticCurveTo(p.x,p.y,end.x,end.y);
+    const incoming=mix(next,p,0.2);path.lineTo(incoming.x,incoming.y);
+  }
+  path.closePath();
+}
+function addSmoothPalmContour(path,points){
+  path.moveTo(points[0].x,points[0].y);
+  for(let i=0;i<points.length;i++){
+    const prev=points[(i+points.length-1)%points.length],p=points[i];
+    const next=points[(i+1)%points.length],after=points[(i+2)%points.length];
+    // 작은 곡률만 주어 엄지와 검지 사이의 직선 절단면을 부드럽게 잇는다.
+    path.bezierCurveTo(p.x+(next.x-prev.x)*0.12,p.y+(next.y-prev.y)*0.12,
+      next.x-(after.x-p.x)*0.12,next.y-(after.y-p.y)*0.12,next.x,next.y);
+  }
+  path.closePath();
+}
+function addSmoothForearm(path,elbow,wrist,palm,elbowRadius,wristRadius){
+  const centers=[elbow,wrist,palm], radii=[elbowRadius,wristRadius,wristRadius*1.15];
+  const left=[],right=[];
+  for(let segment=0;segment<2;segment++){
+    const a=centers[segment],b=centers[segment+1];
+    const before=centers[Math.max(0,segment-1)],after=centers[Math.min(2,segment+2)];
+    const ta={x:(b.x-before.x)*0.5,y:(b.y-before.y)*0.5};
+    const tb={x:(after.x-a.x)*0.5,y:(after.y-a.y)*0.5};
+    for(let i=segment?1:0;i<=12;i++){
+      const t=i/12,t2=t*t,t3=t2*t;
+      const x=(2*t3-3*t2+1)*a.x+(t3-2*t2+t)*ta.x+(-2*t3+3*t2)*b.x+(t3-t2)*tb.x;
+      const y=(2*t3-3*t2+1)*a.y+(t3-2*t2+t)*ta.y+(-2*t3+3*t2)*b.y+(t3-t2)*tb.y;
+      const dx=(6*t2-6*t)*a.x+(3*t2-4*t+1)*ta.x+(-6*t2+6*t)*b.x+(3*t2-2*t)*tb.x;
+      const dy=(6*t2-6*t)*a.y+(3*t2-4*t+1)*ta.y+(-6*t2+6*t)*b.y+(3*t2-2*t)*tb.y;
+      const length=Math.hypot(dx,dy)||1,r=radii[segment]+(radii[segment+1]-radii[segment])*(t2*(3-2*t));
+      left.push({x:x-dy/length*r,y:y+dx/length*r});
+      right.push({x:x+dy/length*r,y:y-dx/length*r});
+    }
+  }
+  const contour=[...left,...right.reverse()];
+  const area=contour.reduce((sum,a,i)=>{const b=contour[(i+1)%contour.length];return sum+a.x*b.y-b.x*a.y;},0);
+  if(area<0)contour.reverse();
+  addRoundedContour(path,contour);
+  path.moveTo(elbow.x+elbowRadius,elbow.y);path.arc(elbow.x,elbow.y,elbowRadius,0,Math.PI*2);
+}
+function addWristBridge(path,elbow,wrist,hand,wristRadius,elbowRadius){
+  // 손등과 전완의 외곽을 함께 감싸 국소적인 V자 홈을 메운다.
+  const cloud=[];
+  const surround=(point,radius)=>{
+    for(let i=0;i<12;i++){
+      const angle=i*Math.PI/6;
+      cloud.push({x:point.x+Math.cos(angle)*radius,y:point.y+Math.sin(angle)*radius});
+    }
+  };
+  const arm={x:wrist.x+(elbow.x-wrist.x)*0.4,y:wrist.y+(elbow.y-wrist.y)*0.4};
+  surround(arm,wristRadius+(elbowRadius-wristRadius)*0.4);
+  surround(wrist,wristRadius*1.4);
+  for(const id of [1,5,9,13,17])surround(hand[id],wristRadius*0.4);
+  cloud.sort((a,b)=>a.x-b.x || a.y-b.y);
+  const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+  const lower=[],upper=[];
+  for(const p of cloud){while(lower.length>1 && cross(lower.at(-2),lower.at(-1),p)<=0)lower.pop();lower.push(p);}
+  for(let i=cloud.length-1;i>=0;i--){const p=cloud[i];while(upper.length>1 && cross(upper.at(-2),upper.at(-1),p)<=0)upper.pop();upper.push(p);}
+  const outline=[...lower.slice(0,-1),...upper.slice(0,-1)];
+  path.moveTo(outline[0].x,outline[0].y);
+  for(const p of outline.slice(1))path.lineTo(p.x,p.y);
+  path.closePath();
+}
+function addThumbWeb(path,points){
+  const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+  // 엄지 MCP와 검지 MCP 사이의 실제 살을 별도 면으로 연결한다.
+  // 손끝까지 채우지 않고 첫 마디의 일부까지만 둥근 U자 경계를 만든다.
+  const root=points[1],thumb=points[2],index=points[5];
+  const thumbEdge=mix(thumb,points[3],0.28),indexEdge=mix(index,points[6],0.25);
+  const valley=mix(thumb,index,0.72);
+  const outline=[root,thumb,thumbEdge,indexEdge,index];
+  const area=outline.reduce((sum,a,i)=>{const b=outline[(i+1)%outline.length];return sum+a.x*b.y-b.x*a.y;},0);
+  path.moveTo(root.x,root.y);
+  if(area>=0){
+    path.lineTo(thumb.x,thumb.y);path.lineTo(thumbEdge.x,thumbEdge.y);
+    path.quadraticCurveTo(valley.x,valley.y,indexEdge.x,indexEdge.y);
+    path.lineTo(index.x,index.y);
+  }else{
+    path.lineTo(index.x,index.y);path.lineTo(indexEdge.x,indexEdge.y);
+    path.quadraticCurveTo(valley.x,valley.y,thumbEdge.x,thumbEdge.y);
+    path.lineTo(thumb.x,thumb.y);
+  }
+  path.closePath();
+  // 연결부 가장자리에도 살의 두께를 주어 깊게 파인 칼날 같은 경계를 방지한다.
+  const radius=Math.min(Math.hypot(thumb.x-index.x,thumb.y-index.y)*0.045,
+    Math.hypot(thumbEdge.x-indexEdge.x,thumbEdge.y-indexEdge.y)*0.08);
+  let previous=thumbEdge;
+  for(let i=1;i<=12;i++){
+    const t=i/12,u=1-t;
+    const point={x:u*u*thumbEdge.x+2*u*t*valley.x+t*t*indexEdge.x,
+      y:u*u*thumbEdge.y+2*u*t*valley.y+t*t*indexEdge.y};
+    addCapsule(path,previous,point,radius);previous=point;
+  }
+}
+function addFingerWeb(path,points,a,b){
+  const mix=(p,q,t)=>({x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t});
+  const rootA=points[a],rootB=points[b];
+  const edgeA=mix(rootA,points[a+1],0.4),edgeB=mix(rootB,points[b+1],0.4);
+  const center=mix(mix(rootA,rootB,0.5),mix(points[a+1],points[b+1],0.5),0.08);
+  const outline=[rootA,edgeA,edgeB,rootB];
+  const area=outline.reduce((sum,p,i)=>{const q=outline[(i+1)%4];return sum+p.x*q.y-q.x*p.y;},0);
+  path.moveTo(rootA.x,rootA.y);
+  if(area>=0){
+    path.lineTo(edgeA.x,edgeA.y);path.quadraticCurveTo(center.x,center.y,edgeB.x,edgeB.y);
+    path.lineTo(rootB.x,rootB.y);
+  }else{
+    path.lineTo(rootB.x,rootB.y);path.lineTo(edgeB.x,edgeB.y);
+    path.quadraticCurveTo(center.x,center.y,edgeA.x,edgeA.y);
+  }
+  path.closePath();
+}
+function handMask(points, landmarks = [], fingersOnly = false, world = []){
+  const path = new Path2D();
+  // z는 영상 너비 기준 깊이이므로 cover 배율을 적용해 화면 픽셀로 환산한다.
+  const depthScale = Math.abs(mapPoint(1,0).x-mapPoint(0,0).x);
+  const distance3D = (a,b) => Math.hypot(points[a].x-points[b].x,points[a].y-points[b].y,
+    ((landmarks[a]?.z || 0)-(landmarks[b]?.z || 0))*depthScale);
+  const projectedWidth = Math.hypot(points[5].x-points[17].x,points[5].y-points[17].y);
+  const palmLength = distance3D(0,9);
+  const worldDistance=(a,b)=>world[a] && world[b] ? Math.hypot(world[a].x-world[b].x,world[a].y-world[b].y,world[a].z-world[b].z) : 0;
+  // 여러 3D 손바닥 뼈에서 화면 배율을 추정해 옆으로 돌아도 두께를 유지한다.
+  const ratios=[];
+  for(const [a,b] of [[0,5],[0,9],[0,13],[0,17],[5,17]]){
+    const physicalLength=worldDistance(a,b);
+    if(physicalLength>0.005){const ratio=distance3D(a,b)/physicalLength;if(Number.isFinite(ratio))ratios.push(ratio);}
+  }
+  ratios.sort((a,b)=>a-b);
+  const pixelsPerMeter=ratios.length ? ratios[Math.floor(ratios.length/2)] : 0;
+  const physicalWidth=worldDistance(5,17)*pixelsPerMeter;
+  const width = Math.max(projectedWidth,Math.min(distance3D(5,17),palmLength*1.1),palmLength*0.65,physicalWidth);
+  if(width < 5) return null;
+  if(!fingersOnly){
+    // 손등 윤곽은 엄지 관절 바깥까지 과하게 부풀리지 않는다.
+    // 손목 폭을 유지하고 끝은 짧은 타원형으로 둥글게 마감한다.
+    const wristPoint = points[0];
+    const dx = points[9].x-wristPoint.x, dy = points[9].y-wristPoint.y;
+    const length = Math.hypot(dx,dy) || 1;
+    let nx = -dy/length, ny = dx/length;
+    if((points[1].x-wristPoint.x)*nx+(points[1].y-wristPoint.y)*ny<0){ nx=-nx; ny=-ny; }
+    const base = {x:wristPoint.x-dx/length*width*0.10, y:wristPoint.y-dy/length*width*0.10};
+    // 옆으로 돌 때 손목 폭은 줄이되 살의 두께는 남긴다.
+    const halfWidth = Math.max(width*0.176,projectedWidth*0.275);
+    const palm = [
+      {x:base.x+nx*halfWidth,y:base.y+ny*halfWidth},
+      ...[1,5,9,13,17].map(id => points[id]),
+      {x:base.x-nx*halfWidth,y:base.y-ny*halfWidth}
+    ];
+    const area = palm.reduce((sum,a,i) => {
+      const b = palm[(i+1)%palm.length];
+      return sum+a.x*b.y-b.x*a.y;
+    },0);
+    if(area<0) palm.reverse();
+    const center=palm.reduce((sum,p)=>({x:sum.x+p.x/palm.length,y:sum.y+p.y/palm.length}),{x:0,y:0});
+    const outline=palm.map(p=>{
+      const dx=p.x-center.x,dy=p.y-center.y,length=Math.hypot(dx,dy)||1;
+      return {x:p.x+dx/length*width*0.025,y:p.y+dy/length*width*0.025};
+    });
+    addSmoothPalmContour(path,outline);
+    // 손목 단면에 타원을 합쳐 직선으로 잘린 경계를 없앤다.
+    path.moveTo(base.x+nx*halfWidth,base.y+ny*halfWidth);
+    path.ellipse(base.x,base.y,halfWidth,width*0.12,Math.atan2(ny,nx),0,Math.PI*2);
+    path.closePath();
+  }
+  for(const ids of [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]]){
+    for(let i=0;i<ids.length-1;i++){
+      const thumb=ids[0]===1;
+      const boneRadius=worldDistance(ids[0],ids[1])*pixelsPerMeter*(thumb?0.28:0.24);
+      const radius=Math.max(width*(thumb?0.18:0.16),boneRadius);
+      const depthGain=id=>1+Math.max(0,Math.min(0.2,((landmarks[0]?.z||0)-(landmarks[id]?.z||0))*1.5));
+      const r=radius*0.95*(1-i*0.04);
+      const a=points[ids[i]],b=points[ids[i+1]];
+      const tipTaper=i===ids.length-2 ? 0.9 : 1;
+      const radiusA=r*depthGain(ids[i]),radiusB=r*0.98*depthGain(ids[i+1])*tipTaper;
+      let end=b;
+      if(i===ids.length-2){
+        // 끝 관절은 손끝 표면에 가까우므로 둥근 캡 중심을 안쪽으로 이동한다.
+        const length=Math.hypot(b.x-a.x,b.y-a.y);
+        const inset=Math.min(radiusB*0.75,length*0.45);
+        if(length>0.01)end={x:b.x-(b.x-a.x)/length*inset,y:b.y-(b.y-a.y)/length*inset};
+      }
+      addCapsule(path,a,end,radiusA,radiusB);
+    }
+  }
+  addThumbWeb(path,points);
+  for(const [a,b] of [[5,9],[9,13],[13,17]])addFingerWeb(path,points,a,b);
+  return path;
+}
+function drawCameraFrame(){
+  if(!capturedFrameReady) return;
+  const scale = Math.max(innerWidth/video.videoWidth,innerHeight/video.videoHeight);
+  const width = video.videoWidth*scale, height = video.videoHeight*scale;
+  cameraCtx.save();
+  cameraCtx.translate(innerWidth,0); cameraCtx.scale(-1,1);
+  cameraCtx.drawImage(capturedFrame,(innerWidth-width)/2,(innerHeight-height)/2,width,height);
+  cameraCtx.restore();
+}
+function rightForearmMask(){
+  if(!latestPose || !visOk(latestPose[14],0.5) || !visOk(latestPose[16],0.5) ||
+    !visOk(latestPose[11],0.3) || !visOk(latestPose[12],0.3)) return null;
+  const elbow = mapPoint(latestPose[14].x,latestPose[14].y);
+  const poseWrist = mapPoint(latestPose[16].x,latestPose[16].y);
+  const a = mapPoint(latestPose[11].x,latestPose[11].y);
+  const b = mapPoint(latestPose[12].x,latestPose[12].y);
+  const scale = Math.hypot(a.x-b.x,a.y-b.y);
+  const candidates = handLandmarks.map(hand => ({hand,point:mapPoint(hand[0].x,hand[0].y)}))
+    .map(entry => ({...entry,distance:Math.hypot(entry.point.x-poseWrist.x,entry.point.y-poseWrist.y)}))
+    .filter(entry => entry.distance<scale*0.5)
+    .sort((a,b) => a.distance-b.distance);
+  const matched = candidates[0];
+  // 손과 팔이 서로 다른 손목 추정점을 사용해 벌어지지 않도록 일치시킨다.
+  const wrist = matched ? matched.point : poseWrist;
+  let wristRadius = scale*0.065;
+  let palmPoint = null;
+  if(matched){
+    const hand = matched.hand;
+    const palm = mapPoint(hand[9].x,hand[9].y);
+    const index = mapPoint(hand[5].x,hand[5].y), pinky = mapPoint(hand[17].x,hand[17].y);
+    const depthScale = Math.abs(mapPoint(1,0).x-mapPoint(0,0).x);
+    const palmWidth = Math.max(
+      Math.hypot(index.x-pinky.x,index.y-pinky.y,((hand[5].z||0)-(hand[17].z||0))*depthScale),
+      Math.hypot(palm.x-wrist.x,palm.y-wrist.y)*0.65);
+    wristRadius = Math.max(scale*0.05,Math.min(scale*0.094,palmWidth*0.286));
+    palmPoint = {x:wrist.x+(palm.x-wrist.x)*0.35,y:wrist.y+(palm.y-wrist.y)*0.35};
+  }
+  const mask = new Path2D();
+  const elbowRadius=personMaskReady ? Math.max(wristRadius*1.8,scale*0.15) : Math.max(wristRadius*1.15,scale*0.09);
+  if(palmPoint){
+    // 팔꿈치부터 손바닥까지 연속 곡선으로 잇고 손목에는 둥근 끝마개를 만들지 않는다.
+    addSmoothForearm(mask,elbow,wrist,palmPoint,elbowRadius,Math.max(wristRadius,scale*0.06));
+    if(personMaskReady){
+      const hand=matched.hand.map(point=>mapPoint(point.x,point.y));
+      addWristBridge(mask,elbow,wrist,hand,wristRadius,elbowRadius);
+    }
+  }else{
+    addCapsule(mask,wrist,elbow,wristRadius,elbowRadius);
+  }
+  if(!matched && visOk(latestPose[20],0.5)){
+    const finger = mapPoint(latestPose[20].x,latestPose[20].y);
+    addCapsule(mask,wrist,finger,scale*0.055,scale*0.045);
+  }
+  return mask;
+}
+function drawHands(){
+  handCtx.clearRect(0,0,innerWidth,innerHeight);
+  if(video.readyState<2) return;
+  const mapped = handLandmarks.map(hand => hand.map(p => mapPoint(p.x,p.y)));
+  if(guitar?.visible){
+    // 오른쪽 전완과 양손을 같은 카메라 프레임으로 합성한다.
+    const hands=mapped.map((points,i) => handMask(points,handLandmarks[i],false,handWorldLandmarks[i]));
+    const fingers=mapped.map((points,i) => handMask(points,handLandmarks[i],true,handWorldLandmarks[i]));
+    const mask=composeOcclusionMask(rightForearmMask(),hands,fingers);
+    handCtx.save();
+    handCtx.drawImage(cameraCanvas,0,0,innerWidth,innerHeight);
+    handCtx.globalCompositeOperation="destination-in";
+    handCtx.drawImage(mask,0,0,innerWidth,innerHeight);
+    handCtx.restore();
+  }
+  if(skelEl.checked){
+    handCtx.strokeStyle = "#6cf0a0"; handCtx.fillStyle = "#bed4ff";
+    handCtx.lineWidth = 2; handCtx.lineCap = "round";
+    for(const points of mapped){
+      handCtx.beginPath();
+      for(const finger of HAND_FINGERS){
+        handCtx.moveTo(points[finger[0]].x,points[finger[0]].y);
+        for(const id of finger.slice(1)) handCtx.lineTo(points[id].x,points[id].y);
+      }
+      handCtx.stroke();
+      for(const point of points){ handCtx.beginPath(); handCtx.arc(point.x,point.y,3,0,Math.PI*2); handCtx.fill(); }
+    }
+  }
+}
+
+// ---------- 스트럼 감지 상태 ----------
+const wrist = {
+  16:{ y:null, dir:0, start:0 },   // 오른손 = 스트럼 손(세로 스윙 추적)
+};
+let lastStrum = 0;
+let lastReadyT = 0;
+
+const VIS = 0.55;                                 // 랜드마크 신뢰도 임계값(기본)
+const sm = { init:false, bx:0, by:0, vx:0, vy:0, yaw:0, width:0, yawTime:0 }; // 기타 변환 평활 상태
+function resetTracking(allowBriefGap = false, now = performance.now()){
+  resetStrum(allowBriefGap,now);
+  sm.init = false; sm.yaw = 0; sm.yawTime = 0;
+  wrist[16].y = null; wrist[16].dir = 0; wrist[16].start = 0;
+  lastReadyT = 0;
+  if(guitar) guitar.visible = false;
+  if(jointDots) jointDots.visible = false;
+}
+function visOk(p, th){ th = (th===undefined ? VIS : th);
+  return p && (p.visibility===undefined || p.visibility>th)
+  && p.x>0.02 && p.x<0.98 && p.y>0.02 && p.y<0.98; }
+
+function bodyYawFromPose(lm, worldLm){
+  if(!visOk(lm[11],0.6) || !visOk(lm[12],0.6)) return null;
+  const left = worldLm?.[11] || lm[11], right = worldLm?.[12] || lm[12];
+  const dx = right.x-left.x, dz = right.z-left.z;
+  if(!Number.isFinite(dx) || !Number.isFinite(dz)) return null;
+  return Math.max(-0.48,Math.min(0.48,Math.atan2(dz,Math.max(0.001,Math.abs(dx)))*GUITAR.yaw));
+}
+function updateFromPose(lm, now, worldLm = null){
+  const Ls=lm[11], Rs=lm[12];
+  // 관절 표시는 인식 상태와 무관하게 항상 그린다(디버그용)
+  if(skelEl.checked) drawJoints(lm); else jointDots.visible = false;
+  // 어깨만 보이는 상반신 구도에서도 기타를 유지한다.
+  const ready = visOk(Ls,0.3) && visOk(Rs,0.3);
+  if(!ready){
+    resetStrum(true,now);
+    if(now-lastReadyT<500) return;
+    resetTracking(true,now);
+    statusEl.textContent = "양 어깨가 화면에 보이게 자세를 잡아주세요";
+    return;
+  }
+  lastReadyT = now;
+  statusEl.textContent = "기타 몸통의 표시 영역 안에서 오른손을 흔들어주세요";
+
+  // ---- 어깨만으로 안정적으로 배치 (엉덩이 추정 없음) ----
+  const a = mapPoint(Ls.x, Ls.y), b = mapPoint(Rs.x, Rs.y);  // 두 어깨(화면 px)
+  const sc = { x:(a.x+b.x)/2, y:(a.y+b.y)/2 };               // 어깨 중앙
+  const sw = Math.hypot(a.x-b.x, a.y-b.y) || 1;              // 어깨 너비 = 크기 기준(안정적)
+  // 어깨선에 수직인 '아래' 방향 — 항상 화면 아래를 향하게 고정(위로 뒤집힘 방지)
+  let dnx = (a.y-b.y)/sw, dny = -(a.x-b.x)/sw;
+  if(dny < 0){ dnx=-dnx; dny=-dny; }
+  const upx = -dnx, upy = -dny;                              // 척추(위) 방향
+
+  // 기타 중심: 어깨 중앙에서 가슴 쪽으로 조금 내림 (어깨폭 비율)
+  const down = MODELS[loadedModelId]?.down ?? GUITAR.down;
+  const bx = sc.x + dnx*sw*down;
+  const by = sc.y + dny*sw*down;
+  // 넥 방향 = 척추를 각도만큼 회전
+  const angle = MODELS[loadedModelId]?.angle ?? GUITAR.angle;
+  const cA = Math.cos(angle), sA = Math.sin(angle);
+  const nx = upx*cA - upy*sA, ny = upx*sA + upy*cA;
+
+  // 지수 평활(EMA) — 위치·각도를 부드럽게 해 떨림 제거
+  if(!sm.init){ sm.bx=bx; sm.by=by; sm.vx=nx; sm.vy=ny; sm.width=sw; sm.init=true; }
+  const al = 0.25;
+  sm.bx += (bx-sm.bx)*al; sm.by += (by-sm.by)*al;
+  sm.vx += (nx-sm.vx)*al; sm.vy += (ny-sm.vy)*al;
+
+  guitar.visible = true;
+  guitar.position.set(sm.bx, sm.by, 0);
+  guitar.rotation.z = Math.atan2(sm.vy, sm.vx);
+  sm.width += Math.max(-sm.width*0.08,Math.min(sm.width*0.08,sw-sm.width))*0.2;
+  guitarBaseScale = sm.width * GUITAR.size * (MODELS[loadedModelId]?.sizeScale ?? 1);
+
+  // 어깨의 3D 방향으로 몸 회전을 추정하고, 잡음과 급격한 회전은 억제한다.
+  const targetYaw = bodyYawFromPose(lm,worldLm);
+  const dt = sm.yawTime ? Math.min(0.1,Math.max(0,(now-sm.yawTime)/1000)) : 1/30;
+  sm.yawTime = now;
+  if(targetYaw !== null){
+    const delta = targetYaw-sm.yaw;
+    if(Math.abs(delta)>0.025){
+      const step = delta*(1-Math.exp(-dt/0.25));
+      sm.yaw += Math.max(-0.9*dt,Math.min(0.9*dt,step));
+    }
+  }
+  // 넥 기준 축이 아닌 몸의 세로축을 중심으로 돌려 실제 몸 회전처럼 보이게 한다.
+  const theta = guitar.rotation.z;
+  const rotationAxis = new THREE.Vector3(
+    dnx*Math.cos(theta)+dny*Math.sin(theta),
+    -dnx*Math.sin(theta)+dny*Math.cos(theta),0).normalize();
+  guitarYaw.quaternion.setFromAxisAngle(rotationAxis,sm.yaw);
+
+  // 오른손은 기타 영역 안에 있어야 하며, 코드 모드에서만 왼손도 필요하다.
+  const fretOk  = playModeEl.value !== "chords" || visOk(lm[15], 0.5);   // 왼손(코드)
+  const strumOk = visOk(lm[16], 0.5);   // 오른손(스트럼)
+  if(!(fretOk && strumOk)){
+    statusEl.textContent = playModeEl.value === "chords" ? "왼손과 오른손이 화면에 보이게 해주세요" : "오른손이 화면에 보이게 해주세요";
+    resetStrum(true,now);
+    return;
+  }
+  statusEl.textContent = "기타 영역 안에서 오른손을 흔들면 연주 · 멈추거나 벗어나면 일시정지";
+
+  // 코드: 왼손 높이 (어깨 위 1칸 ~ 아래 1.5칸 범위를 코드 수로 분할)
+  if(playModeEl.value === "chords"){
+    const fp = mapPoint(lm[15].x, lm[15].y);
+    let frac = (fp.y - (sc.y - sw)) / (sw*2.5);
+    frac = Math.min(0.999, Math.max(0, frac));
+    chordIndex = Math.floor(frac * CHORDS.length);
+  }
+
+  // 스트럼: 기타 영역 안에서 현을 가로지르는 스윙 — 방향 전환 + 진폭 임계
+  const handPoint = mapPoint(lm[16].x, lm[16].y);
+  const local = strumPoint(handPoint);
+  if(!local){ resetStrum(true,now); statusEl.textContent = "오른손을 기타 몸통의 표시 영역 안으로 옮겨주세요"; return; }
+  strumRegion.material.color.setHex(0x6cf0a0);
+  // 움직임은 화면 좌표로 측정해 기타 이동·확대 효과의 영향을 제거한다.
+  const sp = {y:handPoint.y};
+  const st = wrist[16];
+  if(st.y === null || now-st.sampleTime > 500){
+    st.y = sp.y; st.start = sp.y; st.dir = 0;
+    st.filteredY = sp.y; st.samples = [{time:now,y:sp.y}]; st.sampleTime = now;
+  }
+  else {
+    const sampleGap=now-st.sampleTime;
+    st.filteredY += (sp.y-st.filteredY)*0.6;
+    sp.y = st.filteredY;
+    st.sampleTime = now;
+    st.samples.push({time:now,y:sp.y});
+    const windowMs=Math.min(400,Math.max(250,sampleGap*1.5));
+    while(st.samples.length>2 && now-st.samples[0].time>windowMs) st.samples.shift();
+    const dy = sp.y - st.y;
+    const minAmp = (6.2 - parseFloat(sensEl.value)) * 0.03 * sw;
+    // 왕복 중 시작점으로 돌아와도 실제 스윙 폭을 인정한다.
+    const positions = st.samples.map(sample => sample.y);
+    const movement = Math.max(...positions)-Math.min(...positions);
+    const continuing = performanceActive && now-lastMotionT < motionHoldMs();
+    const threshold = continuing ? Math.max(3.5,minAmp*0.10) : Math.max(4.5,minAmp*0.14);
+    const intentionalMotion = movement>threshold;
+    if(intentionalMotion){
+      lastMotionT = now;
+      updatePerformance(now);
+    }
+    if(Math.abs(dy) > 0.8){                    // 미세 떨림 무시
+      const d = Math.sign(dy);
+      if(st.dir === 0){ st.dir = d; st.start = st.y; }
+      else if(d !== st.dir){                   // 방향이 바뀜 = 한 스윙 완료
+        const amp = Math.abs(st.y - st.start);
+        if(amp > minAmp && now - lastStrum > 140 && now-lastMotionT<130){
+          lastStrum = now;
+          if(playModeEl.value === "chords") strum(st.dir, amp/minAmp);
+            }
+        st.dir = d; st.start = st.y;            // 새 스윙 시작점
+      }
+      st.y = sp.y;
+    }
+  }
+}
+
+
+function buildJoints(){
+  const group = new THREE.Group();
+  const lineMat = new THREE.LineBasicMaterial({ color:0x6cf0a0 });
+  for(const bone of BONES){
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(new Float32Array(6), 3));
+    const line = new THREE.Line(geometry, lineMat);
+    line.userData.bone = bone;
+    line.frustumCulled = false;
+    group.add(line);
+  }
+  const dotMat = new THREE.MeshBasicMaterial({ color:0x6cf0a0 });
+  const dotGeometry = new THREE.CircleGeometry(10,20);
+  for(const id of JOINT_IDS){
+    const dot = new THREE.Mesh(dotGeometry, dotMat);
+    dot.userData.joint = id;
+    group.add(dot);
+  }
+  group.visible = false;
+  return group;
+}
+function drawJoints(lm){
+  jointDots.visible = true;
+  const pt = {};
+  for(const i of JOINT_IDS){ if(lm[i]) pt[i] = mapPoint(lm[i].x, lm[i].y); }
+  for(const node of jointDots.children){
+    if(node.isLine){
+      const [a,b] = node.userData.bone;
+      node.visible = !!(pt[a] && pt[b]);
+      if(!node.visible) continue;
+      const positions = node.geometry.getAttribute("position");
+      positions.setXYZ(0, pt[a].x, pt[a].y, 2);
+      positions.setXYZ(1, pt[b].x, pt[b].y, 2);
+      positions.needsUpdate = true;
+    }else{
+      const point = pt[node.userData.joint];
+      node.visible = !!point;
+      if(point) node.position.set(point.x, point.y, 3);
+    }
+  }
+}
+
+// ---------- 메인 루프 ----------
+let lastVideoTime = -1, animationFrame = null, activeStream = null;
+function loop(){
+  animationFrame = requestAnimationFrame(loop);
+  if(pose && video.readyState>=2){
+    const ts = performance.now();
+    if(video.currentTime !== lastVideoTime){
+      lastVideoTime = video.currentTime;
+      // 추론 두 개와 배경 합성이 같은 원본 프레임을 공유한다.
+      const frame = captureVideoFrame();
+      const res = pose.detectForVideo(frame, ts);
+      latestPose = res.landmarks?.[0] || null;
+      try{ updatePersonMask(res.segmentationMasks?.[0]); }
+      finally{ res.segmentationMasks?.forEach(mask => mask.close()); }
+      handLandmarks = []; handWorldLandmarks = [];
+      if(handTracker){
+        try{
+          const result=handTracker.detectForVideo(frame,ts);
+          const hands=stabilizeStrumHand(result,latestPose,ts);
+          handLandmarks=hands.landmarks; handWorldLandmarks=hands.worldLandmarks;
+        }
+        catch(err){
+          handTracker.close(); handTracker = null;
+          handStatusEl.textContent = "손 추적이 중단됐어요. 기본 연주는 계속 사용할 수 있습니다. 새로고침하면 다시 시도합니다.";
+          console.warn("손 추적 실패:",err);
+        }
+      }
+      if(latestPose) updateFromPose(latestPose, performance.now(), res.worldLandmarks?.[0]);
+      else {
+        resetTracking(true,performance.now());
+        statusEl.textContent = "어깨와 양손이 화면에 보이게 자세를 잡아주세요";
+      }
+    }
+  }
+  if(guitar.visible) guitar.scale.setScalar(guitarBaseScale);
+  drawCameraFrame();
+  if(strumRegion) strumRegion.visible = skelEl.checked;
+  renderer.render(scene, camera);
+  drawHands();
+}
+
+function cleanup(){
+  stopPerformance();
+  clearInterval(audioTick); audioTick = null;
+  modelRequest++; loadedModelId = null;
+  trackLoadRequest++;
+  if(animationFrame !== null) cancelAnimationFrame(animationFrame);
+  animationFrame = null;
+  activeStream?.getTracks().forEach(track => track.stop());
+  activeStream = null;
+  video.srcObject = null;
+  capturedFrameReady = false;
+  personMaskReady = false;
+  pose?.close(); pose = null;
+  handTracker?.close(); handTracker = null;
+  handLandmarks = []; handWorldLandmarks = []; latestPose = null; rightHandCache = null;
+  cameraCtx.clearRect(0,0,innerWidth,innerHeight);
+  handCtx.clearRect(0,0,innerWidth,innerHeight);
+  resetTracking();
+  if(scene) disposeObject(scene);
+  environmentTarget?.dispose(); environmentTarget = null;
+  renderer?.dispose(); renderer = null;
+  scene = camera = guitar = guitarYaw = jointDots = strumRegion = strumBounds = daylightFill = null;
+  if(audio) audio.close().catch(() => {});
+  audio = master = lp = performanceGain = drive = cabinet = compressor = null;
+  bufCache.clear();
+  lastVideoTime = -1; lastStrum = 0;
+}
+
+// ---------- 시작 ----------
+goBtn.addEventListener("click", async () => {
+  goBtn.disabled = true; errEl.textContent = "";
+  goBtn.textContent = "시작하는 중…";
+  try{
+    await initAudio();
+    statusEl.textContent = "카메라 켜는 중…";
+    activeStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:"user", width:{ideal:1280}, height:{ideal:720}, frameRate:{ideal:60} }, audio:false });
+    video.srcObject = activeStream; await video.play();
+    initThree();
+    statusEl.textContent = "모델 불러오는 중…";
+    await initPose();
+    overlay.classList.add("hide"); panel.classList.remove("hide");
+    statusEl.textContent = "몸 전체가 보이게 서보세요";
+    loop();
+  }catch(e){
+    cleanup();
+    goBtn.disabled = false;
+    goBtn.textContent = "시작하기";
+    errEl.textContent = "오류: " + (e && e.message ? e.message : e);
+    statusEl.textContent = "준비됨";
+  }
+});
+
+volEl.addEventListener("input", () => {
+  if(master) master.gain.value = parseFloat(volEl.value);
+  if(youtubeReady) youtubePlayer.setVolume(Math.round(parseFloat(volEl.value)*100));
+});
+modelEl.addEventListener("change", () => { if(guitarYaw) loadModel(); });
+async function selectMidiSong(initialize = false){
+  const id = midiSelect.value;
+  stopPerformance();
+  const request = ++trackLoadRequest;
+  selectedMidiId = id;
+  const entry = midiLibrary.get(id);
+  playModeEl.value = "";
+  refreshPlaybackMode(); resetStrum();
+  audioStatusEl.dataset.error = "false";
+  if(!entry){ audioStatusEl.textContent = ""; return; }
+  midiSelect.value = id;
+  audioStatusEl.textContent = entry.name + " · 불러오는 중…";
+  try{
+    if(!initialize) await initAudio();
+    const context = audio;
+    if(!entry.song){
+      const response = await fetch(entry.url);
+      if(!response.ok) throw new Error("곡 파일을 불러오지 못했어요.");
+      const bytes = await response.arrayBuffer();
+      const {Midi} = await import("https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.28/+esm");
+      entry.song = prepareMidi(new Midi(bytes));
+    }
+    if(request !== trackLoadRequest || (!initialize && context !== audio)) return;
+    stopPerformance();
+    midiSong = entry.song; midiOffset = 0; midiCursor = 0;
+    playModeEl.value = "midi";
+    refreshPlaybackMode(); resetStrum();
+    audioStatusEl.textContent = entry.name + " · 손을 움직이면 이어서 재생, 멈추면 일시정지";
+  }catch(err){
+    if(request !== trackLoadRequest) return;
+    playModeEl.value = ""; refreshPlaybackMode();
+    audioStatusEl.dataset.error = "true";
+    audioStatusEl.textContent = "곡을 불러오지 못했어요. 다시 선택해주세요.";
+    console.warn("곡 로드 실패:",err);
+  }
+}
+midiSelect.addEventListener("change", () => {
+  if(midiSelect.value === "__upload__"){
+    midiSelect.value = playModeEl.value === "midi" ? selectedMidiId : "";
+    trackFileEl.click();
+    return;
+  }
+  selectMidiSong();
+});
+refreshPlaybackMode();
+midiSelect.value = "thunderstruck";
+selectMidiSong(true);
+previewBtn.addEventListener("click", async () => {
+  if(performanceActive){ stopPerformance(); return; }
+  previewBtn.disabled = true;
+  try{
+    await initAudio();
+    stopPerformance();
+    // 버튼으로 시작해도 짧은 시작 유예 후에는 손동작이 있어야 재생을 유지한다.
+    previewUntil = performance.now()+600;
+    updatePerformance(performance.now());
+    if(playModeEl.value === "chords") strum(1, 1.5);
+    audioStatusEl.dataset.error = "false";
+  }catch(err){
+    audioStatusEl.dataset.error = "true";
+    audioStatusEl.textContent = "소리를 시작하지 못했어요: " + err.message;
+  }finally{ previewBtn.disabled = !playModeEl.value; }
+});
+trackFileEl.addEventListener("change", async () => {
+  const file = trackFileEl.files[0];
+  if(!file) return;
+  const request = ++trackLoadRequest;
+  audioStatusEl.dataset.error = "false";
+  audioStatusEl.textContent = "연주 음원 읽는 중…";
+  try{
+    await initAudio();
+    const context = audio;
+    const bytes = await file.arrayBuffer();
+    const isMidi = /\.midi?$/i.test(file.name) || new TextDecoder().decode(bytes.slice(0,4)) === "MThd";
+    let song, buffer;
+    if(isMidi){
+      const {Midi} = await import("https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.28/+esm");
+      song = prepareMidi(new Midi(bytes));
+    }else{
+      buffer = await context.decodeAudioData(bytes);
+    }
+    if(request !== trackLoadRequest || context !== audio) return;
+    stopPerformance();
+    if(song){
+      midiSong = song; midiOffset = 0; midiCursor = 0;
+      selectedMidiId = "midi-" + (++midiEntryId);
+      midiLibrary.set(selectedMidiId,{name:file.name,song});
+      const option = document.createElement("option");
+      option.value = selectedMidiId; option.textContent = file.name;
+      midiSelect.insertBefore(option,midiSelect.querySelector('option[value="__upload__"]'));
+      playModeEl.value = "midi";
+    }else{
+      trackBuffer = buffer; trackOffset = 0;
+      playModeEl.value = "track";
+    }
+    refreshPlaybackMode();
+    const detail = song ? (song.guitarTracks ? " · 기타 파트 · 기본 일렉 톤" : " · 멜로디 파트 · 기본 일렉 톤") : "";
+    audioStatusEl.textContent = file.name + detail + " · 손을 움직이면 이어서 재생, 멈추면 일시정지 · 끝나면 반복";
+  }catch(err){
+    if(request !== trackLoadRequest) return;
+    audioStatusEl.dataset.error = "true";
+    audioStatusEl.textContent = "파일을 읽지 못했어요. MP3, WAV 또는 표준 MIDI(.mid/.midi) 파일을 선택해주세요.";
+    console.warn("연주 음원 로드 실패:", err);
+  }finally{
+    if(request === trackLoadRequest) trackFileEl.value = "";
+  }
+});
+document.getElementById("youtube-hide").addEventListener("click", () => {
+  youtubeHidden = true; refreshPlaybackMode();
+});
+document.getElementById("youtube-show").addEventListener("click", () => {
+  youtubeHidden = false; refreshPlaybackMode();
+});
+const youtubeUrlInput = document.getElementById("youtube-url");
+const youtubeLoadButton = document.getElementById("youtube-load");
+let youtubeConnecting = false;
+function updateYoutubeLoadButton(){
+  youtubeLoadButton.disabled = youtubeConnecting || !youtubeUrlInput.value.trim();
+}
+youtubeUrlInput.addEventListener("input", updateYoutubeLoadButton);
+updateYoutubeLoadButton();
+document.getElementById("youtube-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  if(youtubeConnecting || !youtubeUrlInput.value.trim()) return;
+  try{
+    const clip = parseYoutubeLink(document.getElementById("youtube-url").value.trim());
+    if(location.protocol === "file:") throw new Error("유튜브 연결은 localhost 또는 HTTPS 주소에서 열어주세요.");
+    youtubeConnecting = true;
+    updateYoutubeLoadButton();
+    trackLoadRequest++;
+    youtubeStatus.textContent = "유튜브 연결 중…";
+    await loadYoutubeApi();
+    stopPerformance();
+    const request = ++youtubeRequest;
+    youtubeReady = false;
+    youtubePlayer?.destroy();
+    document.getElementById("youtube-mount").innerHTML = '<div id="youtube-player"></div>';
+    youtubeHidden = false;
+    youtubeCard.classList.remove("hide");
+    youtubePlayer = new YT.Player("youtube-player", {
+      width:320, height:200, videoId:clip.videoId,
+      playerVars:{playsinline:1, origin:location.origin, start:clip.startSeconds},
+      events:{
+        onReady: event => {
+          if(request !== youtubeRequest) return;
+          youtubeReady = true;
+          event.target.setVolume(Math.round(parseFloat(volEl.value)*100));
+          stopPerformance();
+          playModeEl.value = "youtube";
+          refreshPlaybackMode(); resetStrum();
+          youtubeStatus.textContent = "유튜브 연결 완료 · 기타 영역에서 손을 움직이면 이어서 재생됩니다.";
+        },
+        onStateChange: event => {
+          if(request !== youtubeRequest) return;
+          if(event.data === YT.PlayerState.PLAYING) syncYoutube();
+          if(event.data === YT.PlayerState.ENDED){ stopPerformance(); event.target.seekTo(clip.startSeconds, true); event.target.pauseVideo(); }
+        },
+        onAutoplayBlocked: () => {
+          if(request !== youtubeRequest) return;
+          stopPerformance();
+          youtubeStatus.textContent = "자동 재생이 차단됐어요. 영상의 재생 버튼을 한 번 누른 뒤 기타 영역에서 손을 움직여주세요.";
+        },
+        onError: event => {
+          if(request !== youtubeRequest) return;
+          stopPerformance(); youtubeReady = false;
+          youtubeStatus.textContent = [101,150].includes(event.data) ? "이 영상은 외부 재생이 제한되어 있어요. 다른 영상을 연결해주세요." : "영상을 재생하지 못했어요. 공개 영상인지 확인하거나 다른 링크를 연결해주세요.";
+        }
+      }
+    });
+  }catch(err){ youtubeStatus.textContent = err.message; }
+  finally{ youtubeConnecting = false; updateYoutubeLoadButton(); }
+});
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden){ stopPerformance(); resetStrum(); }
+});
+addEventListener("beforeunload", () => { cleanup(); youtubeRequest++; youtubePlayer?.destroy(); });
+</script>
+</body>
+</html>
