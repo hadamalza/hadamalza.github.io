@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>감튀블록</title>
+<script>try{if(localStorage.getItem('gamtwi-night')==='1')document.documentElement.dataset.theme='night'}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdf7ec; --ink:#3c504a; --muted:#8b968e; --green:#47625a; --green-d:#33473f;
+    --panel:#edf0df; --card:#fbf8f0; --line:#e5e0cd; --tile:#f3eee2; --surface:#fffdf8; --hover:#fff;
+    --shadow:rgba(60,80,74,.14);
+  }
+  :root[data-theme="night"]{
+    --bg:#11151c; --ink:#ece6d6; --muted:#8d95a0; --green:#5c7f72; --green-d:#3e5a50;
+    --panel:#1a2029; --card:#1b212a; --line:#2c3440; --tile:#242c37; --surface:#1f2630; --hover:#2c3542;
+    --shadow:rgba(0,0,0,.45);
+  }
+  body,.pill,.panel .card,.tile,.selbar,#squeezeTip,.examples button,.chip{transition:background-color .6s, color .6s, border-color .6s}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+    font-family:"Noto Sans KR","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+    -webkit-user-select:none;user-select:none;touch-action:none}
+  #stage{position:fixed;inset:0}
+  #stage canvas{display:block;width:100%;height:100%}
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+
+  .top{position:fixed;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(18px + env(safe-area-inset-top)) 22px 0;pointer-events:none;z-index:5}
+  .top > *{pointer-events:auto}
+  .brand{font-weight:500;font-size:17px}
+  .top-actions{display:flex;gap:8px}
+  .pill{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;height:36px;padding:0 12px;
+    font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:transform .12s}
+  .pill:active{transform:scale(.96)}
+  .pill svg{width:16px;height:16px}
+  .pill[disabled]{opacity:.4;pointer-events:none}
+  .pill:not(#gravBtn){padding:0 10px}
+  .pill .lbl{font-size:13px;font-weight:600;white-space:nowrap}
+  .brand{white-space:nowrap}
+  @media (max-width:520px){ #clearBtn .lbl{display:none} #gravBtn{padding:0 8px} .top-actions{gap:4px !important} .pill:not(#gravBtn){padding:0 8px} .brand{font-size:15px} }
+  .more-wrap,.more-menu{display:contents}
+  #moreBtn,.mlbl,.msw{display:none}
+  @media (max-width:600px), (pointer:coarse) and (max-width:1100px){
+    .more-wrap{display:block;position:relative}
+    #moreBtn{display:inline-flex}
+    .more-menu{display:none;position:absolute;right:0;top:calc(100% + 8px);min-width:176px;flex-direction:column;gap:2px;padding:6px;
+      background:var(--surface);border:1.5px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(60,40,10,.16);z-index:10}
+    .more-wrap.open .more-menu{display:flex}
+    .top:has(.more-wrap.open){z-index:40}
+    .more-wrap.open #moreBtn{background:var(--line)}
+    .more-menu .pill{border:0;background:none;width:100%;height:42px;padding:0 10px !important;justify-content:flex-start;gap:10px;border-radius:9px;color:var(--ink) !important}
+    .more-menu .pill:active{transform:none;background:var(--line)}
+    .more-menu .pill svg{opacity:1 !important}
+    .more-menu .pill .lbl,.more-menu .mlbl{display:inline;font-size:14px;font-weight:600;flex:1;text-align:left}
+    #gravBtn::before{content:"";width:16px;height:16px;flex:0 0 auto;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v13'/%3E%3Cpath d='m7 11 5 5 5-5'/%3E%3Cpath d='M5 20h14'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v13'/%3E%3Cpath d='m7 11 5 5 5-5'/%3E%3Cpath d='M5 20h14'/%3E%3C/svg%3E") center/contain no-repeat}
+    .more-menu .msw{display:block}
+    .more-menu .pill:not(.on) .msw{background:var(--muted);opacity:.55}
+    .more-menu .pill:not(.on) .msw i{left:2px}
+    #clearBtn .lbl{display:inline !important}
+  }
+  .pill.off{color:var(--muted)}
+  .pill.off svg{opacity:.45}
+  .pill .sw{position:relative;width:28px;height:16px;border-radius:8px;background:var(--green);margin-left:2px;flex:0 0 auto;transition:background-color .2s}
+  .pill .sw i{position:absolute;top:2px;left:14px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s}
+  .pill.off .sw{background:var(--muted);opacity:.55}
+  .pill.off .sw i{left:2px}
+
+  #hint{position:fixed;left:50%;top:calc(76px + env(safe-area-inset-top));transform:translateX(-50%);
+    font-size:13.5px;color:var(--muted);text-align:center;line-height:1.6;transition:opacity .5s;z-index:4;
+    white-space:nowrap;pointer-events:none}
+  #hint b{color:var(--ink);font-weight:700}
+  .keys{display:block;font-size:12px;opacity:.85}
+  @media (pointer:coarse){.keys{display:none}}
+
+  #squeezeTip{position:fixed;left:calc(50% - var(--rail)/2 - 12px);bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%, 12px);
+    z-index:8;display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;font-size:13.5px;color:var(--ink);
+    background:var(--surface);border:1.5px solid var(--line);border-radius:14px;box-shadow:0 8px 24px var(--shadow);
+    opacity:0;pointer-events:none;transition:opacity .15s, transform .2s;white-space:nowrap}
+  #squeezeTip.show{opacity:1;pointer-events:auto;transform:translate(-50%, 0)}
+  #squeezeTip b{color:#b8231b}
+  #squeezeTip button{height:32px;padding:0 12px;border-radius:9px;background:#c4392b;color:#fff;font-weight:700;font-size:13px}
+  body:has(#squeezeTip.show) .kcal{opacity:0}
+  .tile.on{border-color:#c4392b;background:var(--hover)}
+  .kcal{position:fixed;right:24px;z-index:4;font-family:Outfit,sans-serif;font-weight:700;font-size:48px;
+    letter-spacing:-.5px;line-height:1;pointer-events:none;bottom:0}
+  .kcal small{font-size:30px;margin-left:2px}
+  .kcal{transition:opacity .2s}
+
+  .panel{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-radius:32px 32px 0 0;
+    padding:14px 14px calc(14px + env(safe-area-inset-bottom));z-index:6}
+  .card{max-width:560px;margin:0 auto;background:var(--card);border:1.5px solid var(--line);border-radius:28px;
+    padding:16px 16px 18px;box-shadow:0 10px 30px rgba(60,80,74,.06)}
+  .pieces{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .tile{background:var(--tile);border-radius:16px;padding:6px 2px 8px;display:flex;flex-direction:column;
+    align-items:center;gap:2px;border:2px solid transparent;transition:transform .15s, background .15s, border-color .15s;position:relative}
+  .tile img{width:58px;height:58px;display:block;pointer-events:none}
+  .tile span{font-size:11px;font-weight:500;white-space:nowrap}
+  .tile .num{position:absolute;top:5px;left:8px;font-size:10px;color:var(--muted);font-family:Outfit}
+  @media (pointer:coarse){.tile .num{display:none}}
+  .tile:focus{outline:none}
+  .tile:hover{transform:translateY(-2px);background:var(--hover)}
+  .tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .seg{display:flex;align-items:center;background:var(--tile);border-radius:12px;height:40px;flex:1 1 auto;min-width:150px}
+  .seg button{width:40px;height:40px;display:grid;place-items:center;border-radius:12px}
+  .seg button:active{background:#e8e2d2}
+  .seg svg{width:18px;height:18px}
+  .seg span{flex:1;text-align:center;font-size:13.5px;font-weight:500;white-space:nowrap}
+  .chip{background:var(--tile);border-radius:12px;height:40px;padding:0 14px;font-size:13.5px;font-weight:500;
+    display:inline-flex;align-items:center;gap:6px;border:2px solid transparent;transition:all .15s;flex:0 0 auto}
+  .chip svg{width:17px;height:17px}
+  .chip.on{background:var(--green);color:#fff}
+  .chip.danger.on{background:#c4574a}
+  .chip:active{transform:scale(.96)}
+  .examples{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:13px;color:var(--muted)}
+  .examples .lbl{margin-right:4px}
+  .examples button{padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);color:var(--ink);font-size:13px;font-weight:500;background:var(--surface)}
+  .examples button:active{transform:scale(.96)}
+  .primary{display:flex;width:100%;height:56px;margin-top:14px;align-items:center;justify-content:center;gap:8px;
+    background:var(--green);color:#fff;border-radius:18px;font-size:17px;font-weight:700;
+    box-shadow:0 6px 0 var(--green-d);transition:transform .08s, box-shadow .08s;margin-bottom:6px}
+  .primary:active{transform:translateY(4px);box-shadow:0 2px 0 var(--green-d)}
+  .primary[disabled]{opacity:.45;pointer-events:none}
+  .primary svg{width:20px;height:20px}
+
+  .tiphint{flex:1 1 auto;font-size:12.5px;line-height:1.45;color:var(--muted);align-self:center;min-width:0}
+  .tiphint b{color:var(--ink);font-weight:700}
+  .tools{align-items:center}
+    background:var(--surface);border:1.5px solid var(--line);border-radius:14px;box-shadow:0 8px 24px var(--shadow);
+    opacity:0;pointer-events:none;transition:opacity .15s;will-change:transform}
+  .tile.tap{animation:tap .32s}
+  @keyframes tap{30%{transform:translateY(3px) scale(.94)}70%{transform:translateY(-3px)}}
+  #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:30;transition:opacity .45s}
+  #flash.on{opacity:.85;transition:none}
+  #toast{position:fixed;left:calc(50% - var(--rail)/2 - 12px);top:calc(70px + env(safe-area-inset-top));transform:translate(-50%,-8px);z-index:31;
+    background:var(--green);color:#fff;font-size:13.5px;font-weight:600;padding:9px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;white-space:nowrap}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  .modal{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;
+    background:rgba(253,247,236,.35);opacity:0;pointer-events:none;transition:opacity .3s}
+  .modal.show{opacity:1;pointer-events:auto}
+  .modal .sheet{width:100%;background:var(--panel);border-radius:32px 32px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));
+    transform:translateY(40px);transition:transform .35s cubic-bezier(.2,.9,.3,1.2)}
+  .modal.show .sheet{transform:none}
+  .modal .card{text-align:center;padding:30px 24px 22px}
+  .modal h2{margin:0 0 14px;font-size:26px;font-weight:800;letter-spacing:-.3px}
+  .modal p{margin:0 0 26px;color:var(--muted);font-size:14.5px}
+  .modal .rec{display:flex;justify-content:center;gap:22px;font-size:15px;margin-bottom:20px}
+  .modal .rec b{font-family:Outfit;font-size:18px}
+  .bigcount{font-family:Outfit;font-weight:700;font-size:56px;line-height:1;margin:6px 0 10px}
+  .bigcount small{font-size:30px}
+
+  @media (max-width:520px){
+    .top{padding-left:16px;padding-right:12px}
+    .pill .tx{display:none}
+    .pill{padding:0 10px}
+    .kcal{font-size:40px;right:18px}
+    .kcal small{font-size:24px}
+    .tile img{width:48px;height:48px}
+    .tile span{font-size:11px}
+    .pieces{gap:6px}
+    .card{padding:12px 12px 14px;border-radius:24px}
+    .panel{padding:10px 10px calc(10px + env(safe-area-inset-bottom))}
+    .chip{padding:0 11px}
+    .chip .tx2{display:none}
+    .primary{height:52px}
+  }
+  /* ---- side rail layout ---- */
+  :root{--rail:112px}
+  .panel{left:auto;right:0;top:0;bottom:0;width:calc(var(--rail) + 24px);border-radius:0;
+    padding:calc(66px + env(safe-area-inset-top)) 12px calc(16px + env(safe-area-inset-bottom)) 12px;display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:10px;background:transparent;pointer-events:none}
+  .panel .sect{text-align:center;margin:2px 0 0;font-size:11px;color:var(--muted)}
+  .panel .card{pointer-events:auto;box-shadow:0 12px 32px rgba(60,80,74,.10)}
+  .panel .card{width:100%;max-width:none;margin:0;padding:10px 8px;border-radius:22px;display:flex;flex-direction:column;gap:8px;
+    flex:0 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none}
+  .panel .card::-webkit-scrollbar{display:none}
+  .pieces{grid-template-columns:1fr;gap:6px}
+  .tile{padding:6px 2px 7px;border-radius:14px}
+  .tile img{width:54px;height:54px}
+  .rule{height:1px;background:var(--line);margin:2px 4px}
+  .panel .chip{justify-content:center;height:38px;padding:0;width:100%;font-size:13px}
+  .panel .examples{flex-direction:column;align-items:stretch;gap:5px;margin:0}
+  .panel .examples .lbl{text-align:center;margin:2px 0 0;font-size:11px}
+  .panel .examples button{padding:6px 0;font-size:11px}
+  .panel .primary{pointer-events:auto;flex:0 0 auto;height:56px;margin:0;border-radius:18px;font-size:15px;flex-direction:column;gap:0;line-height:1.1;box-shadow:0 4px 0 var(--green-d), 0 12px 28px rgba(60,80,74,.18)}
+  .panel .primary svg{width:18px;height:18px}
+  .kcal{right:auto;left:22px;bottom:calc(18px + env(safe-area-inset-bottom)) !important}
+  #hint{left:calc(50% - var(--rail)/2 - 12px)}
+  @media (max-width:520px){
+    :root{--rail:76px}
+    .panel{padding-left:8px;padding-right:8px;width:calc(var(--rail) + 16px)}
+    .panel .card{padding:8px 5px;border-radius:18px;gap:6px}
+    .tile{padding:5px 0 6px;border-radius:12px}
+    .tile img{width:42px;height:42px}
+    .tile span{font-size:10.5px}
+    .panel .chip span{display:none}
+    .panel .examples button{font-size:11px}
+    .panel .primary{height:46px;font-size:13px}
+    .kcal{font-size:36px;left:16px}
+    .kcal small{font-size:22px}
+    #hint{font-size:12.5px}
+  }
+  .tabs{display:none}
+  /* ---- phone, landscape: compact two-column rail ---- */
+  @media (max-height:520px) and (orientation:landscape){
+    :root{--rail:168px}
+    .top{padding-top:calc(10px + env(safe-area-inset-top))}
+    .panel .sect,.panel .examples .lbl{display:none}
+    .panel{padding:calc(54px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom)) 10px;width:calc(var(--rail) + 20px);gap:8px}
+    .panel .card{padding:7px 6px;gap:6px;border-radius:18px}
+    .pieces{grid-template-columns:1fr 1fr;gap:5px}
+    .tile{padding:4px 0 5px;border-radius:12px}
+    .tile img{width:34px;height:34px}
+    .tile span{font-size:10.5px}
+    .panel .examples{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+    .panel .examples .lbl{grid-column:1 / -1}
+    .panel .examples button{font-size:10.5px;padding:0 2px;height:26px;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .panel .primary{height:40px;flex-direction:row;gap:6px;font-size:14px}
+    .kcal{font-size:30px;left:16px}
+    .kcal small{font-size:18px}
+  }
+  /* ---- phone, portrait: everything moves into a dock along the bottom, with 재료 / 예시 tabs ---- */
+  @media (max-width:640px) and (orientation:portrait){
+    :root{--rail:0px}
+    .panel{left:0;right:0;top:auto;bottom:0;width:auto;padding:0 10px calc(10px + env(safe-area-inset-bottom));
+      flex-direction:row;align-items:stretch;justify-content:stretch;gap:8px}
+    .panel .card{flex:1 1 auto;padding:6px 8px 8px;gap:6px;border-radius:20px;overflow:visible}
+    .tabs{display:flex;gap:4px;background:var(--tile);border-radius:11px;padding:3px}
+    .tabs button{flex:1;height:28px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--muted)}
+    .tabs button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+    .panel .sect,.panel .rule,.panel .examples .lbl{display:none}
+    .pieces{grid-template-columns:repeat(4,1fr);gap:6px}
+    .tile{padding:4px 0 5px;border-radius:12px}
+    .tile img{width:40px;height:40px}
+    .tile span{font-size:11px}
+    .panel .examples{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-content:center}
+    .panel .examples button{font-size:11px;padding:0;height:31px}
+    .panel .card[data-tab="pieces"] .examples{display:none}
+    .panel .card[data-tab="ex"] .pieces{display:none}
+    .panel .card[data-tab="ex"] .examples{min-height:68px}
+    .panel .primary{width:66px;height:auto;border-radius:18px;font-size:13px;box-shadow:0 4px 0 var(--green-d)}
+    .kcal{left:16px;bottom:calc(var(--dock, 140px) + 10px) !important;font-size:32px}
+    .kcal small{font-size:19px}
+    .selbar,.selbar.show,#squeezeTip{bottom:calc(var(--dock, 140px) + 10px) !important}
+    .selbar,.selbar.show{left:10px;right:10px}
+    #squeezeTip{left:50%}
+    #toast{left:50%}
+  }
+  .selbar{position:fixed;left:calc(50% - var(--rail)/2 - 12px);bottom:calc(20px + env(safe-area-inset-bottom));z-index:8;
+    display:flex;align-items:center;gap:2px;padding:4px;
+    background:var(--surface);border:1.5px solid var(--line);border-radius:14px;box-shadow:0 8px 24px var(--shadow);
+    opacity:0;pointer-events:none;transform:translate(-50%, 12px);transition:opacity .15s, transform .2s}
+  .selbar.show{opacity:1;pointer-events:auto;transform:translate(-50%, 0)}
+  .selbar.show.drag{opacity:.35;pointer-events:none}
+  .selbar button{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto}
+  .selbar button:hover{background:var(--tile)}
+  .selbar button:active{transform:scale(.92)}
+  .selbar svg{width:19px;height:19px}
+  .selbar .sep{width:1px;height:22px;background:var(--line);margin:0 3px}
+  .selbar .txt{width:auto;padding:0 10px;display:flex;gap:5px;font-size:13px;font-weight:700;white-space:nowrap}
+  .selbar .on{background:var(--green);color:#fff}
+  .selbar .mode{margin-right:1px}
+  .selbar .on:hover{background:var(--green-d)}
+  .selbar .danger{color:#b54b3f}
+  .selbar .danger:hover{background:#f7e3df}
+  .selbar .scrub{touch-action:none;cursor:ew-resize}
+  .selbar .scrub.drag{background:var(--green);color:#fff}
+  .selbar .close{background:none;color:var(--ink);opacity:.6}
+  .selbar .close:hover{background:none;opacity:1}
+  @media (max-width:760px){
+    .selbar .txt span{display:none}
+    .selbar .txt{padding:0;width:38px;justify-content:center}
+  }
+  @media (max-width:520px){
+    .selbar,.selbar.show{left:8px;right:calc(var(--rail) + 22px);transform:none;gap:0;padding:3px}
+    .selbar{transform:translateY(12px)}
+    body:has(.selbar.show) .kcal{opacity:0}
+    .selbar button,.selbar .txt{flex:1 1 0;width:auto;min-width:0;height:38px}
+    .selbar .sep{margin:0 1px}
+    .selbar .ok{flex:0 0 auto;padding:0 8px}
+  }
+  #loader{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    transition:opacity .5s ease, visibility .5s}
+  #loader.done{opacity:0;visibility:hidden;pointer-events:none}
+  .ld-fry{width:96px;height:96px;background:url(data:image/webp;base64,UklGRkxTAABXRUJQVlA4WAoAAAAwAAAAPwsAdwAASUNDUMgBAAAAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADZBTFBI+RUAAAEnIBBI4WYXEREmCUgI/g+XBxGRXMt3bduVJEm2pXgQAIsAAQhLEAAPAwGvxT9PrjZF6zEUYlHPFtF/B27bhhGzXpDTT7zXtq1FkmxtnQ8ByEwEoCIQwKICATBs669ThC+3PzM2+fkjov8Q3LYR5NC3HaT6yeP/55v08b/gpA/U599fXx5U/jazTlpmZpVkZvblQOXr6+sP1MfH/4xLf31+kpaZeVAxM4ugZWZmJJMBJTMzq6BhZvYnKJlZJf36/HD/wyKBPj635xQzM1AzM4vws8xJJuNOJgOuaWZmntPMzP4EbTMDv/L1rw+Qff3BKR//3aM4zl/LOMXMImeZmXlMMTOzylmicpryxwucJSpnmpmZwyQzs8yZZuYxxcw8JZn9ifnr7z//6+jz6wPzt5mnFDPzmGlmld0Wuf9IsmU6ZxyvqMjZT+jav6F/NTN0bTPLmGlmldLMLECSmQVI2dY95PPz7z8g6ePjA5I+Phzk4+PjA/L59fkHpJh1Dylm5iHNzCJlmVnEmJkZc163VW7rYJrp4MK5Gv5jOoErOp4yfyNXMjMzzDZwTTMzx2hm1h1jmlllJDMzxzwzM888MzOPKGZmHpHMzDxjmVlkJOMkM7MKbquUhkrfjwovee5Hx9NHvG2JVi4CWcDVRIAkM3CZmVllTDOzythmZsxqZmYRUczMIqKZmQVE4zQzs0Bts8pYZmaVsczMjNvUqTd5fgNDuoiUhCvHG8pj2oWjtG9UkAL6LqJCmsiM8oStbWZmHmGGrWFmVhHNzCyfZZqZBcQyM4vYNoP+g1w3E14IkGUy5EGG/YSGi0jL55rKYcYFVqbqXJHpYKHCdxGBMUTHCpWTyTjCNOa8qmdZjOttlZBMBgnjCTufuDB+A8/yBJ7jiQyLtlTGJFVv21Qds1UmC/X3pYCHyTjGFpkpCglNdORnc8apIokYyuWHoQcU5G8ZVoQUOIzLSasPbO7CA5ulMiVd7giXABnKMYrozEt6B6gI5J4gk0GOeaqMHCYDHhE5VUSM5zow6HlsKBeeMlS/bYu2VaRLOLIs0bmbK40vHbFEJiTRISf+jdnCEaaoiAWG8gYhQsbJ4SJS2iVwtujn2qJzLiVQxoU7sjw3WDZZJl8yYotAKKIi1qkqYglPGHr+53sVABrQ8ycO5cJjlq67li4cZap+ZGloSWeXQEgm4whNZMQ2M4tnGZwpAqGcHZh5BvA8NrzSKenu6V0xjbZVPrJMtLSziyM00BDxTnXEEJGQYGhAzxPDFRjG5XTUdxExU7lTJZUxQ3Xqpcsdjyxb1B+yTNEfxEwREGZmFs7SzMwM0UR9EKMicj7RITAGd14CdfKhXHjKUpnmb9qEtQt/Ykm6I1o8W5AhyxIZsTkJNMzM4lkKaImKWFhATwkyx4ULMlxEWMWMwxUVMUtlyrhwBxfPKFqIB5eiImKLiDAZd5OKcAwZxNCFGGyQOTPQJx8qZaiOafcgYLaKlKn6yQXaQ9TjylCekLQEQlLIXYQ/kUeWcoSm3EnhctIhYkHmvPBKp5RLwBQVTtVophMoW+WDS4YsEY8rUyG7KcfpiCbcvfKEovyZId5wAI3LSXO3zlPShaNc7nBwCRC93XFli44YCrnbvUqgdUGMij9riKwMKRee+i48LMI6ZyhHabB0A8WRpR9Xku6MmKIjhsj3KoAiYol6p2GjYb9DqFS4iJStAiX9BDq128XBpaMlH1eaCogtMmKChgDeK8iIiBgin+QSGLcfEK9CpiwVsaAyZ8OmwspQmTJVv+kSTi0OoXcEhZ9SRQw9SZE5uaAnFS7nqWGqShmqYvYd6JgJ2yrfbUn3W5IKiA2aZmb9NNvMLCMKqCgPhsoGZi4BmrcIEQ6UQlui3rOtAixAxrml3W9pyiFMxt2mRZJBJJYMY3BBTyroeWR4ybP6PVsi0xwkXYqDrHcoFbqniIyitz+tTNGRl9QDmWVmVo9UH8goh3wq3mkY6DkuARo4XARqmQ5min6qzUrfD9SuBRq46I6QLTxjKOCmyxYZUURnbDOzfJ+28Igl6j/fsFSmLOUp4w5EWKfuyZbClqI8Vt7gRmZdCjJ6R0QT9T5NM7POWCIihq4HMk/HBurEw2DDUPVUMqcymUBpKh9ZJlhe3J3YL0pmJN2BQZakAmKKzDAzs3iaYWZmjAkqtx3iXQfKUJFSlGNVTIINGFy28pAtMmSJwGjKIQpZmnKgiEh3a4h6mnFkOPh8m+AhTVWYP5qnTBUg6QJ6iS1J70DdMo4xRWf2UB4x1QOZLcLdcoh2gYyKJwboFDKscHCIkHLjinKUrTykqQ5pbGnKYfepRYYpW3TG82GKCKdpwiOKyTCWqPcZ9KQCe8LhAgzJdCjpaA1mOg4yVb7bMs8unaE7I5JyiHbTHEQG8A6BOwcahq4Tw7iC5ooaFY5GvXRBla0CW8KBZR9aksqIpCKiKOC94E9TRGCC8ojxTzmUS6As5VnxZB3WKZfiID9uaSogmgqIJvpPKiAK5m0CM88AniqeGC78kfbJBqupDEkX0Cunl3pemcohhnKIQRrCnSkyloikiPnnFQJkqEhZIp9psgarqQ4Z71AqWuJ5ZZNlqgcyU2TGPFPi1QcyqjKB8w6BOg8Or2RIU/m2VcpUATJVhsx3KBEt/tyCzBadsXjEe4UZkRmDtEhLP3dgkLnbMFSFFFUpU1TMegcZ5iBLBchGS9Hbk6UT98El6c6MLcLtqqTOGLoYQ/l/RqFcwgMa2DjZEpGyWVs5RmLLEJ3YL0o+tnhEU4HxfJxlZtbPs0HFZBhNeTJEKsigId5tuPCQrd8N2yJQ9HXoJbY0tiyRIUuEE4sMcw/lEEk5xr5rHlFUPCu8wwmGdnYALeUgTfT7lVSFtHNL0jtQt4w7tVTGVMxuinhX9TzLzKw/mLlC5gkPqMhItx4iZCgPKSZzMg9pKkOmigeWphx2g2W9QYmMLTqpQ6RkyMQZZIvIWBg26EkFPanAnu8SKqSpcL9MxrECZCmPlgrdEy0TLbrjcSXpzowpKiPxMmSSlsgUGQAeBhoGeo7jA6SoSAXlUJmSWJNlOg4tEbLRsoVHb48Wh2gqkvINc6TKGMr/jIE9Dw+qsvzBkPeKYyTV2eLR4tEC7amA96p05h4qMLaIjCLieYbwjCE6o6jIBmaugZlnAE8VTwsXVODtcxXRKVtBu6nMFmK/KsR+USpki4qWzJjKMUwmMNoNaybD4cI8PMSbDYMNSz9WOFFDJX0dMlVAS0dLRUtgJLQMFRhbMS+9gXCqwCjKMx/nxoMMGwKjvAUHWSKeq7IyZL9DyWgJaHFoCYx5Lcjo64yiHGOcqp1q6cc5NcjcbTAdyFD+bg2RIU1FyPeDvCoBLY4snS2OsRXzksqMdt/igxkVUJ75VD8w7JMDaCvPKCpA5q0LjKQ6WxxZOloyWjrzkr7KaCowhnowM4U/T3kDkTFQ66cOkPUOImSIfKIpImQox2gqH1syXJjRnRlNRcZQnjFFR7lTZcgSmVFUZAwOG/Q8O3jGUBE6Vb5nATJRQ4WfsxTl0eIZUzlSvlfpDdQHM6qiIZ4X0ukhMoqqkC0qpIlKmcdaokNlomUcW4q8Cu2hHsysS2Fmi/5gZosIWe8AGlEhQ3SCBsqLUE8LelJBz0OD6pCFKudawkG2yJCNlqWIjZchIlfkZgYtSXeGaAmQLZB3FQ/UNGBkCK8CAQ+DC3qeHSBDz5/U8wbprhB9FS0RvT0j6Q6MgpamIiMpR+on2mZmHVKUZwzlf8hwOY8OnlGUgz7RT7QF9JIKjKIio1xvZvT2jCSvQ7spxxhoGSowGuv3PtWSBUmoouKdBvw8PUSUp8gcq0OacoyhAloco6B3ExkyRT+wTOVIHXlXlYP9/Qo0KkLn04mBPV8IaMjciYcKnSpCFi9Sfm/QQE3lyNLRO0OmCMeWDtmiQ2WiksjncpAlMmRz3iT0M88bDusNuPMkUSFTdKhs0dGSIVsEtLhjS2Yk3RmVIeVcU3hUhSxdBDbwp8mAATrZcAGFFyrKnypDtqiMpDufV5IWxyjy6rklMBpro9o9m+IIOaux2zD3Ft6cc3/hjDqLI+TZq+0XsGY8ui2PaBkiQtY7FMcYKkBMJqLiiYYIkKEh5FHNOZ2Gs5hzgudPubBVc0pZyFlM/XkUc8ZSy/znWZbwkOcGy0bLVI6RVICM00VIU2PG9lMwfEiGsi5DWYeh2jO2arxhU9SUcVXRsvdXkslAr6AlXQszW0G7KQ+ZItytcpVZ1tV7GG459OdRzP05kx7VkPEqjmiZM7ZoaWgZaGkqMpK+znInWqgmMmsOedVfyPnXKXySC9Wcsd2wM2mp7xotY8YZLVOEA8tUgdFUhkyFvHsAjVpDrmq83xA8z17DGfUq1qS1P89izHgWR+Z9VFPGswrdV7Rs4RiJLjIOFVGdsoQ/URGVtYec1ZwLYelw3GvYqjnjKvakvVdDxpV0VkPGK1mWeo/J0qHd3qF0qEwVIJu1b9pCbTcdXtGz21DtGWfSEnUmXUmvYs14VplviZZHlXhflAyZ71AyZCsH0Tuz3Lk6R+aOxcN8yyHjUYPMevUqZFbLlPEqjoxHtDyLvcOy36MwYzrQSypSnu9UyWQoQw2hX6tLeBfW3kI9bzZ8EgtbNWa8Wmvt6NSRsSQt9V37K69iCnm+Gy5JdVaAJMW8V6h5C2PIVY05wXBmz1YWDKGzhpwzaYm6ytOfH2/OoxoiHtXUaxkyyj2XpjKkHa/CHKSoKWsKPa0uIRzqebthq+bMWU23a4/K3Gc1dFqO6B3vtkwVIEM5VD/TFp41h5zVmg6Z/RQ8z3QInZ9CEVm1Z1zFnDT0ZinWjGdxZDyrXssasoVHS4XuoSJks6aiSrkD0Kg9ZKv2kLOa7zTUs+uQtGecPZuT1oxXsd9qSdz9qkTIUh5iOg6yRae0k633EFqrS7iFMNxxGCLOvLE3W9KrmCOW+q63WprIbPEQ03GMpDry3kU9WaAs/VJe1dhvmHsLb8651zBGbDVkPHo2JU0Rj2q64RLYAr2kOrSbyhS9M2WIfLIIG0KuoL7DI3qePYZ35t5sfXoELa1siDir4YaLO7A0lSGDlVSkzJNN1lBjyFnNfYayLkNZNMyZs9ozoRqDpqApaUjKlGdx9FrGmy1TBchUAdJUuGFD5CNt1X6vIX72Gq6kK2gp5vv0KI6MV98l8Z5d9rUws5U7WDxZpRQ1Zx0RNaTkw7OYug0ZZ32S5syZ9Ag6i0B5Y834XCKr75Qs+59pSaZDlakcZYlw31ahtbqId2HoLWTP/sMYccatvXm21tqR8SzmiKUaI7ZqSJYpWpD3ouQTS1Md9qBmn6xdUKP2lKsas8ZwCK2V3XGYIrZiz7hu1lVMEY8q857FES1DslS2hOPKK5myRb9jRfSjzdkw32qo552GN46gvUtrxqsYIp7FkXEVa8ZWviNXqPtVcZDFlqnCmUzGn0oGs/RLOas9qNdwFnPIMxY+nclQRNbKMp5duoJaWaa8irW7chZryBIOLf0BzbVAs5WHJL0zzJ0pvYchZPsstFYXUc8eQz17DhlXMUacrbV29OaVsxRHRr2n7spVjCHy+omlXAs0puNYkZJu3FBj6ml1ET2Hen6E0HKhnpnwzvhnaY54FGvEUg29laWVRe8MKWwZKkKS6tTdVIBB7xVslKM00rswhpzB8OlMhXrebqjmiLOYIx6ttdZ601prberMo9PyKPaQKTxksGUqD2kqw9yN85Si5v68D6EFQ/w802csXMHwCNru1bOYIp7F3l15FlPIFtS92LIVdU8VKRNWRD/VZiW1ppzV3HUI7YbDGbQVe9DQl6UYO/Mq5oglWl7FkJHkVUh6brAkfZWyVYA9qGlnWyJgQe0pW7V3Gc54SJ01RM90iFjixpwxaIh4FUNELVPEI1+OaImQxpamMsV0HGWLDqtni5hVHClLq4u4hTDfZnhnjPxamciCtpwtqJVFvqUaIp75skaLg8y3KAGSVH9Qoztjhsh3rUxqH/5ihSKyV9B1qx5F5FuKI+JRHJny6rp0qmxR4eIgTVVKos2zTZExsxpTrqQaYn6BUBYLZd2Fq5gjnsUY8WqttalDR9Aa8SzW+y2ZLZEtnbqnypSm4p2rmBF2VvOfaPgFzpiz2CPOoKu11uYO7RGPYo647roEtvjzyisBFjBLxFMNWKvmlEe19ycc6pkKb84541nMyRCxFfNNOltrbY04iynidb9lvUNB7tcFmq0cZSqH2XeuVGvKVh0pZzXfaqhnl+GnVFiKNeJ5p57FkLC0sk7LGPL73XNJ3+944VRNdEyqdqm1uiFk6zbU8yOE9ilkVkNADUViQWev5oiriLyP4ui0hL7yHgUa06F2U/1BzVYPbJ6PtXEyD2zSXtWYelpdRD6cdx3miCt3PFprberw31PuOCLOYu2tbNF7Cn9iKapShsoYfZ3mT1Vor/qLuar5L1M442HKGSO21lob+rLlbK21tkZsxdRbOYspZHP3i9KpPVSkTBUpSWVMugcOc1VDylnt3YbkebPhs0NkZ2utBb7PAt9ng8haa20QWWutzSIrhogrWa5iyEjg/aJkylSeslU4mztVoj2rMWVLuoGQPcNhzYTWWlszttdHyey3/3//KrPf/vflx5fZt+9ffk98n8KY8QyV+idXyneE3iYCWwJlXwo1puMoTUVMuQcec8bVZfwaIXv2Gw6ZfWutDUL739cf95/elq+/C20pJbLl1XNxbHGQpK9TkupYGSpgmqLeK9zQtmqOhU/GWw7xc8iFUWjfXru/pPt2/C60R6hUd1yaypSmKmYqd+8CbY25kt6FqdOzCK211v4IHcvrZ/97uJJ3oX2rJbPzS6BMlc/Wz7VhS7XHnNXcayhLOVtr7Yio5y615fuP92/jlq8/empXa3vku/7tQW9QHGWpgNmiP7AZp1siPrCpjox3YU+GmDfnEVHO2L/Luf/43z86W15tlNovM3tQs96jULOVwzw3a4p62676C6rLeBeGqFVq5Y7ty+gfni1fU598FdPQUuCSTAd7SWVaPl3GjbHfh1h4Z4yeY8ZH+Pn9M7tfAfK9uKIHWZrqmHb3pqicM+0KexSH1M7W2i6286t/3Ff2d6GmsWWoTAucdbrxJqa0OWUrpoyPs7z/piz9wsr34sqrn4CZuC3ibduqOeas1liob27ti39blqj3vaRgs9+Do4VzNdFxe8xWHKHvI5Q3t8G/afv8ssgpwmEW7vneQUfJPLj5LLZPJbazff/i39P9LtwsM+sPbIro1LsD5U2MOa/W2i63xb/kS19flh/c/IIl5Y/nOFdrrf0ht6t9/z74T8suf2Xwpwh3riQ89fOt/A8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAfAwBWUDggXDsAAJAYAZ0BKkALeAA+SSSPRSKiIRLplMgoBISm779QSWnvFcOAfwT+T/gj+gv8k91TUe23hT9AP4XkAXoBpDYC/hn8b/BT9BP5PrgH85/pP4T/oR/WtwA/7OzrZqn9y/m/4K/oR8EvzvHfOH/M/4L+4d6tXXpf9c/Y3+3ft9813CvN52t+s/3X/C/2v9tfkd/Zfta9FfEv83/pP77+ZHwxeH/mP+H/v395/Yn5qf3n+ke0H7yvcD/jn9L/ab/Q/Gn/LepH+oegH9rv/R/s/du/wH+4/t37//IT+Ef4b/0/5T/N///6AP4b/dP/h+6Xw6f53/x+4v/eP+//8vcB/m/+b/8n5//Kn/sf2f/1fyJ/uF+4X/E+RP+pf5X///9T/9fAB/4vUA/9n/////uAdjt/cvxD/RL6QeXf6r8Ef3T/m3xPxmP0A6YHpPj/2me4/+S/7PKx6qsDr4KVtydFis8l31/3TfB+SARpTfAJnoZzty96qTT31rJMS4BW9cJi+hbI6XtGwNX4XEZUyD2pM2dqBCm+ATPRKLV3nsS61+le1rF8J+fKfE6IBtJuiXAVqz0HepxjfBnmTHd1r/rQd3WM06m2iPwd0vQIfINsm76CmvH+jHt59ZTBM8wHwfsZDIrMnronK7GfqjKHLKazEWU6cvFCT7bAhT4T0RFB6Weh4+Qmbcl98jvdV+iKK8kKaIyO/r6V2j2O/e6U+sJKQApB7HqSeuwxfqQawCXUKG0VTGKQbZWEMm1KpFIcspvgEz0SjvguKN/INs/3M4ubchynxiVzmaUvdDppE/g0wJPemtHElYeE8oJh4iANFDaIo1pajqClTagbWLlyYD12W/g/QYjVMC640y7L0ndekMlCg2yXo408smZmzOhHyzJbj2ThhYbZ0vYknl5+K1BV2oEA0nOkTU7T7Y1j65WMo+GrJS6PzG3a0S5cJJx7pYiDJCK/hIoemunZ6IppxZl0yL756Gd07pBqtnYyerPBUFnvNXdwoPDi0KkwhXG4YuPkJX13tW+NgUhTXwSkCrz7NUOU+I6MdYn4auIwMA96D+QmloCkKfIO8gTZrv49eOkkphYrZjA1lLRlFkIy50J4IU79vnMZQhr4+ipNbgyBMdVehNUaSvY4Co1lPiXVJEb1uKSwlwFT/RuQXUmFmCdA9FCYk4dkz03C4tVK1LKXqpohowJDCHKb7RrdTZEfw03H6Q802rFdZJhBBKxjUHAK1/nolk4Q1DdFlMDV+0Jrl+7utfw93RUA7+SWMKX4WNozfC1OXDBMKx2Kmn6d0g1Y8oxM+sObCuVhpuCrPSYhh8saSYllwkEip9sgDYQbfI259ARFNniJ0T7+htI1cH7l2RMda/6igzA8Bgynl7GjPlv5FbR4+qPhtIAqsGlTAhh1dlMDVZIjRD9SrGSeeNq/KnnYdNvhmZNOjIBwMLNOdc158pqu3uC8BjDtyPvck06Kdu4F9k0tb2OwtNVHOTgBv5ipvoisrkyEcyq0mskxCbUNoip//Po3XWBuk70Olz577yk7L/ikmws4PCfPUQP5jXEqPf21ITHg5Shc7hQ0qPg0JiQwcXfx7qixEQ2L8eTX0uTtGrUtY9paEmoUNIT7yJuZ97LBWdgjnDo0aCyYhiFtQ2hMHnmnAugIAZmDg8J44eDs2d9hz89OFBkRsDtdJaHW0RXXHEuCSUE2re+/j9OB06ARSknn4MuArV1SdPq+jvJgawQCLlv51GwuyibBJepjyzTx+zGaXAVXkjHbwjQfmqbzksCWyogwJcIbUdiWwP/tse/1o06G2Ob8iQC8YUrrp0KwsZanOZNZRknU4qUS61/B20rQ3oF9BtkU2raKBIAy+4UNV/CqxBA02CK+Pkk1lwkjLSakuHD7QxjcNpDeH3uZFxoQ2HuQZ1PppEH/MiJG2a7xeH5Bdcbsv4cmPGKm9OFBkbCZg1n9LnCdlMCeH4j664tyJgkvRt5a4OGwgB2d7x8fYokb+JpbTe5woMF8F7JqI7NMvCLsCLa21G4a4F8VwH5Y25jd1akB2gwk819QjE12vepcgUhTfcA+A1dVXxuZgbUbRi642UR4f3JzfVOmig0b8R+MFzerTHhpGJ5B53obOzpOAbYdKfWB60ONb9Ec2i0oT5x9kBEO7DNIUfJkhMAqc3YpoUsZY+uNMs1CunxxbHwFar6BYuNysO7/bkJrsB4T6AiMzgdjEwSYJr/dcH+uLzsvHyEolaD7rdbixtHRKmlgFSApn5O01XiqdZZQpMT6tjaR0A6isAHI8J85tO1DpD1MC3hdsKDy2aS9v/Z0KanQnfGp5gDS2irCWTrZTAhgvfo+1UjhdA9H1yYejvGk6BPmvHyEyHK5JhILcfZnLBt403BDY6YwDMUsbUdFage6qOf90NfHtcEzSL6mKgntQQ2iA/8u3E6vJ2hRfQbZMBgTWFmXdSzZRyCh9cZdr2fi+tkBWeaNsENP2qxt/e+jMJ0Dz8cv3zlb1+9215+/j114LhEDGRTm4C3ITXYDwn01K/vD5IJgk0nyIMX7UJu61/D3yhMn/MycGRsALoHnm4ZHroVg7Q6A7q6doEotDOASR5RtQoaaH0NlVbbBYbcx38rRNpHQQ7p2Go4hu61+kTDGdnt/hOZleoFE4JM0vR72S8O2e79KJ6Eg6SP+xK+Viq6geiPPyERmOLoTxmDUG1qMNKZ+Qtvzlga3VTObUROeKEkG2cKxVLf/ufVv/c6aRQ4ZEiJj1monj5CSe1iaoY6EfSydnMBfupsGFdVLFi+V0kJtpDBlkmNSNknnux46WVsbUcV3XPU8P0jFK1+9BoWOC4Z5KAvmxwSeXuRkDpj+i2I+wwSecEm2/6NLxKXY+uM8VHXL2agmWwTzhQ0tNa1yFwiCOrexga+W8Gmp+/0LoTxMQGeTXRedlbChpo3RqNu6lau9PBlkmqAgn644sXPyFOIHoH4weNlPlcegfjB42U+V2xz6bg/DG28zhjWBtobmSevOqI2v0AD9bTp74m0tb2zTk+DruaH+jHV3b1/7NnnEiHoXMuMOAF+JfgKWp6e4C87aZWMnKCW1Nr/8Kqzx20FzfRH48GcxG21fbnJv0RbzrqtC8UHddiGfGMSxLP5guMzxBVydBxphF77Kz/Ix/8MpEwbkqbOQWq7fXbb+MtXgd5I5NYK/U4XAronrkxHaoiwtrXnfmyzy6/0YtFBSDMkxvfTBVMaJ6Fjv5whH4zVHNcqkCCtv3JGqMFkNUYnZ4RqDgMo4rImwpE0beK2c1MCiWlIusftJu0wo4eAG7KIhOqVRIdTAtJlWtilCzaM9L6NG/QQdqv9A+XCJ6uqqv4VPU1etcdMVUTLKkkmezjDW7Nu8rHLEH/5Brpe0mjr16N1pi8Bcz14fGqnSQw060VdDBK4pxXYL1IWTkJDs0x7WYgfl+CXOjgFT0tcPVc2hfLuPZKkMXsxNmclzDyC/Yx3VrMiDi4mm34HYg3FIvhI36K8IYS8+z4Y3Cbiey150r9QTwwG0DpGrfj5UXQlsNUg4Go3eDGiHmBgcWwjcXTgVL+hnJOLUCV4WaD6U5Iia5S/u6WvVNOekATRwCjPZ4DuYyaBYUkoMRAFiJ7lEOuxTkPoGwLaeTcEQOckQGTTjJpw8xdb6Q9PbU01x56rdsER1yPy4wnoujhhqcswlxfvfNvSeJJ8RszvU0oxgRzpCfKW7f3knVyf9V2TXxF0uhvgJYpDD6tYn7p8p0FvtVK7W/X20PZu6RebLg16dwYfXAmemuJtxt+W2VC/W4QUMiXLC3Ug+MTyUvi0MwxiEUg2WVYN1blgoBW67TF7e0gta7GC93BdjG82X3/r0C8pF06Ywwmf+Y3MfUbLQYcZ27/w8TwZtPo31cvdbKcTLvst5XqGrsS1/mYNpUq919B3zuV8015LkKZ/fLLxOC5M1YSHP8blgu+xxwX/Vy1vktXaz6sGkPw0LnyWFoBI9TTnqL6bJrF823vG4eK9G8EWC3LZw4MQZcGX6zdaOCc589cIAXy7gfasHpF2HZeJLioGHCRiv8Kmct/amzUOgXm2sJzgVMYCVaVnT5RwatEEpB2jKZfXUIYE51LuHl5Sgmb7ZZyRLF7rKR9gT1KYtNZvgPCSgea8jMm+zEEDcd+6cwLGmLuvFz7eCHDt4LkulLbrEvFStAjD3WZJxig68NNt3OszbbnpgNynLRR0DuIJ5vcInb8stXjrMX5RMFov9p/mTrFNiiWCVScADbstzmt9LE3P5oU592V2glAOReFOAWzYVcCXrlb08KtRmIcoNwCG/SDuorqWAOEvD257z0YJ034Dssc0aYlr9zKvPHRLoqfnVkYZsvmV4L43QqdJ9BpCWVeNqqC205EUTZ/1Toan01msfRIlankbG8Vb2++TJMOg1RNJTWG70iJo81TyCEN5DHhFFC1hyVGZTschBCkRHyxTow1rZuXo3vfXxXC//rGiJ3ZMEJKpRTgbC427Dq+GGsFiKZUE54Hj/zTGq+JzAExtWtjNcGC+ePx+SOdDo24nkuiQhMej8IQwIJrRvDl0r3TKTF+QelRXheah0g7Sz+7zZq9N9e0SDbryPV2IfEqqlr1wmQWPzLOoZiq1fgJgvcmO9g4NtcsHvQixYs4ASsiDWytSP17yvJTM2F4gVeuzqt++QYlvJM0sNaxFAspvb/c4dbBbDuinFlun6v/FON26Gz/TPlTEgBndnQNKmWYPKno8wogAjcKBDScSMsciIS9MMYdae2WzYVcCXrugdNaO60v1tpSCRuE+rcwsJryfOa1OmyvjGQBhm0o7s16sDNFeYRSyuuttiyNUBtG0QknMsVUZZEArP7fK8moc4MCGmfBl/ydgRPSFLbZBFifG943cmnqe5rAd1o4P+FZZ18LJKHdgrFFVjVJmKke8UMLZESvpGI3qzreYVYUrsdJhVpLatAX4N3ZR+NcaEQ4xrX7LOUHYGpECfMpP6xFNNUf29K6vKtXFlXETF4LOBpIeN63yatPxYEXn0KRnzB5nJDbpETEQEjNFSB4aeuBpQFhA5s0wUAWEp744Ww407JBcTpL8EvCRmHhIQ5/jcsFv9cL8Nv0NlM9fdfjlWxlpqym1pjhDF2us2BvvLBWyB5CIzZsFhMBXDVqNcJt5Qzi/G7+9Id109xxgHhLT+k8pvL773H+uNQ8icW0SEnb0miDyHBERsX87ut2EIiWLXI97E7Aj5ft6UpItMm9AObixuD+0nBi4jY6p0bcIAZyPuk6n2T+8X1fwmjqqa8iYfqdNlk8ib2gXALB0VMibL3Lrb7Eyuw2gb24htdoPUTiB/fq4pmb5SmmUHScOcBF/ACcyfB13ND/Rjq7t6/9lJwQpFHObhlmN99aGod0rob90HLT/+FvGnf/yrFgSrMeEjX5AgWe2Avvrl4UopEAWqU+as1vzznTV2ZSf624prS4cOTVnrtW8H15uDw5eDU8Y4c4UJsv09wJprcVkPszmXgqRZiAGCyN0PPGw3lBumhEypyCnfO3/T9+sR3s5WRLihP/YmV2GpQqJkjnaX7aTd/el5MlIlsTWT3u0opmryEv78jcTfyW7NSpRrWv5OpsIsRg2i1+ATIONqEUAlqZtHB/VM0kOt0LmKsQKqeioqc+A5GRoLTcWqMTv/P2k4ms13ZK4K4IGOTZMclwEppKUwNn+w5Ry5XAy2qRNYPTQWLd0nCjbDb4tZfusnbEk0L8mX6jGPmU3skp4QrUWuosLd7JRl3D2uEEv4Zik4DPOI9DQtOMhk09r8ENYh4JD+7VxQucqm8BcMPxM0DNlNIHiv2dryL+GtRHY8TMumEAcFtIloi1g1+1S2t1Kl4Y9QH2RGZxXBMr1fS07vn3PWZASLpoRbNrn4QfIzaqR3eeKwCk18Ab+0hrKY0ddxXU6WhIosJgKg7djnj/yBjY29xMAldRiHFNvWQkwiM6Wi7HtRL/15uPXS1PARJV7Eli5QSGyocd7wSuXDyVuADanhGaJ01i7rAZ3AKb63MBBvJRHK0Byo8eGnsoP6Y0eNWwtNg0YZyJsj9UQD+9seuxU18saYd/np37hWJBN6FFlmC49zqW6dASJz+dmZgYCnbDWwHfWSIeY+IUkQIlOMbiG14MyoSHms1OIQ6nLArqYpG8s6MFUOMU6AOvxf+SR0RzFypHYVcizUusY4n8KcOAzXDp7gS4gK5dXdvX/ot1w96t/DdUaIguZDT5huAXKEWpbQFfrjbKZvtYEEQWItudgSsY01Ohi6bw/4alJOfD0KA49rRwTLo4sGJEaLiOKRE+hJ5P8d3rELirzW3Q9sIrnclOiqkiWGZb9apZsHXyM2gBWKXhmJ2q6JwBXvN5yjZt5H0cBfcaXm/4IJ/HMcGY/jhTDDIMMY8KogO+N/swts9TH3apGp/zNCcWlMQuI8NIrVj/Jk2Pr16gTo40g6wUlGdpR6FhQbJqMzmZr8se6hOsJwwATv+IfXD1sg0WNX3HJIwEAGfvF4wotmWIe1y0snB44lq30eIxyyQfb9naBoveWpfy9s4BsbtXggFxLIB4n7R3lhTG2glxE/pxrqPd2iQrHeoCLuLb5uPUL/CH6EzW5FP69XrOQFGADxPWdOOyOHC2rsMTemQGcq5ymzKSEyhZaQ4fNxy1aF5SW5eCcNVIyeJJ7R4Dtxe/ZpUaLHgKlt6zOpvpL/zFCpeO6NP25Iu5YrBcEPscjgqIzCLFklDvKqeWJpkolDkZgl2cjPZoqF/3/Clc+2dVpsNdn2qkxVRUmPDsszwHtyFN8KanS9mxPBlyz5xRzcjNAsw2Mtvs9GMFH4vdh90af070Pb9t99hf2dwlLn5+Qho4sYgrW4kQDUYVcBmujbi7pTbfX8DbYEdsf6yU2fWY2Ii6Q2FF7g8o/7YYA7BDjtyzOXgCK0RGdJt7lHus6u73Pa2sDN2Gskq+2GWmBWgL2yh2z0MJPVCZdpi8Z5QOzcZF1KxvxYNOsOaT1otO85YS4jy8cqs7jVA9QLyVPbPsKPxe5AxkEj4/VPyeXqiEXNCuUwZlE2IKw/FtFpcFn0LrJhF5mA0nU0HG1cSdvDwkMMBuLTO037x7t4jreUZWUbaPDpCqxmctfge+M6r040fdLg+VUsBK1Dji9CmKEt+PdraAb95p6/eW3bXInsXyhS3VmudVqf0x1VtT+YTAYLVZk/kGmE4sA8P4LTS8GG8+4QIsf8QWGKpq0gMuDSJznvQiHMOoWSTfd3//tgqkFBkYWbAgpPnQBEaEtAbTyN9NHWTB08IbUHvjcF8qssSWLD6W8kzSCKVhvBWYrX8nLgMla8q4prS5BduYWRKffjlb4TNnNYo/m8++jcAqrubhHwmRRGXXVc8IBeZ1bybFFYNk8D1pERo4jChqJiG6s5ldkBybzDjS/gQoAOgKz+YiPG7y6QSDLvUCArf8Ty5wln0AnpUhEgcMyPVHTam3GFmnb9TbdxSczUxAKvA9T8I8yMx21uK83SoqNRcdxconbYtyOOzHVHJgv58cA2oBTBCw1kwMPyT+e3/BUxxDoHl97bbnpfzGa5GmZ/RDddyx4jrw21ANuxDDWIEQ83drh41TmOv9AWnOIAo+auBPGe9E7WRE2A2DiyOQ2qrj8UEDOBkj2Q2yVyP5qpcoY2+JomlWnng3I1WDEZILnqDOoX5pi3StkNuXQNsWyro19G6wq5/x6HOELBlVLcnTtMliXE01X0RKeLO8ZPf61qPZCNO9PeO9LShxbhz1Qc48IoVn4d1JDhPI2ZBxjkT83Iz9OM+K+jKDXVqAyJMrgoI3S864CMLVbXZuYKcIlb0VaAEf8lJ0Fw7yQ7aG15v5KQ63QukmFtK5X2+n5EZ1rfXXTSgjZhd3ro2+ktutYpXSehVEfyOg2FNRA+GV9L6okAKPQQkfjWGLzfEcH285Fz6EJrjBL3ijdKfA7762HrR+TbWXh7KYqMN6NZQbhwiMmVDcds6QDLe17siz95X5S3vGnpltHHlqn6m7SNvnsRUSxt/6jNY27+omrBZXQXTk28V9K7f0yrADBBmHDLaf6AU0dX906ap2s5NgLAOe6D5VaxcQW3gMQ46j+sIyaZQDtm0T5mM3DiPoux347woEO0Bkz/Ykdpvd7pK5e1UVS4dPLY8pkmNvgOhrjjmvn3tRXQ3AWLVdBA7nMdw1KIY5hxS8vQm7d/9KSYja162fc5WkqanFE8BHbwgbyp/9ebjy5eafbOWuzc9QXAHh+t6n6rwIisz1JotuAKIR8RT3Wbm6uDe58ElN/iT9dRYigc7snMhZE7+4vc709bWlgpeXmAes0atqTLWxx03PrLCLF5xY9I2QMVKf2v0dJWUBWu+W9GE25PCsnuT7LDWTgLFEm5DeJnfKV+xvSSEMHkTiD5uWNtiTBkWfuzN5BDQGI1ZdmRw9jGU4SbzhhxNI0eFjPsf88JyiJ75vRQ22g7QieM+t07kHgMO9UDinAoFEeJmZsnS8rL/odZfYxzEhmZ9L6HWOj7uNzG7JMXMPPjhfkV6ugkmlbXcoNDnHmUJLFj9Z86yUTMsGTTjKXzpgwM9TYenlDco7ygqS68ELQxKhlei8PP6jV7I7oa8aS7wjkk1KlpL2e/AmgswQjLwkvnIA/t65LITusgTvLLgKFcEdsdRs6wdyv4SQl0MACBeFvcJWGU4sE9AcaccLLsLq6X/Eu15WCVoWEIj3xOZtChu7hJmZQqLcFDxgC5I3umoiuEN4Tyl91z3MNQb41c/pUEtIAzNv9VWcDidJ9cs+QdTMOvPN9bgo/NnxKshALu7+giztE3AnWFoZeEdPo+3btT6nR03nn/qocUBr58aZl9LeEC65axP5SwXH4QVv2U5eQNxaRASxghGVZsCLFN5UTHPjecvFPja9q1bKOQCteKnGHu2IghLXWNwxHzQaeMQno7CjukZdSc9AHsXCwFnDLm3B0B/pDatsG5hfsRLBYt4hJs4swixZJPiW8m89wuiebhCaouvaFE9RC2MIQwr7gb9OUXBpF8aCsq9PFH9DHmGGdBHl6yWVOpSbUdwYUjRCN1FYTLibmD8r1vvuDP5M56qZPnKuuMP1M49V43IzYi5Tp8uXxkp7ZvpXaaeyb9mQd3gL8ZE9eZ/Bhnyj1TAkksh2pIUcpwOVLfgRFnHVOADEKiqxNF1qZPocoKSBc8/671wzsFTwluL5J2vUnEOh7Qs72vLHTyg5e6wxVNoBplZ2HU4GOPgiDWVAkDL+wDknRnXQ020e5s9M7+cI6wQ8n0DphrpY048Cce4QpyKubPLeZjaTnOe5JWvg3vlyIjJSrN9K7TTwbY+vMjnBzG723rmIwvDnU4U5W/k8qJpYhSpSlX7TKLORCA/Ea3SIOfmmtvrLkXBwzzz3CtHL3fHu1fLnZ8IiN+yTGayxDZXQSveucLY9nz4jUQxE0SA1cEjhEgHsD5GHNu8QMvVAEa0W3pjjnk4f1qN41Vu2IFRgKLq7+461iBZiFOkuDDHeIfHEsrk14GeP7zikOeYPg8x1QAU91c2CLljGXShwX6Qnz3SKAf2gjAG80c3MaV5dOefk8Mz57r5qjoHj3p0x+EztIgPS2NGDehYErQXdSmULpF46nez09WU2FxRnzCri/5KE0hNAK4FIFrTA3rAQsRjoV1v1kBh6FCE6hNXxDyJ75wBEiza74UvI2DD2TMH216+rrUVD6hYfWJn4KZQfXdLMH4QLix5SDaz3+l1m+8DZHkye9nVBmt6Ip+kf8iUij/Dby6CA1HiWYYTKYgDdD7QJxbxR02Pqpg6/8O7pvYkqTUa+rfqPKor67cMeVx34fnARLcxYl8ZBA4uijyeYQFlBpuqVaWAG5jPqqEmc0+HlA204rCgx2E4YKjc6psRABW0GgD0hKGudbEYq59007WE4/pPrf2bLotejxq2GHQtasFQxNte2CBUxLMMCuvrCCkrSwc4DTKUlfgvz/10cSF1OoMlnt57ZZLgpyiAFl1X/qhmtvjzhNUBuEsBsDN4KQUQpUUWsQdl5UZ/121nt1J4iVyVWCcIpdT7z2CCI2dop+ASI4BjUwLZT+5GAu2wLXZihJyc53TEfRdj3E8qANGUUOZXyCpTxG0zKvv9tVJ/v5Tcx4FCT/bOBRLfpmj3qtX8/b3aUUxvIU5mBs+wz67SJJPD/o44bB2BbpP9YR5xz7VCMYdxrEbh4P/7fBCqgRblileBMJZIVVywZQWpgKrl1naicOuLUqFmmWux2kpDL3Ju1HnfB/2uu9Tgpz1cfmqjI9yDNtgb6AAh/luPLFV/MYOp66U5efaJo9+pG25OG3j2saFwbD27AIrxF6DdPTg9VeVSar6QREBCBbr8DJ9P/iFeqQBWJXH+LMgpqLxf/7NkoiWYPeGh+GqUv1SpJHCNGDYQQPkpdtpv7zRbQiINMztDx+p07BZSqZwe+AXsjJvas2F4dR7yLHc4Cq9D1vPRNjuQMjI6lDlLe1vsiRVqpD0N+DAGA71rwKPESvEeEwsSZXiYuPfxI3eZLqfvcfuBBxTcqpbx8pIqnKEvMLYkrk+DruaGY01QQ5ut8PxGw3DrxHqzCq72PttH5nEb1M/VWSsmM9J2Jyk35P82mycpDz9imjI1ESFNt1X+ShzbAz/pu2fTnHy8775GEPYwI8Vx71Ok3YAEskBV9TEeJobxvqcQV2Y+szBV0Y9RrbHFU7w6lD5/d/KbH6xSNgtn+gPu+r0iY2757wH6lFpzx6l2ybqcy35HUhIMRnKwZX4Y/OtVV9n+9XeLRWzwpTk4zZ9npNDK3P3b+D7OHkYyQhAszLkGN0K+3MhPkiMuN6EAjthJvRQTAO9U/pZIF0IJZqsV1xGicUYv+8CxkfeWU9VrOa2YtXDdJj4S3uypg5wew6MtpZsJAvxR98zupn/BAlRDJWL2Pylwt1vgScthMuQa/OqiD+ejzeJ0DqeUT55VxiJq09cyIT/2KkFmQh3uAbo9waZLFbvPA5T/xEs7lo6Yw07an0G0e2zLEPa5WaCQxjYd55JRzry5A/i4k+8V2DCwJ0qwKnhBc4Va3Pp7ssqxovM77/JTyPegmt1v7F9s9ENAufRt4/wai0hcXxt0sJ9tnYrACn6lkcrfducOwtw95ZnAtxbPgogL5ZkVT7plRAx7XiFBH6dcQOpXqAi7lULLGJi3AEAA586uo3g3zAUnGpDx46uv5kVrTWtWNn0LbCw0HJVZqB/TvQ98fn4jJE0CxPGNEVeB16BYrq+y2bKPqvKLA5fE0wXH1WIdSDnzTpVwdsmcv2swCGOtcbY/KTw7uaVQofC4tMzhDag98ZgZY+ygjnasKYl9MRvcU4Wq3W89ZU5i08MA9nRarqsXYIceYXL2vGWPntSyMeqqzdn/xU7XUZ3shrTmQNipKH+QsprC5fzIxwb0kS2kZ8WBVn++k535bWBiW+WV+oTcQbePPbVu+3+LGrj8TwvJTveCLSKHCNVpyD+p/zWR0IAZRKha3z0QPun6rK2QYqZOB20iolpUe0/lfZqhIT8k4FqeAqDVi5PWcOWM0XGqPgTvEhpEgJft93PedZw91nxD6GnMZ1Hq10zlYzRJrIUzB40liWjOFR1lijTV1Tr4EldQbgYfMpelF8MiWEuIw1DCD+P4DMM0bJx8r2JD0GwghOf27MHrrZffwR6NLhXZRLqhFFp6iE82VJvUn8xYZH1s5iDaDrJmkqhD3PRkVH9UMaQ2laC2IdalrG+jDmI3Z/TwsaPsyDrPbJl9fwVst5cUuB1RPWaqy6CW/KCKlwU5FKc9GRA1ZbKhSlOEfDCrbBwX0qJGbHtILd+v7WwopB9kY/JhkEqPL6mJUf8WrnKBU2vk1w6UJ4yLM7oCx/jwRCgpi/4bV5UXd9lDS/MsjphLr8w2UUfCQSEyr9SmFkt6h2XwcSvWOBARaUUW21G/DS9BkKPsIM5ii0KGsN5B2UD4MPD2JBqVqLnq1k3QxcgHBmb5+8l48McTS8BDLd8MeVx34fmqKavXTXbLU6J0mgJ7tZmSL2rCodhY0ErJXrkwE3Dg2Pn5HXqSDQXXfGFlH/qhbpDbcgYdOx+L3dNzdhqBmhmoe2U140JClCICqfrxpZRC5pjtIsAPBnko6raFuNw68R6tERe2WSyws/bMWGdRdWwkvcS2f62F/A92JSiFKE/yrEX//s0lhqGx7omPaMNWiuXEGkyxmucLabrEvLAmAZn0A0Q6nrNUgBhwP0JcK0XKNNdpgZU0XPR1IEsshx9leiviCoM35WQ+n0xU19M/yfq+Xln5V3blLLp/k97iEi8X/wNAKpl2HQRbHSfyKWG08/H1V3fPNnLvB0ae4B549/N8V3oU9qq1Zi8j4Qlq0juPFiOQtqO8BrLUbjt9MySiHJIhSB8ygMP7wjOxvWu4eQWrLIhI48/FJI33Uprthrq5BZW2396I9kwMPyT+f02h3PQGKmep1Bks9vPbLJb9O/c/YPsP7ud2B6PdQ6N12ZkIfBXQriUYEyPJX0syykP0ZOr7jOe9fIUuJPrQOsu/crla5Q7GPG1prep1pjCy0Jitmsx4EK0qTe0nXEecIH5Xl33sd/sywArBMxL2fkA56XmcdjICclosdLiktjCV9A1rOgNmNENmzU8C0kP38jfl85PdKL0wuWlaeJ5a7Gd9qYz8gLWh4k3CXzMjLcPskvFW7b9xn7gQcGI6AXnDXU+7vz+zZIz/pBKEYpzKszBVo4ljNw49ji5jMzNznmwiCUqcRtVz+xdvKS66U18RY0WaWRMx5pZNd1tIAQS2GCNa9cXe+bulrmbyzkw47AoXpCKvT787CVB8owIYSTS9crKJyT728nskJbg6Ayo3uFoGYdN3ftXs775bc/bSdzNmZmTW4wjSrQfhGISO4IdO/gjH/WIC/fn4P0Ntl2fVqEXRvBdPfuxt+Rmd1VSU6kUbg618SFBDbIMc209Z0MI/cysQOB9Nn92xx3JyL8PfPOVel1kYF9GcsbGSplBNEYLlN8G5z/NExg7sFHgdHWjLS7GpB86CTExDkRfmHpNghw71lHpsqaHr4YL26t0Wa9erSSuUzQ/yfs+op5liIc9jS9PiWOkPX+XBGNE7onyvW6EQjC0K5Yn07em99eYGjvl1MCkuwowM7hwhucvMm8cwc3Yil56LjXn1XoUO671QwXKzBnBUpsgVl91MRv5L2gxKBO1K/GduN5vrWjVsv/QpUx4MMKRRUWrug1TM0VP2PXGvMD6Kt9ZutAgfQ7VJ7Nh53q9+BjQdLP1VV1HfYVS78HWPWNF9KRFKbbXityhc+NMzY2XcfxiwUTXktns+444Pzi5bh4pcv5Zag9/fOVa73ufWHXGFpRmzJ5S1N2Tm6BSZOpAlsSFA1aG5EmtKuO/HPAjvk6wcNj6dgD0nP38befhVZ+XLRnClForoKUvuYf08rvDNSnJ1aj9Z9m/GyH6mOFwWnmEhk+scAbEjEcBkRQcWvTJh+WMjGCAdAWRNR6eOC8q9FxgyMPpFEmQOp0DDQluAPNN8XAVmzrh4dzrhquOGpfhDQB7kgaDtFmTGhqDkAPEEysZBAz6FAmWu0+JJkJLl4nZGwbPBaiPZbN7tdKUwPq2dq+buy3li+XGJqhQY4ZbcpjkdF8LyU70cVSqmQJ8qwKG0of8yPN8QntielUzqCgy5kzj8VSU9FX2yY0CSPn9CdVMh7hrcQToiOJUXAGC+SS1kd2xbZHkGeXEZvGnn6fg4hp552SvNAmqErobNtD2RwjGZrLEOF2LQxOPJ8PemxDlRtv9wCUM/MRFyIJ6WCrhmwuAtxRcJBHh5o0KUHdfk1NxF+dl9Fd3FUqHYRE9KmDbaQp3h9h0BajJswFF1eAvd4Dk5rMQPyIyueNyy5iI/e++adKuDtNewjg6ViSUBsdIM2WZGL5jgX5QLyGZflVKeJULNzzz3CtHL3fHu1fM6cK4lRwDmhdlgdG2PSJROkGN/NiHLLkwi/UVe+yqvlCeEKVYX6Qny/mRjgv1IPrnaFvNOPq99KLb7bo6uGPgZpmkko/aCn5rqkuB5qWXzXWacXfcuMLaAmH3OomxUjr6sMAvQN1Tkncu/Tieol/B8qNfauzPai1Ohk7+XIJEfgZX7LxWMNoAUFZxHhnYq7+venziOWTWcD3O3pAojbQ3MGsW5+UPEeNXzfILj/s488XrElCXqZ0DGFaQkugAQmllu5Z4oKvXugIABCeoTEO3tgrBLmONvQLhTTVePbay3kUq4HiWsQAb7iUC57JXHZ3qjHzDHfaIOLCS3Wlej8xbaKxKyyTaTB8zouRBjyzzChqCx0gJuwWpSpbrwKyImwObof5KPHSsdXLBQrkaP1x489EeuUVrTudQ4wQutv2Xe/8d1lw/KZUylTZPdDcBJ2yBAZ3jJsHD6kb7psi04olt8ASwkChl2TAw/JP6AJ+C/P/XRxIXU6gyWe3ntlkqVzx7FAXikcsL2gr86VML92ACRib878aCe6p3iXWiBhcVj55st/GoqMXn0jnqz12xUeoWe3bfsGu6lvAPrIOZwfPYOGsds/6QSpiGMQcxdeDodzjIzPwQ5nHY7AJyWhmQjIIjr3W7rE4P3vgUN10aUoxLGc72WV2xky7KrcrSLxAdwDUrtmDw0BjbjbkrBLvY9ntW/bEEuGjUMbYzbG1wtpusS8kHi6F3majUuqretFTheFI3M47XmSpCzIyFzu9UPlHU5CyBx/QFR3zq1vcI+VBioW3rggwIWGSdYG0sLrOGEacT+vTA+NNwR6g7g1gCVk7ZZ06KT6sGkPw0ZSzq1oBB341Alwrfd5NnChoT3ZktqKpi1xYqTptjb3JZhHj/sywBN4Fx4Vgmack0EbA6OLxQznCfPV3M4g2ds+6wcO2AgiSyHxaYCc2CGOs76Y1dtBbBjK+UIQWwff7OIvd/AHDz8f2BVgvoj6Lse4ngu4dvjsrME1HAhs6Fu/CEjhbc/JjHVZ6dwLjntovUxfZPuSsFglcZ4oeRXetsmcVrYAAqPhPM6WDnAaZSZbbc9MBVD1/RFZTtpMmuw2ddQqgM+3AnpbYyPycq+8Yv/rCL33Gj6+AOUj+rKphYxgK45WI0Qmz+/aD+iUOP7JY5UU/vrVSe8SaMMJniu80LbzUbVxd5Y8oh/BHFJNpQufksU0t3wt/6Q6B+8WzBcd6VhUq+L4AcTFTCbZfBn3GuqjgXMzAshSe5aL7Br7oKltKcpk1AwpsIntqkjJHCVLFgHkjY+OTx1rv1ndqBFG45zvAcvAudfXBrcjQhLukzrgWejIQwGsxS5KF0VHH2jcGEN6AYfRR0y+t3iD3YxLfIIv8SQ5lCXgPw1Faelzq0KoPgI1dOXZ1yUB8M06dYcM4diKB/eRf8BSoN+5saWJATWO4VFanp7XuoDoGcrNR67ry+gxlBTTL0yxGkhGgO+lABByzBcvp4vFw6v95Tb0yH1XtpjSs2kTJ+0+m7mH08o0GkP+lKt6+eVp1l/eARhczK1OZ7V34LDyTJofoROpgaXf3i5cJJQ6/TOvJh+WMjGEcQq4V+Hnm1WspWc1VrW9y1MuDKMraK7bR8UhvrNvJ1Jg7hr0A2F9d8bG06mVvVwHor5zr2IkSXkoX5859kFF7g8pJi3D1dtzHp6wTUROGjBhFpyFjc3x2IUHsJ9kjm+77GcJ05wwJH5f5O7n7exZmVLL5rr1lCl8Mg24TDQfkS356bcKcrOzB0yASqH8C3Ti/LgedCvR0t5Ys3mofovPKiUhKIyjFpV8fFiIDtOTn5nagi3f3HHAOaF2WB0HnSwbbF83KlhoO/RKRPfQKN+fizS+Cq8GZgtB2YZzqUKgc6CicTXLfyhkAnb3WFLbmyWUAch5sa4/jpIpYRlbJb1IdeBKDS4V6UTvOD05vTIC97H3LzJcrfPItzU8x8/oLHUg6CwyeVGZ80BzK7ezEmBBqi0efBDhG776Q2R70lNgHKVxe69afIfF+m0Db45VWjGmuw1S+ERG/PvgVCE6u+waetzrRhj2YG80g3W/6vAAdBXxV4OoDmBs8e7eI63lEal6mOXcQE8hAYAtwO4VTdM6COih50IDm31mA8gTwXGAqgf4e2MITq/buc0QzprVk33eXzTJlIhqlvUpYEm0lxKYWEyf+1Bz4LotylyGYfBKUxOa8pbzgmKLznopDnAaQqyjMZXKPpE/mLBhssVHtzWMgBDMcoBg6JtbHqxIorPiaR6Qtsfk1vyg9qSlLxRv3OZ0lBJ/9O7PkT/uHBBEJdnM1mW3Iv2UBYnKFMGfk0z7h4V0z58tsN5XltJiEfQ8IX+YbUBX5tYrMPFuFNB8l6mzAUHssrznt4kwmsT22Nrpt+1Wz0Equ2cJihjnU17sqpC3Mb+UBV3BIijgcg6h7NiaJ5sFi7H+5+u8RDWNyrz/Y99HIrOTFn8ALACMYZk975t6Tpf8DwAAIuKLJgDi6HD7JM0tJUdKoYQHKmIpXY64cP+h1jo9qArUr33QuHrXzMABHp5zhpgWh9QsPrEz8GTTjHadCtQIw9KW8DW5tSooMuLqwYCu9UDdxEkeoJOT1OzhttYYXlfvfzzMA4Vqcoj+Oc1qooMrrDWef4+ygfu1DgOQr+1+GoCtqjdFB0JZIzwmNBJd3FLmHvL4KKEKYiR8DnaXe8hkqzebzKTpqgYiiuhuA+Hm7i9DRnf83Krz6msuPUs04zT0RXhMAwpMltaUtusS8n+yoD3atQJxLJA9IGsvqnQrFigXtfwdwQPgXP9k4weRVXsq/lkYm3qMCFFMGra6PYyV9Ve6p3h15rcJriS/rSPIfHWKfP8LuhciN8AOnogxvyYVHmSuLnMZBPb4UM11MDATj1xK9NSoauYHk27Oj03kqkVGbO3VGEXObGEtPMricCH2fVkRjD6JxQ6Vyq66pjx4qrStUamxW0xwrizmi2K8fxwdwy1NItmNF+8gH2IIa/I+hyp2oYjasn9H178RDGyLoKg4YHRB2XHIo3U31Py3+3tX/59FUfAl86zh7p3p2B8T+TRAJeRwFlEXnjMwxFa6qAc+JIp+sgSIpH38luIS9HjVsMMWGenDuJt8CZvrnLmh6aAkAfG2pGwDtkcdseE3IXI4yb5DrdC6SLBN5Hu2fVtevUtfvxXMvVZ9HYIDHw4r61joi2l3+Kbz/0ak5Dp/h1ugKT5hUzWn6qVH1M186wus4GaIuEQ61iu2nKdF2jZpua9SUjLvHfRvUl98xObAalCa5b3wNP/NRHmUyopic9/MFwp+z7g5ttlKjw6GsQiVqDs7qLr3ZJMIf0jTxNXkbs4x+DVAEM2YskOrQ4o1n4/v3Y3nTrOSOpiAyfI6tKmuxQ2pUAjfe5mmUaV3cBynCe2Fl2x1cv2IsEWTOyRn/SCWFKFkTe0C7NQJfTv6WsJhKi6iyyhh/Pvl+OKBd1IwrFKoOqKbRGJcCFlKw7qRu5Z6FaJvT/FUxcoxDVT1YNIfhBE13uTnrF0VAUycufZmcGhYptJq5jCJvZWSxngAuvzrdD326GMi/SOUPkyZFe+YgE1uJIe8yzLitEcaRIzM7hIYi3FiifAlkMArTBx+vA7nADhvIwMQNOCyC17/rRyRi4VnieV38F2wCvTpbdg4TMkog5Bqgq6Ts8X/oH3nOdEREp2hR4TUicSQy4UcyoUOEQMKA5WIRBkOGKpwe6SxZgzMFPZCZWMYYRSgEDksQ3pVgXLaVeh5YvJSvSrnA9Fk9HdpAHQZnvW89cNEsis6vGLkT+YsFqNXxwCf0l0hIW0+P+Ho8W2hteJ0OJMGECsL2iggI9UF38O7FR5YzzyIsAdIuiBww/tmp8pV2zMSXXCtG1l7rbK0d9BbbYRhlRtP30lZZot8XhGv+0DozrgGURIQ/hBFbAbE4QwSn8XTj7osinkmUnP+vxvgvKLFRWHeSXQtuJLSON+SpegMLpUSd7mV1MCjrcwg9YQDurlwGtqV8L/hySU4PXqZz4q1+M6/PZDrgENcRnvTqK7JetFKkUCnAGudGShWb4qrTrtJQ3OLrdqJe1ON5eCcTR06vWyKNDjbapb0lHoWJY9jXf2ZWuNjQ+Ud3B+/xSmrYynw62w8Za43Zjhf6EMyZ18miKwZGxrn8buNbWixXhi0P4KdK/5MGMtXLWKwyWTu8u1pMM3B5GU3Pzb/KypZvuYIdr9yMZvGmINf1+oSPvnjgFbtsV+E+Zjy67/lPIi+RoGXtkdgeBc3ywQ7Wyco+f2Rel1SbTmwP5SrFkjs4Zo/RK1Py84AQG3jGj1y4uRazPyGF0kxnf9W435sdXW4DxWcFxtBUUAs0Xhnji9tLXtNFBX7g0k7vhp42LyDpXvilX0cmneVWDpINwbP7jhxwnYFMWdrAqyJFwZINbK1G5Zux1yJGNmNdKqKWFCzc9AyS60KG16bRLehMNOgjw40IXoY+H1q+q0a9T2h4t45mAhnyH+spnAEO8JXV6D1C3k2nKsg9IhK+p92m5IEghzJaKTw5Oq2OGX5Q6icoG1GK85tA59WoEr5A1ZvL75DA8o5r60VnEKTg/zFTX0tIp5KKnTjXbGvx/Dp56BUrANGSvGp6WmGJwOE8YDC3afbCqfHm88M77I8SsczmpVNVJ46AaZ7sguiQAWbXiBxDTq5Mii6pQPyUGGWUjwfbANunyeVyHMPZyXIdg5cIVM89Im/1bUUXNiqy2ziHb1PGjHHjSk0Jgw0LNymG/EusIAcx45N5yJJRrSsTjIpAifdBbHsP34ITPR8O/q5bHFqcDKoN0UjyO+2vMT/MhkiOGUb0h6az3VoDCK4htrMJvFMmcQZ6wL/K1aAvwBdakDylyXU5LfLMVM4QNNrUHwCF7beoByDaCSAMjtQXeLsxKCcjdZIZVubyg7culB3kRKjqQvGwfwjCj3YbKuaGCNdsgz+p5Gkw/pbUyqt3r/1arkXdeG0yt3Atk38YRMZ+dgiRB9jADl8KDUMlb5h3JrdycV2hLLCx1ncj65RA2/BVFwcM7T8ZBWsQTTwUdr3Oa0Hd7T0b2SoHF2kxU4CFc6uC3UqCtgUKoARTaOIrAhAaofGV6ighg7wVKviiUjpbiJ2w+ufDm9i/dMMBYWX2d+lzub92A2MI/WaHMPoiHcDOw+mhZs2VST2z9fTmfnuRsH830pRv7S4JymVmMxdHiJXJS0FnKTklhjS4DprkiIu245ssalbkJe95uOQG9OUgQtb6E7SImIkECAlwv2hxbQEvhbPdEt560mDriobcyjyvpn9RjpdINUDIe0EGvU8Bb7Vxu4zIxz4obvtCukonKpzaKI55xKBTLzzEHqsG/bAMi7gGsuVzronfRKH1uXBH1wq422SsEX0k2alGQtaPbgE2zOfT5b32BeSwZHD5GofTfHVzZsTiNz3VVVrz1Mz4Rvr62lkZwV33mQpQ4L9IT5fzbDxdcSO7B++yqMHihJZcs4MEpphsw0b5EFiad6/SvdZ5PQ/bPCxWSXn75SeF6ydDLHGVK7LyABu0J72JzuGj6qXDpwk56ZD33nQzak9akumc69P6zdCAIB0mhl//U4zmc4jkSTznmxQ3DrwU6HD9mL9NRY0jDRpUt/JOVGMbTXIjZaUgn6YIjG/M0s19wyOj4W+Ct5U4Wi7M8eDDemMzCFYNulsGw9nJW2Vsyd9U9QzZeMwiJCVypAShq7Mxgxv+znM7hvLXhTaipwkvGoMowlNUV5fd6lROAneqzkEfyLPYFKzqmPh+m1NoMrUC2+TL/LGlptP/XlTJBfSX7kRepCiKhrIvx7dr1c/Yix5y2zRcyeN4fHLOY10e4xuD4rnlwNGOInWW2BKKHDNIdDwdQeGaPGvshrcAHOg2nOavGco2xF65SgSn+FWHdBQ8ayZzTszbrNEGBbenpnISJ4SQMaTJbOfMAQJh5ajz4KAGUMfCdTocd24YiqPXeBsl5Wv28ME24Y73fXbZfjW43QVpz2GKuvqWgWGyUyzWucUn5x6C6nNikxw8chiYqtg4ZlvIvDtFYFwh9+AYbo98BSHTBJcQ436HEfBPaT0eMfHYss2JyoUIpMU7xWlRmAc1T9K+BGzPVTyPsbDskUO80N6JU3+QmCNlalW5j/Ad1/dcopjAn++HMWe4mixbpkxubxp5kx+Mv1JI9Q/GFTvo7X8RkJQ4tl70cJMnd/bEx1pNMG2bGCmXgi0E+f0veFxNABNmWXEORev46f+Wrhfc/DNeDUy5h8yplfdKyaAAkDhm1C9IRZHdSmlZChfQIjQT2uM8DvkYAbG2L7M4AnjuHAAAAAAAAAAAAAAAAAAAAAAA=) 0 0/2304px 96px no-repeat;animation:ldSpin 1.6s steps(24) infinite}
+  @keyframes ldSpin{to{background-position:-2304px 0}}
+  .ld-name{font-weight:700;font-size:19px;color:var(--ink);letter-spacing:-.01em}
+  .ld-sub{font-size:12.5px;color:var(--muted);min-height:1em}
+  @media (prefers-reduced-motion:reduce){.ld-fry{animation:none}}
+</style>
+</head>
+<body>
+<div id="loader" role="status" aria-live="polite">
+  <div class="ld-fry" aria-hidden="true"></div>
+  <div class="ld-name">감튀블록</div>
+  <div class="ld-sub" id="ldSub"></div>
+</div>
+<script>setTimeout(function(){var l=document.getElementById('loader');if(l&&!l.classList.contains('done'))document.getElementById('ldSub').textContent='조금 오래 걸리네요. 새로고침해 보세요';},15000)</script>
+<div id="stage"></div>
+
+<header class="top">
+  <div class="brand">감튀블록</div>
+  <div class="top-actions">
+    <button class="pill" id="undoBtn" title="되돌리기 (Ctrl+Z)" aria-label="되돌리기" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+    </button>
+    <button class="pill" id="redoBtn" title="앞으로 (Ctrl+Shift+Z)" aria-label="앞으로" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+    </button>
+    <button class="pill" id="clearBtn" title="비우기" aria-label="비우기">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg><span class="lbl">비우기</span>
+    </button>
+    <div class="more-wrap" id="moreWrap">
+    <button class="pill" id="moreBtn" title="더보기" aria-label="더보기" aria-haspopup="true" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
+    </button>
+    <div class="more-menu" id="moreMenu">
+    <button class="pill" id="gravBtn" title="중력 (G)" aria-pressed="true">
+      <span class="lbl">중력</span><span class="sw" aria-hidden="true"><i></i></span>
+    </button>
+    <button class="pill" id="nightBtn" title="야간 모드 (N)">
+      <svg id="icMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+      <svg id="icSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <span class="mlbl">다크 모드</span><span class="sw msw" aria-hidden="true"><i></i></span>
+    </button>
+    <button class="pill" id="soundBtn" title="소리">
+      <svg id="sndOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+      <svg id="sndOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>
+      <span class="mlbl">사운드</span><span class="sw msw" aria-hidden="true"><i></i></span>
+    </button>
+    </div>
+    </div>
+  </div>
+</header>
+
+
+<div id="squeezeTip"><b>케첩 모드</b> <button id="sqDone">종료</button></div>
+
+
+<section class="panel" id="panel">
+  <div class="card" data-tab="pieces">
+    <div class="tabs" role="tablist"><button data-tab="pieces" class="on" role="tab">재료</button><button data-tab="ex" role="tab">예시</button></div>
+    <span class="sect">재료 추가</span>
+    <div class="pieces" id="pieces"></div>
+    <div class="rule"></div>
+    <div class="examples">
+      <span class="lbl">예시</span>
+      <button data-ex="dino">트리케라톱스</button>
+      <button data-ex="stego">스테고사우루스</button>
+      <button data-ex="giraffe">기린</button>
+      <button data-ex="car">자동차</button>
+    </div>
+  </div>
+  <button class="primary" id="saveBtn" disabled title="사진 촬영 (P)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg><span>촬영</span>
+  </button>
+</section>
+
+
+<div class="selbar" id="selActs">
+  <button class="txt mode on" data-mode="move" title="이동 (W)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span>이동</span></button>
+  <button class="txt mode" data-mode="rotate" title="회전 (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg><span>회전</span></button>
+  <button class="txt mode" data-mode="scale" title="크기 (R)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span>크기</span></button>
+  <span class="sep"></span>
+  <button data-act="dup" title="복제 (D)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="3"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button>
+  <button class="danger" data-act="del" title="빼기 (Delete)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg></button>
+  <span class="sep"></span>
+  <button data-act="done" class="close" title="닫기 (Esc)" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
+
+<div id="flash"></div>
+<div id="toast"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeVertices, mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const Y = new THREE.Vector3(0, 1, 0);
+const $ = id => document.getElementById(id);
+
+/* ---------- helpers ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const newSeed = () => (Math.random() * 1e9) | 0;
+function noise3(x, y, z, o){
+  return ( Math.sin(x*1.7+o[0])*Math.sin(y*2.3+o[1])*Math.sin(z*1.9+o[2])
+         + Math.sin(x*3.1+y*1.3+o[3])*0.5 + Math.sin(z*2.7-x*1.1+o[4])*0.5
+         + Math.sin(y*3.7+z*1.7+o[5])*0.35 ) / 2.35;
+}
+
+/* ---------- materials ---------- */
+const bumpU = { value: 1 };     // crumb relief strength (softened at night so the crust doesn't look like black blotches)
+const deepU = { value: 0.26 };   // how much deeper cast shadows get (day only)
+const fryMat = new THREE.MeshStandardMaterial({ vertexColors:true, roughness:0.6, metalness:0 });
+const nugMat = new THREE.MeshStandardMaterial({ vertexColors:true, roughness:0.9, metalness:0 });
+const ketMat = new THREE.MeshPhysicalMaterial({ color:0xb8231b, roughness:0.2, clearcoat:0.8, clearcoatRoughness:0.15 });
+const eraseMat = new THREE.MeshStandardMaterial({ color:0xd8695b, roughness:0.6, transparent:true, opacity:0.85 });
+
+/* ---------- geometry ---------- */
+const FRY_W = 0.17;
+const CURVES = {
+  long:  new THREE.LineCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,2.0,0)),
+  short: new THREE.LineCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,1.15,0)),
+  bent:  new THREE.QuadraticBezierCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,1.55,0), new THREE.Vector3(0.95,1.8,0)),
+  stub:  new THREE.LineCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0.72,0)),   // a stubby leg
+  horn:  new THREE.QuadraticBezierCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0.45,0), new THREE.Vector3(0.06,0.8,0)),   // a short stubby pointy fry
+  tip:   new THREE.QuadraticBezierCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0.8,0), new THREE.Vector3(0.12,1.45,0)),   // the pointy end of the potato
+};
+
+function makeFryGeo(curve, seed, taper = false){
+  const rnd = mulberry32(seed);
+  const tStart = 0.38 + rnd()*0.2, tipR = 0.3 + rnd()*0.15, skew = (rnd() < 0.5 ? -1 : 1)*(0.2 + rnd()*0.35);
+  const SEG = curve.isLineCurve3 ? 14 : 30, P = 16, ex = 2/5;
+  const frames = curve.computeFrenetFrames(SEG, false);
+  const pos = [], col = [], idx = [];
+  const cBase = new THREE.Color(0xf2bc45), cEnd = new THREE.Color(0xbb7623), c = new THREE.Color();
+  const tint = (rnd()-0.5)*0.08;
+  const w = FRY_W * (0.92 + rnd()*0.16);
+  const twist = (rnd()-0.5)*0.4;
+  for (let i = 0; i <= SEG; i++){
+    const t = i/SEG, p = curve.getPointAt(t);
+    const N = frames.normals[i], B = frames.binormals[i];
+    const rr = 1 + (rnd()-0.5)*0.05;
+    // a tapered fry narrows (a bit off-centre, like a knife-cut potato end) into a soft rounded point
+    let tk = 1, off = 0, exT = ex;
+    if (taper && t > tStart){ const k = (t - tStart)/(1 - tStart), e = k*k*(3 - 2*k); tk = 1 - (1 - tipR)*e; off = skew*(1 - tk)*w*0.35; exT = ex + (1 - ex)*e*0.8; }
+    const endF = Math.pow(Math.abs(2*t-1), 10);
+    c.copy(cBase).lerp(cEnd, Math.min(1, endF*0.75 + rnd()*0.05 + Math.max(0,tint)));
+    if (tint < 0) c.offsetHSL(0, 0, -tint*0.4);
+    for (let j = 0; j < P; j++){
+      const a = j/P*Math.PI*2 + twist*t, cs = Math.cos(a), sn = Math.sin(a);
+      const x = Math.sign(cs)*Math.pow(Math.abs(cs), exT)*w/2*rr*tk + off;
+      const y = Math.sign(sn)*Math.pow(Math.abs(sn), exT)*w/2*rr*tk;
+      pos.push(p.x+N.x*x+B.x*y, p.y+N.y*x+B.y*y, p.z+N.z*x+B.z*y);
+      col.push(c.r, c.g, c.b);
+    }
+  }
+  for (let i = 0; i < SEG; i++) for (let j = 0; j < P; j++){
+    const a = i*P+j, b = i*P+(j+1)%P, cc = (i+1)*P+j, d = (i+1)*P+(j+1)%P;
+    idx.push(a, b, cc, b, d, cc);
+  }
+  // caps
+  const t0 = curve.getTangentAt(0), t1 = curve.getTangentAt(1);
+  const p0 = curve.getPointAt(0).addScaledVector(t0, -0.035), p1 = curve.getPointAt(1).addScaledVector(t1, taper ? 0.012 : 0.035);
+  if (taper){ const N1 = frames.normals[SEG]; p1.addScaledVector(N1, skew*(1 - tipR)*w*0.35); }
+  const c0 = pos.length/3; pos.push(p0.x,p0.y,p0.z); col.push(cEnd.r,cEnd.g,cEnd.b);
+  const c1 = pos.length/3; pos.push(p1.x,p1.y,p1.z); col.push(cEnd.r,cEnd.g,cEnd.b);
+  for (let j = 0; j < P; j++){
+    idx.push(c0, (j+1)%P, j);
+    idx.push(c1, SEG*P+j, SEG*P+(j+1)%P);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+function makeNuggetGeo(seed){
+  const rnd = mulberry32(seed);
+  // 2D silhouette: smooth union of a few discs (bell, boot, ball, bone)
+  const SHAPES = [
+    [[0,0.05,0.62],[0,-0.42,0.42],[0.38,-0.38,0.22],[-0.38,-0.38,0.22]],              // bell
+    [[-0.12,0.12,0.5],[0.3,-0.3,0.42],[0.62,-0.4,0.3]],                                 // boot
+    [[0,0,0.6],[0.18,0.12,0.45]],                                                       // ball
+    'bone',
+  ];
+  const pickN = Math.floor(rnd()*(SHAPES.length + 1));   // bone comes up a little more often
+  const base = SHAPES[Math.min(pickN, SHAPES.length - 1)];
+  const K = 9;
+  let field, discs;
+  if (base === 'bone'){
+    // a chunky rounded block, a touch narrower in the middle, ends slightly uneven
+    const hx = 0.66 + rnd()*0.08, hy = 0.42 + rnd()*0.06, rc = 0.2 + rnd()*0.06, waist = 0.05 + rnd()*0.04, skew = (rnd() - 0.5)*0.12;
+    field = (x, y) => {
+      const yy = y - skew*x;
+      const qx = Math.abs(x) - (hx - rc), qy = Math.abs(yy) - (hy - rc)*(1 + 0.08*Math.sign(x)*Math.sign(skew || 1));
+      const d = Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - rc;
+      return d + waist*Math.exp(-(x*x)/0.05)*Math.min(1, Math.abs(yy)/hy*1.4);
+    };
+    discs = [[0, 0, 0.5]];
+  } else {
+    discs = base.map(([x,y,r]) => [x + (rnd()-0.5)*0.08, y + (rnd()-0.5)*0.08, r*(0.92 + rnd()*0.14)]);
+    field = (x, y) => { let s = 0; for (const [cx,cy,r] of discs) s += Math.exp(-K*(Math.hypot(x-cx, y-cy) - r)); return -Math.log(s)/K; };
+  }
+  let cx = 0, cy = 0, wsum = 0;
+  for (const [x,y,r] of discs) { cx += x*r*r; cy += y*r*r; wsum += r*r; }
+  cx /= wsum; cy /= wsum;
+  const NA = 256, R = new Float32Array(NA);
+  for (let i = 0; i < NA; i++){
+    const a = i/NA*Math.PI*2, dx = Math.cos(a), dy = Math.sin(a);
+    let t = 0; while (t < 2 && field(cx + dx*t, cy + dy*t) < 0) t += 0.01;
+    R[i] = t;
+  }
+  const Rat = a => { const f = ((a/(Math.PI*2))%1 + 1)%1*NA, i = Math.floor(f), k = f - i; return R[i%NA]*(1-k) + R[(i+1)%NA]*k; };
+  const scale = 0.94 + rnd()*0.07;            // overall size
+  const thick = 0.3 + rnd()*0.04;             // half thickness
+  const rot = rnd()*Math.PI*2;
+
+  let g = new THREE.SphereGeometry(1, 150, 90);
+  g.deleteAttribute('uv'); g.deleteAttribute('normal');
+  g = mergeVertices(g);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  const o1 = Array.from({length:6}, () => rnd()*10), o2 = Array.from({length:6}, () => rnd()*10);
+  const cHi = new THREE.Color(0xf0b961), cMid = new THREE.Color(0xdf9638), cLo = new THREE.Color(0xb96a22), c = new THREE.Color();
+  const col = [];
+  let maxX = 0, maxZ = 0;
+  for (let i = 0; i < p.count; i++){
+    v.fromBufferAttribute(p, i);
+    const rho = Math.hypot(v.x, v.z), a = Math.atan2(v.z, v.x);
+    const Rr = Rat(a + rot) * scale;
+    // pillow cross-section: flat-ish faces, round rim
+    const yy = Math.sign(v.y)*Math.pow(Math.abs(v.y), 0.72);
+    const rr = Math.pow(rho, 0.85);
+    let x = Math.cos(a)*rr*Rr, z = Math.sin(a)*rr*Rr, y = yy*thick*(0.9 + 0.1*rr);
+    // gentle lumps + breading crumbs
+    const lo = noise3(x*3, y*3, z*3, o1), hi = noise3(x*14, y*14, z*14, o2);
+    const disp = 0.03*lo + 0.008*hi;
+    const nx = Math.cos(a)*rho, ny = v.y*2.2, nz = Math.sin(a)*rho, nl = Math.hypot(nx, ny, nz) || 1;
+    x += nx/nl*disp; y += ny/nl*disp; z += nz/nl*disp;
+    p.setXYZ(i, x, y, z);
+    maxX = Math.max(maxX, Math.abs(x)); maxZ = Math.max(maxZ, Math.abs(z));
+    // rim browns more than the flat faces
+    const rim = Math.pow(1 - Math.abs(v.y), 3);
+    c.copy(cMid).lerp(cHi, THREE.MathUtils.clamp(0.35 + lo*0.6, 0, 1)).lerp(cLo, rim*0.45);
+    col.push(c.r, c.g, c.b);
+  }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.computeVertexNormals();
+  // sockets for snapping, in local space
+  const socks = [{ p:new THREE.Vector3(0, thick, 0), n:new THREE.Vector3(0,1,0) }, { p:new THREE.Vector3(0, -thick, 0), n:new THREE.Vector3(0,-1,0) }];
+  for (let i = 0; i < 8; i++){
+    const a = i/8*Math.PI*2, r = Rat(a + rot)*scale, r2 = Rat(a + rot + 0.05)*scale, r1 = Rat(a + rot - 0.05)*scale;
+    const pt = new THREE.Vector3(Math.cos(a)*r, 0, Math.sin(a)*r);
+    const t = new THREE.Vector3(Math.cos(a+0.05)*r2 - Math.cos(a-0.05)*r1, 0, Math.sin(a+0.05)*r2 - Math.sin(a-0.05)*r1);
+    const n = new THREE.Vector3(t.z, 0, -t.x).normalize(); if (n.dot(pt) < 0) n.negate();
+    socks.push({ p: pt.multiplyScalar(0.96), n });
+  }
+  g.userData = { sockets: socks, ell: [maxX, thick, maxZ] };
+  return g;
+}
+
+/* crunchy breading + fry surface, done in the shader so it stays crisp up close */
+const GLSL_NOISE = `
+varying vec3 vObjPos;
+float hash3(vec3 p){ p = fract(p*0.3183099 + 0.1); p *= 17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+float vnoise(vec3 x){ vec3 i = floor(x), f = fract(x); f = f*f*(3.0-2.0*f);
+  return mix(mix(mix(hash3(i), hash3(i+vec3(1,0,0)), f.x), mix(hash3(i+vec3(0,1,0)), hash3(i+vec3(1,1,0)), f.x), f.y),
+             mix(mix(hash3(i+vec3(0,0,1)), hash3(i+vec3(1,0,1)), f.x), mix(hash3(i+vec3(0,1,1)), hash3(i+vec3(1,1,1)), f.x), f.y), f.z); }
+float fbm(vec3 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++){ s += a*vnoise(p); p = p*2.03 + 1.7; a *= 0.5; } return s; }
+`;
+function patchSurface(mat, kind){
+  mat.onBeforeCompile = sh => {
+    sh.vertexShader = 'varying vec3 vObjPos;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvObjPos = position;');
+    const crust = kind === 'nugget';
+    sh.uniforms.uBump = bumpU;
+    sh.fragmentShader = 'uniform float uBump;\n' + GLSL_NOISE + sh.fragmentShader
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        vec3 sp = vObjPos * ${crust ? 'vec3(1.0)' : 'vec3(1.0, 0.12, 1.0)'};
+        float pxw = length(fwidth(vObjPos));
+        float fade = 1.0 - smoothstep(0.004, 0.018, pxw);
+        float hC = ${crust ? 'fbm(sp*9.0)*0.7 + mix(0.5, vnoise(sp*24.0), fade)*0.3' : 'fbm(sp*5.0)'};
+        diffuseColor.rgb *= ${crust ? 'mix(0.84, 1.12, smoothstep(0.25, 0.75, hC))' : 'mix(0.97, 1.03, hC)'};
+        ${crust ? `
+        vec3 cc = floor(vObjPos*26.0), fp = fract(vObjPos*26.0);
+        vec3 off = vec3(hash3(cc+1.3), hash3(cc+2.7), hash3(cc+5.9))*0.6 + 0.2;
+        float speck = step(0.8, hash3(cc+7.1)) * (1.0 - smoothstep(0.06, 0.11, length(fp - off)));
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.16, 0.1, 0.06), speck*0.85*fade);` : ''}`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = ${crust ? 'mix(0.92, 0.62, smoothstep(0.4, 0.8, hC))' : 'mix(0.68, 0.55, hC)'};`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        {
+          vec3 dpdx = dFdx(-vViewPosition), dpdy = dFdy(-vViewPosition);
+          float hx = dFdx(hC), hy = dFdy(hC);
+          vec3 r1 = cross(dpdy, normal), r2 = cross(normal, dpdx);
+          float det = dot(dpdx, r1);
+          vec3 grad = sign(det) * (hx*r1 + hy*r2);
+          normal = normalize(abs(det)*normal - grad * ${crust ? '0.45' : '0.04'} * uBump * (0.35 + 0.65*fade));
+        }`);
+  };
+  mat.customProgramCacheKey = () => 'surf-' + kind;
+  return mat;
+}
+patchSurface(nugMat, 'nugget');
+patchSurface(fryMat, 'fry');
+
+function makeKetchupGeo(seed){
+  const rnd = mulberry32(seed);
+  let g = new THREE.SphereGeometry(1, 32, 20);
+  g.deleteAttribute('uv'); g.deleteAttribute('normal');
+  g = mergeVertices(g);
+  const p = g.attributes.position, v = new THREE.Vector3(), o = Array.from({length:6}, () => rnd()*10);
+  const s = 0.85 + rnd()*0.35;
+  for (let i = 0; i < p.count; i++){
+    v.fromBufferAttribute(p, i);
+    v.multiplyScalar(1 + 0.12*noise3(v.x*2.5, v.y*2.5, v.z*2.5, o));
+    p.setXYZ(i, v.x*0.11*s, Math.max(v.y, -0.3)*0.06*s, v.z*0.11*s);
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
+function makeOnionGeo(seed){
+  const rnd = mulberry32(seed);
+  const R = 0.4 + rnd()*0.06, r = 0.12 + rnd()*0.02;
+  let g = new THREE.TorusGeometry(R, r, 28, 72);
+  g.deleteAttribute('uv'); g.deleteAttribute('normal');
+  g = mergeVertices(g);
+  const p = g.attributes.position, v = new THREE.Vector3(), c0 = new THREE.Vector3();
+  const o1 = Array.from({length:6}, () => rnd()*10), o2 = Array.from({length:6}, () => rnd()*10);
+  const ov = 1 + (rnd()-0.5)*0.12;   // slightly oval ring
+  const cHi = new THREE.Color(0xf3cf86), cMid = new THREE.Color(0xe2a952), cLo = new THREE.Color(0xc4823a), c = new THREE.Color();
+  const col = [];
+  for (let i = 0; i < p.count; i++){
+    v.fromBufferAttribute(p, i);
+    c0.set(v.x, v.y, 0).setLength(R);                       // nearest point on the ring's centre line
+    const n = v.clone().sub(c0).normalize();
+    const lo = noise3(v.x*4, v.y*4, v.z*4, o1), hi = noise3(v.x*15, v.y*15, v.z*15, o2);
+    v.addScaledVector(n, 0.028*lo + 0.008*hi);
+    v.x *= ov;
+    p.setXYZ(i, v.x, v.y, v.z);
+    c.copy(cMid).lerp(cHi, THREE.MathUtils.clamp(0.4 + lo*0.7, 0, 1)).lerp(cLo, THREE.MathUtils.clamp(-hi*0.6, 0, 0.5));
+    col.push(c.r, c.g, c.b);
+  }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.rotateX(Math.PI/2);   // lie flat
+  g.computeVertexNormals();
+  return g;
+}
+
+const PIECES = {
+  long:    { name:'긴 감튀',   kcal:6 },
+  short:   { name:'짧은 감튀', kcal:4 },
+  bent:    { name:'휜 감튀',   kcal:6 },
+  tip:     { name:'뾰족 감튀', kcal:5 },
+  horn:    { name:'감튀 뿔',   kcal:3 },
+  stub:    { name:'짤막 감튀', kcal:3 },
+  nugget:  { name:'너겟',      kcal:45 },
+  onion:   { name:'어니언링',  kcal:40 },
+  ketchup: { name:'케첩',      kcal:3 },
+};
+const TYPES = Object.keys(PIECES);
+const FRIES = ['long', 'short', 'bent', 'tip', 'tip'];
+// what the side panel shows: one 감튀 tile that drops a random fry
+const TILES = [
+  { id:'fry', name:'감튀', thumb:'long' },
+  { id:'nugget', name:'너겟', thumb:'nugget' },
+  { id:'onion', name:'어니언링', thumb:'onion' },
+  { id:'ketchup', name:'케첩', thumb:'ketchup' },
+];
+const isFry = t => t === 'long' || t === 'short' || t === 'bent' || t === 'tip' || t === 'horn' || t === 'stub';
+
+function createPiece(type, seed){
+  let geo, mat;
+  if (isFry(type)) {
+    geo = makeFryGeo(CURVES[type], seed, type === 'tip' || type === 'horn'); mat = fryMat;
+    geo.computeBoundingBox(); const mid = geo.boundingBox.getCenter(new THREE.Vector3());
+    geo.translate(-mid.x, -mid.y, -mid.z); geo.userData.mid = mid;  // pivot in the middle
+  }
+  else if (type === 'nugget') { geo = makeNuggetGeo(seed); mat = nugMat; }
+  else if (type === 'onion') { geo = makeOnionGeo(seed); mat = nugMat; }
+  else { geo = makeKetchupGeo(seed); mat = ketMat; }
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = true; m.receiveShadow = true;
+  m.userData = { type, seed, piece:true, baseMat:mat };
+  return m;
+}
+
+/* ---------- renderer / scene ---------- */
+const stage = $('stage');
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.toneMappingExposure = 1.0;
+stage.appendChild(renderer.domElement);
+
+const BG = 0xfdf7ec;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(BG);
+scene.fog = new THREE.Fog(BG, 30, 60);
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environment = envTex;
+scene.environmentIntensity = 0.45;
+
+function addLights(sc, shadows){
+  const h = new THREE.HemisphereLight(0xfff3df, 0xcfc3a5, 1.6); sc.add(h);
+  const d = new THREE.DirectionalLight(0xfff0d8, 2.4);
+  d.position.set(4, 9, 5);
+  if (shadows){
+    d.castShadow = true;
+    d.shadow.mapSize.set(2048, 2048);
+    const s = d.shadow.camera; s.left = s.bottom = -6; s.right = s.top = 6; s.near = 1; s.far = 25;
+    d.shadow.bias = -0.0004; d.shadow.normalBias = 0.02;
+  }
+  sc.add(d);
+  const f = new THREE.DirectionalLight(0xe8efe0, 0.6); f.position.set(-5, 3, -4); sc.add(f);
+  // a second, softer ceiling light from the other side: real rooms have more than one, so pieces get a faint second shadow
+  const d2 = new THREE.DirectionalLight(0xfff1dc, shadows ? 0.8 : 0);   // (the tile thumbnails keep their old lighting)
+  d2.position.set(-6, 8, 2.5);
+  if (shadows){
+    d2.castShadow = true; d2.shadow.mapSize.set(1024, 1024); d2.shadow.radius = 4;
+    const s2 = d2.shadow.camera; s2.left = s2.bottom = -6; s2.right = s2.top = 6; s2.near = 1; s2.far = 25;
+    d2.shadow.bias = -0.0005; d2.shadow.normalBias = 0.03;
+  }
+  sc.add(d2);
+  return { h, d, f, d2 };
+}
+const L = addLights(scene, true);
+
+/* night mode: dim cool moonlight + a warm pendant lamp pooling light on the tray */
+const lamp = new THREE.SpotLight(0xffd6a3, 0, 0, 0.55, 0.85, 0);
+lamp.position.set(0.4, 10, 1.2); lamp.target.position.set(0, 0, 0);
+lamp.castShadow = true; lamp.shadow.mapSize.set(2048, 2048); lamp.shadow.bias = -0.0004; lamp.shadow.normalBias = 0.02;
+lamp.shadow.camera.near = 4; lamp.shadow.camera.far = 16;
+scene.add(lamp, lamp.target); lamp.visible = false;
+const rimLight = new THREE.DirectionalLight(0x7fa6ff, 0); rimLight.position.set(-6, 4, -7); scene.add(rimLight); rimLight.visible = false;
+// soft warm fill from the viewer's side: lifts the shadows so food stays appetizing at night (no shadow of its own)
+const fillLight = new THREE.DirectionalLight(0xffcf98, 0); fillLight.position.set(3, 5, 8); scene.add(fillLight); fillLight.visible = false;
+const C = (h) => new THREE.Color(h);
+const LOOK = {
+  day:   { bg:C(0xfdf7ec), hs:C(0xffdcae), hg:C(0xe0a466), hi:1.5, dc:C(0xfff6ea), di:2.0, fi:0.5, d2:0.8, lamp:0, rim:0, fill:0, env:0.45, shadow:0.09, exp:1.0, deep:0.26, bump:1 },
+  night: { bg:C(0x14171d), hs:C(0xe0a46c), hg:C(0xa8622a), hi:1.05, dc:C(0xc8bfc8), di:0.12, fi:0.12, d2:0, lamp:2.2, rim:0.4, fill:1.0, env:0.26, shadow:0.15, exp:1.05, deep:0, bump:0.45 },
+};
+let lookT = 0, lookFrom = 0, lookTo = 0, lookT0 = 0;   // 0 = day, 1 = night
+function applyLook(k){
+  const a = LOOK.day, b = LOOK.night, mix = (x, y) => x + (y - x)*k;
+  scene.background.copy(a.bg).lerp(b.bg, k); scene.fog.color.copy(scene.background);
+  L.h.color.copy(a.hs).lerp(b.hs, k); L.h.groundColor.copy(a.hg).lerp(b.hg, k); L.h.intensity = mix(a.hi, b.hi);
+  L.d.color.copy(a.dc).lerp(b.dc, k); L.d.intensity = mix(a.di, b.di); L.f.intensity = mix(a.fi, b.fi);
+  if (L.d2) { L.d2.intensity = mix(a.d2, b.d2); L.d2.visible = L.d2.intensity > 0.001; }
+  lamp.intensity = mix(a.lamp, b.lamp); rimLight.intensity = mix(a.rim, b.rim); fillLight.intensity = mix(a.fill, b.fill); fillLight.visible = fillLight.intensity > 0.001;
+  lamp.visible = lamp.intensity > 0.001; rimLight.visible = rimLight.intensity > 0.001;   // no extra shadow pass by day
+  scene.environmentIntensity = mix(a.env, b.env); deepU.value = mix(a.deep, b.deep); bumpU.value = mix(a.bump, b.bump);
+  renderer.toneMappingExposure = mix(a.exp, b.exp);
+  if (typeof ground !== 'undefined') ground.material.opacity = mix(a.shadow, b.shadow);
+}
+function setNight(on, instant){
+  state.night = on;
+  document.documentElement.dataset.theme = on ? 'night' : 'day';
+  $('nightBtn').classList.toggle('on', !!on);
+  $('icMoon').style.display = on ? 'none' : ''; $('icSun').style.display = on ? '' : 'none';
+  lookFrom = lookT; lookTo = on ? 1 : 0; lookT0 = performance.now();
+  if (instant) { lookT = lookTo; applyLook(lookT); }
+  try { localStorage.setItem('gamtwi-night', on ? '1' : '0'); } catch(e){}
+}
+function stepLook(now){
+  if (lookT === lookTo) return;
+  const t = Math.min(1, (now - lookT0)/900), e = t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+  lookT = lookFrom + (lookTo - lookFrom)*e; if (t >= 1) lookT = lookTo;
+  applyLook(lookT);
+}
+function lampClick(on){
+  if (!state.sound) return; const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = 'square'; o.frequency.setValueAtTime(on ? 1800 : 1400, a.currentTime);
+  g.gain.setValueAtTime(0.0001, a.currentTime); g.gain.exponentialRampToValueAtTime(0.05, a.currentTime + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.04);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + 0.05);
+}
+
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+camera.position.set(8.2, 7.0, 10.8);
+// rotation gizmo (registered before OrbitControls so it gets the pointer first)
+const tc = new TransformControls(camera, renderer.domElement);
+tc.setMode('rotate'); tc.setSpace('local'); tc.setSize(0.9);
+tc.setRotationSnap(THREE.MathUtils.degToRad(15));
+scene.add(tc.getHelper());
+{
+  const g = tc._gizmo;
+  for (const grp of [g.gizmo.rotate, g.picker.rotate]) [...grp.children].forEach(h => { if (h.name === 'XYZE') grp.remove(h); });
+  const tint = { X:0xd9614c, Y:0x4f9a6a, Z:0x4a7fb5, E:0xe0b54a };
+  g.gizmo.rotate.children.forEach(h => { if (tint[h.name]) { h.material = h.material.clone(); h.material.color.setHex(tint[h.name]); } });
+  // move gizmo: just the X / Y / Z arrows, so dragging the piece itself still moves it freely
+  for (const grp of [g.gizmo.translate, g.picker.translate]) [...grp.children].forEach(h => { if (!['X', 'Y', 'Z'].includes(h.name)) grp.remove(h); });
+  g.gizmo.translate.children.forEach(h => { if (tint[h.name]) { h.material = h.material.clone(); h.material.color.setHex(tint[h.name]); if (h.material._color) h.material._color = h.material.color.clone(); } });
+  // keep the middle of the move gizmo empty, so the piece under it can still be grabbed:
+  // shafts start a little away from the centre, and the arrows are only grabbable along their outer part
+  const AX = { X: new THREE.Euler(0, 0, -Math.PI/2), Y: new THREE.Euler(0, 0, 0), Z: new THREE.Euler(Math.PI/2, 0, 0) };
+  const along = (geo, name, flip) => { geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(AX[name])); if (flip) geo.scale(name === 'X' ? -1 : 1, name === 'Y' ? -1 : 1, name === 'Z' ? -1 : 1); return geo; };
+  g.gizmo.translate.children.forEach(h => {
+    const p = h.geometry.parameters;
+    if (h.geometry.type === 'CylinderGeometry' && p && p.radiusTop < 0.01 && p.height > 0.4){
+      const geo = new THREE.CylinderGeometry(0.0075, 0.0075, 0.3, 3); geo.translate(0, 0.35, 0);   // shaft from 0.2 to 0.5
+      h.geometry = along(geo, h.name);
+    }
+  });
+  const pick = g.picker.translate, pmat = pick.children[0] && pick.children[0].material;
+  [...pick.children].forEach(h => pick.remove(h));
+  for (const name of ['X', 'Y', 'Z']) for (const flip of [false, true]){
+    const geo = new THREE.CylinderGeometry(0.09, 0.09, 0.42, 6); geo.translate(0, 0.44, 0);       // grab zone from 0.23 to 0.65
+    const m = new THREE.Mesh(along(geo, name, flip), pmat); m.name = name; pick.add(m);
+  }
+}
+function syncGizmo(){
+  const mode = state.mode === 'move' ? 'translate' : state.mode === 'rotate' ? 'rotate' : null;
+  if (selected && mode) { tc.setMode(mode); tc.setSpace(mode === 'translate' ? 'world' : 'local'); tc.attach(selected); }
+  else tc.detach();
+}
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.9, 0);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.minDistance = 5; controls.maxDistance = 26;
+controls.maxPolarAngle = Math.PI*0.48;
+controls.rotateSpeed = 0.7;
+
+// plate
+// fast-food tray (no logo)
+// fast-food tray: flat floor, sloped wall, rolled lip and a wide flange (no logo)
+const TW = 7.0, TD = 5.0, TR = 0.45;          // inner floor
+function rrect(w, d, r){
+  const s = new THREE.Shape(), x = -w/2, y = -d/2;
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.absarc(x + w - r, y + r, r, -Math.PI/2, 0);
+  s.lineTo(x + w, y + d - r); s.absarc(x + w - r, y + d - r, r, 0, Math.PI/2);
+  s.lineTo(x + r, y + d); s.absarc(x + r, y + d - r, r, Math.PI/2, Math.PI);
+  s.lineTo(x, y + r); s.absarc(x + r, y + r, r, Math.PI, Math.PI*1.5);
+  return s;
+}
+// rounded-rect outline grown outward by o, same vertex count for every o
+function ring(o, seg = 14){
+  const hw = TW/2 + o, hd = TD/2 + o, r = TR + o, pts = [];
+  const C = [[hw - r, hd - r, 0], [-hw + r, hd - r, 0.5], [-hw + r, -hd + r, 1], [hw - r, -hd + r, 1.5]];
+  for (const [cx, cz, a0] of C) for (let i = 0; i <= seg; i++){
+    const a = (a0 + i/seg*0.5)*Math.PI; pts.push([cx + Math.cos(a)*r, cz + Math.sin(a)*r]);
+  }
+  return pts;
+}
+// cross-section of the rim: [outward offset, height]
+const PROFILE = [
+  [0, 0], [0.05, 0.008], [0.09, 0.03], [0.32, 0.22], [0.35, 0.255], [0.4, 0.275], [0.46, 0.278],
+  [0.82, 0.262], [0.88, 0.25], [0.91, 0.22], [0.9, 0.185], [0.86, 0.17], [0.76, 0.165],
+  [0.44, 0.15], [0.16, -0.05], [0.08, -0.08], [0, -0.08],
+];
+function trayRimGeo(){
+  const rings = PROFILE.map(([o, y]) => ring(o).map(([x, z]) => [x, y, z]));
+  const n = rings[0].length, pos = [], idx = [];
+  rings.forEach(r => r.forEach(p => pos.push(...p)));
+  for (let k = 0; k < rings.length - 1; k++) for (let i = 0; i < n; i++){
+    const a = k*n + i, b = k*n + (i + 1)%n, c = (k + 1)*n + i, d = (k + 1)*n + (i + 1)%n;
+    idx.push(a, c, b, b, c, d);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+const trayMat = new THREE.MeshStandardMaterial({ color:0xc93d2d, roughness:0.42, metalness:0, side:THREE.DoubleSide });
+const floorGeo = new THREE.ShapeGeometry(rrect(TW, TD, TR), 24); floorGeo.rotateX(-Math.PI/2);
+const plate = new THREE.Mesh(floorGeo, trayMat);
+plate.receiveShadow = true; plate.userData.type = 'floor';
+scene.add(plate);
+const under = new THREE.Mesh(floorGeo, trayMat); under.position.y = -0.08; scene.add(under);
+const rim = new THREE.Mesh(trayRimGeo(), trayMat);
+rim.castShadow = true; rim.receiveShadow = true; scene.add(rim);
+// thin paper tray liner, blank except for a small ad line along the edge
+const PW = 6.7, PD = 4.75;
+function linerTexture(){
+  const W = 2048, H = Math.round(W*PD/PW), c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#fbf7ee'; x.fillRect(0, 0, W, H);
+  // faint paper fibre
+  const rnd = mulberry32(7);
+  for (let i = 0; i < 9000; i++){ x.fillStyle = `rgba(150,130,100,${0.02 + rnd()*0.03})`; x.fillRect(rnd()*W, rnd()*H, 1 + rnd()*3, 1); }
+  // thin frame
+  x.strokeStyle = 'rgba(196,57,43,.55)'; x.lineWidth = 3;
+  x.strokeRect(54, 54, W - 108, H - 108);
+  // small ad copy on the edge
+  x.fillStyle = 'rgba(150,60,50,.75)'; x.textBaseline = 'middle';
+  x.font = '600 30px "Noto Sans KR", system-ui, sans-serif';
+  x.textAlign = 'left';  x.fillText('이 자리에 광고 받습니다', 84, H - 92);
+  x.textAlign = 'right'; x.font = '500 26px "Noto Sans KR", system-ui, sans-serif'; x.fillText('광고 문의 환영  ·  @hadamalza', W - 84, H - 92);
+  x.save(); x.translate(W - 92, 96); x.textAlign = 'right'; x.font = '500 24px "Noto Sans KR", system-ui, sans-serif'; x.fillStyle = 'rgba(150,60,50,.55)';
+  x.fillText('AD SPACE AVAILABLE', 0, 0); x.restore();
+  return c;
+}
+const linerTex = new THREE.CanvasTexture(linerTexture());
+linerTex.colorSpace = THREE.SRGBColorSpace; linerTex.anisotropy = 8;
+const liner = new THREE.Mesh(new THREE.PlaneGeometry(PW, PD), new THREE.MeshStandardMaterial({ map: linerTex, roughness: 0.95 }));
+liner.rotation.x = -Math.PI/2; liner.rotation.z = 0.012; liner.position.y = 0.004;
+liner.receiveShadow = true; liner.userData.type = 'floor';
+scene.add(liner);
+document.fonts && document.fonts.load('600 30px "Noto Sans KR"').then(() => { linerTex.image = linerTexture(); linerTex.needsUpdate = true; }).catch(() => {});
+const inTray = p => Math.abs(p.x) < TW/2 - 0.12 && Math.abs(p.z) < TD/2 - 0.12;
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ color:0x8a4316, opacity:0.09 }));
+ground.rotation.x = -Math.PI/2; ground.position.y = -0.085; ground.receiveShadow = true; scene.add(ground);
+
+
+const build = new THREE.Group(); scene.add(build);
+
+/* a small wooden table under the tray */
+function woodTexture(){
+  const W = 1024, H = 512, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), rnd = mulberry32(7);
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#c48a52'); g.addColorStop(0.5, '#b97d47'); g.addColorStop(1, '#c79059');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  // planks
+  const planks = 4;
+  for (let k = 0; k < planks; k++){
+    const y0 = k*H/planks, tone = (rnd() - 0.5)*24;
+    x.fillStyle = `rgba(${tone > 0 ? '255,230,200' : '90,50,20'},${Math.abs(tone)/160})`; x.fillRect(0, y0, W, H/planks);
+    // long grain lines
+    for (let i = 0; i < 46; i++){
+      const yy = y0 + rnd()*H/planks, amp = 1.5 + rnd()*5, fr = 0.004 + rnd()*0.01, ph = rnd()*10;
+      x.strokeStyle = `rgba(95,52,22,${0.05 + rnd()*0.13})`; x.lineWidth = 0.6 + rnd()*1.8;
+      x.beginPath();
+      for (let xx = 0; xx <= W; xx += 8) x.lineTo(xx, yy + Math.sin(xx*fr + ph)*amp + Math.sin(xx*fr*3.1 + ph*2)*amp*0.3);
+      x.stroke();
+    }
+    // a knot now and then
+    if (rnd() < 0.6){
+      const kx = rnd()*W, ky = y0 + H/planks*(0.3 + rnd()*0.4);
+      for (let j = 6; j > 0; j--){ x.strokeStyle = `rgba(90,48,18,${0.08 + j*0.02})`; x.lineWidth = 1.2; x.beginPath(); x.ellipse(kx, ky, j*7, j*2.6, 0, 0, Math.PI*2); x.stroke(); }
+    }
+    x.fillStyle = 'rgba(70,38,14,0.45)'; x.fillRect(0, y0, W, 2);   // seam between planks
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}
+const TBW = 12, TBD = 12, TBT = 0.3, TBY = -0.085, LEG = 9;
+const woodMat = new THREE.MeshStandardMaterial({ map: woodTexture(), roughness: 0.62, metalness: 0 });
+const table = new THREE.Group(); scene.add(table);
+{
+  const top = new THREE.Mesh(new THREE.ExtrudeGeometry(rrect(TBW, TBD, 0.35), { depth: TBT, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.05, bevelSegments: 3, curveSegments: 12 }), woodMat);
+  top.geometry.rotateX(-Math.PI/2); top.geometry.translate(0, TBY - TBT - 0.05, 0);
+  // planar uv from x/z so the grain runs along the long side
+  const p = top.geometry.attributes.position, uv = top.geometry.attributes.uv;
+  for (let i = 0; i < p.count; i++){ const yy = p.getY(i); uv.setXY(i, (p.getX(i)/TBW + 0.5) + (yy < TBY - 0.1 ? 0.13 : 0), (p.getZ(i)/TBD + 0.5)); }
+  top.receiveShadow = true; top.castShadow = true; table.add(top);
+  // one black steel pedestal in the middle, with a mounting plate under the top and a flat foot
+  const steel = new THREE.MeshStandardMaterial({ color: 0x1d1d1f, roughness: 0.45, metalness: 0.6 });
+  const yTop = TBY - TBT - 0.1;
+  const plateTop = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 2.4), steel); plateTop.position.y = yTop - 0.04; table.add(plateTop);
+  const col = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, LEG, 36), steel); col.position.y = yTop - LEG/2; table.add(col);
+}
+ground.visible = false;   // no room floor: the table just stands in the page
+// the tray and everything on it can be lifted as one (for the 비우기 flick)
+/* deeper cast shadows: where a lit surface is shadowed by something else, the soft fill light is dimmed too.
+   faces that simply turn away from the light keep their current shading. */
+function deepShadow(mat){
+  const prev = mat.onBeforeCompile, prevKey = mat.customProgramCacheKey;
+  mat.onBeforeCompile = (sh, rd) => {
+    if (prev) prev.call(mat, sh, rd);
+    sh.uniforms.uDeep = deepU;
+    const chunk = THREE.ShaderChunk.lights_fragment_begin.replace(
+      /directLight\.color \*= \( directLight\.visible && receiveShadow \) \? (getShadow\( directionalShadowMap[^;]*?) : 1\.0;/,
+      '{ float sh_ = ( directLight.visible && receiveShadow ) ? $1 : 1.0; directLight.color *= sh_;' +
+      ' if ( UNROLLED_LOOP_INDEX == 0 ) shadowK_ = mix( 1.0, sh_, clamp( dot( geometryNormal, directLight.direction )*5.0, 0.0, 1.0 ) ); }');
+    sh.fragmentShader = 'uniform float uDeep;\n' + sh.fragmentShader
+      .replace('#include <lights_fragment_begin>', 'float shadowK_ = 1.0;\n' + chunk)
+      .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nreflectedLight.indirectDiffuse *= mix( 1.0, shadowK_, uDeep );');
+  };
+  mat.customProgramCacheKey = () => 'deep-' + (prevKey ? prevKey.call(mat) : '');
+}
+[fryMat, nugMat, ketMat, trayMat, liner.material, woodMat].forEach(deepShadow);
+const trayRig = new THREE.Group(); scene.add(trayRig); trayRig.add(plate, under, rim, liner, build);
+
+/* ---------- state ---------- */
+const state = { sound:true, mode:'move', squeeze:false, night:false, gravity:true };
+const history = [];
+let busy = false;
+
+/* ---------- audio ---------- */
+let actx = null;
+function audio(){ if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} } if (actx && actx.state !== 'running' && actx.state !== 'closed') actx.resume(); return actx; }
+/* mobile: iOS mutes Web Audio under the silent switch unless the session is 'playback', and only unlocks it inside a real tap (touchend/click), not pointerdown */
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+let audioUnlocked = false;
+function unlockAudio(){
+  const a = audio(); if (!a) return;
+  try { const b = a.createBuffer(1, 1, 22050), s = a.createBufferSource(); s.buffer = b; s.connect(a.destination); s.start(0); } catch(e){}
+  if (a.state === 'running') audioUnlocked = true;
+}
+['touchend','click','keydown','pointerup'].forEach(ev => addEventListener(ev, () => { if (!audioUnlocked || actx.state !== 'running') unlockAudio(); }, { capture:true, passive:true }));
+document.addEventListener('visibilitychange', () => { if (!document.hidden && actx) audio(); });
+function blip(freq = 600, dur = 0.09, vol = 0.07, type = 'sine'){
+  if (!state.sound) return; const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, a.currentTime);
+  o.frequency.exponentialRampToValueAtTime(freq*1.6, a.currentTime + dur*0.6);
+  g.gain.setValueAtTime(0.0001, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(vol, a.currentTime + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + dur + 0.02);
+}
+function crunch(){
+  if (!state.sound) return; const a = audio(); if (!a) return;
+  const len = 0.12, buf = a.createBuffer(1, a.sampleRate*len, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++){ const t = i/d.length; d[i] = (Math.random()*2-1) * Math.pow(1-t, 2) * (Math.random() < 0.3 ? 1 : 0.35); }
+  const s = a.createBufferSource(); s.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800 + Math.random()*1500; f.Q.value = 0.8;
+  const g = a.createGain(); g.gain.value = 0.16;
+  s.connect(f).connect(g).connect(a.destination); s.start();
+}
+
+/* ---------- interaction core ---------- */
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const V = () => new THREE.Vector3();
+
+function orient(up, spin){
+  const u = up.clone().normalize();
+  const q = new THREE.Quaternion().setFromUnitVectors(Y, u);
+  return new THREE.Quaternion().setFromAxisAngle(u, spin).multiply(q);
+}
+
+const SM = new THREE.Matrix4().makeScale(-1, 1, 1);
+const QFLIP = new THREE.Quaternion().setFromAxisAngle(Y, Math.PI);
+function mirrorOf(pl){
+  const R = new THREE.Matrix4().makeRotationFromQuaternion(pl.quat);
+  const M = SM.clone().multiply(R).multiply(SM);
+  const q = new THREE.Quaternion().setFromRotationMatrix(M).multiply(QFLIP);
+  return { pos: new THREE.Vector3(-pl.pos.x, pl.pos.y, pl.pos.z), quat: q };
+}
+
+function rayAt(clientX, clientY){
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((clientX - r.left)/r.width)*2 - 1, -((clientY - r.top)/r.height)*2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+}
+function pick(clientX, clientY, exclude = []){
+  rayAt(clientX, clientY);
+  return raycaster.intersectObjects([liner, plate, build], true).find(h => h.face && !exclude.includes(h.object)) || null;
+}
+
+// smooth surface normal (nugget lumps would make it jitter)
+function surfNormal(hit){
+  const o = hit.object, t = o.userData.type;
+  if (t === 'floor') return Y.clone();
+  if (t === 'nugget'){
+    const p = o.worldToLocal(hit.point.clone());
+    const [ex, ey, ez] = o.geometry.userData.ell;
+    const n = new THREE.Vector3(p.x/(ex*ex), p.y/(ey*ey), p.z/(ez*ez)).normalize();
+    return n.applyQuaternion(o.quaternion).normalize();
+  }
+  if (t === 'ketchup') return Y.clone().applyQuaternion(o.quaternion);
+  return hit.face.normal.clone().transformDirection(o.matrixWorld).normalize();
+}
+
+// how far the piece reaches from its origin in direction dir
+function reach(m, dir){
+  const p = m.geometry.attributes.position, v = V(), qi = m.quaternion.clone().invert();
+  const d = dir.clone().applyQuaternion(qi);
+  let best = -Infinity;
+  const step = p.count > 3000 ? 3 : 1;
+  for (let i = 0; i < p.count; i += step){ v.fromBufferAttribute(p, i); const k = v.dot(d); if (k > best) best = k; }
+  return best * m.scale.x;
+}
+
+// where the piece's origin should go so it sits on / pokes into the surface
+function seatPos(m, rest){
+  const n = rest.normal, ht = rest.type, t = m.userData.type;
+  const s = reach(m, n.clone().negate());
+  let embed = 0;
+  if (ht !== 'floor'){
+    const a = Math.abs(Y.clone().applyQuaternion(m.quaternion).dot(n));
+    if (isFry(t)) embed = 0.04 + 0.3*a*a;
+    else if (t === 'nugget') embed = isFry(ht) ? 0.17 : 0.07;
+    else embed = s*0.5;
+  }
+  return rest.point.clone().addScaledVector(n, s - embed);
+}
+const restFromHit = hit => ({ point: hit.point.clone(), normal: surfNormal(hit), type: hit.object.userData.type, obj: hit.object });
+
+/* ---------- gentle gravity ----------
+   no toppling or sliding: a piece only drops straight down when nothing is under it.
+   pieces stuck onto another piece stay stuck (they ride along), so stacks never collapse by accident. */
+const anchored = m => { const o = m.userData.rest && m.userData.rest.obj; return !!(o && o.parent === build && o !== m); };
+const _dn = new THREE.Vector3(0, -1, 0), _gr = new THREE.Raycaster(), _gv = new THREE.Vector3();
+function dropOf(m, group){
+  const sc = m.scale.clone(); m.scale.setScalar(m.userData.size || 1);   // a piece may still be popping in
+  m.updateMatrixWorld();
+  const p = m.geometry.attributes.position, step = Math.max(1, Math.floor(p.count/90));
+  const targets = [liner, plate, rim, ...build.children.filter(o => !group.includes(o))];
+  let best = Infinity, bestHit = null;
+  for (let i = 0; i < p.count; i += step){
+    _gv.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld);
+    _gr.set(_gv.clone().setY(_gv.y + 0.03), _dn); _gr.far = best + 0.03;
+    const h = _gr.intersectObjects(targets, false).find(h => h.face);
+    let d = h ? h.distance - 0.03 : Infinity;
+    const floorD = _gv.y - (inTray(_gv) ? 0 : -0.085);   // never fall through the table
+    if (floorD < d) { d = floorD; if (d < best) { best = d; bestHit = null; } continue; }
+    if (d < best) { best = d; bestHit = h; }
+  }
+  m.scale.copy(sc); m.updateMatrixWorld();
+  return { d: best, hit: bestHit };
+}
+const falls = [];
+function unhook(moved){
+  // a piece that hung on a moved piece stays hooked while they still touch; only when the support left does it go free (and maybe fall)
+  const box = o => new THREE.Box3().setFromObject(o).expandByScalar(0.03);
+  for (const m of build.children){
+    const o = m.userData.rest && m.userData.rest.obj;
+    if (o && moved.includes(o) && !moved.includes(m) && !box(o).intersectsBox(box(m))) m.userData.rest = null;
+  }
+}
+function settle(entry, moved){
+  if (!state.gravity) return false;   // gravity switched off: pieces stay wherever they are put
+  if (moved && moved.length) unhook(moved);
+  const moving = new Set(falls.flatMap(f => f.ms.map(x => x.m)));
+  const roots = build.children.filter(m => !anchored(m) && !moving.has(m)).sort((a, b) => new THREE.Box3().setFromObject(a).min.y - new THREE.Box3().setFromObject(b).min.y);
+  let any = false;
+  for (const m of roots){
+    if (m.userData.dying) continue;
+    const group = attachedTo([m]);
+    const { d, hit } = dropOf(m, group);
+    if (!(d > 0.05) || !isFinite(d)) continue;    // resting or nearly resting: leave it alone
+    if (entry){
+      entry.transforms = entry.transforms || [];
+      for (const g of group) if (!entry.transforms.some(t => t.m === g)) entry.transforms.push({ m: g, q: g.quaternion.clone(), p: g.position.clone(), r: g.userData.rest, s: g.userData.size || 1 });
+    }
+    m.userData.rest = hit ? restFromHit(hit) : { point: new THREE.Vector3(m.position.x, 0, m.position.z), normal: Y.clone(), type:'floor' };
+    falls.push({ ms: group.map(g => ({ m: g, y0: g.position.y })), dist: d, y: 0, v: 0, last: null, bounced: 0 });
+    any = true;
+  }
+  return any;
+}
+function stepFalls(now){
+  for (let i = falls.length - 1; i >= 0; i--){
+    const f = falls[i];
+    const dt = f.last ? Math.min(0.05, (now - f.last)/1000) : 0; f.last = now;
+    f.v += 26*dt; f.y += f.v*dt;
+    if (f.y >= f.dist){
+      f.y = f.dist;
+      if (!f.bounced && f.v > 1.2) thud();
+      f.bounced++; f.v = -f.v*0.25;
+      if (Math.abs(f.v) < 0.8 || f.bounced > 2) { f.ms.forEach(x => x.m.position.y = x.y0 - f.dist); falls.splice(i, 1); continue; }
+    }
+    f.ms.forEach(x => x.m.position.y = x.y0 - f.y);
+  }
+}
+const stopFalls = () => { falls.forEach(f => f.ms.forEach(x => x.m.position.y = x.y0 - f.dist)); falls.length = 0; };
+
+/* ---------- add / remove ---------- */
+const anims = [];
+const backOut = t => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2); };
+function spawn(m, delay = 0){
+  build.add(m);
+  m.scale.setScalar(0.0001);
+  anims.push({ m, kind:'in', t0: performance.now() + delay, dur: 420 });
+}
+function dropIn(m, delay = 0){
+  build.add(m);
+  const yRest = m.position.y;
+  m.position.y += 3.4;
+  m.visible = delay === 0;
+  anims.push({ m, kind:'drop', t0: performance.now() + delay, yRest, v: 0, last: null, bounces: 0 });
+}
+function thud(){
+  if (!state.sound) return; const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(190, a.currentTime); o.frequency.exponentialRampToValueAtTime(70, a.currentTime + 0.12);
+  g.gain.setValueAtTime(0.0001, a.currentTime); g.gain.exponentialRampToValueAtTime(0.22, a.currentTime + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.16);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + 0.2);
+}
+
+/* ---------- selection ---------- */
+const selMats = new Map([fryMat, nugMat, ketMat].map(m => {
+  const c = m.clone(); c.emissive = new THREE.Color(0x2c7055); c.emissiveIntensity = 0.85;
+  if (m === nugMat) patchSurface(c, 'nugget'); else if (m === fryMat) patchSurface(c, 'fry');
+  deepShadow(c);
+  return [m, c];
+}));
+// hover: a soft warm glow (lighter than the green selection) so you can see which piece the pointer is on
+const hoverMats = new Map([fryMat, nugMat, ketMat].map(m => {
+  const c = m.clone(); c.emissive = new THREE.Color(0xffd9a0); c.emissiveIntensity = 0.32;
+  if (m === nugMat) patchSurface(c, 'nugget'); else if (m === fryMat) patchSurface(c, 'fry');
+  deepShadow(c);
+  return [m, c];
+}));
+let hovered = null;
+function setHover(m){
+  if (m === hovered) return;
+  const old = hovered; hovered = m && m.parent === build ? m : null;
+  refreshMat(old); refreshMat(hovered);
+}
+let selected = null;
+const selGroup = () => {
+  if (!selected) return [];
+  const t = selected.userData.twin;
+  return t && t.parent === build ? [selected, t] : [selected];
+};
+function refreshMat(m){
+  if (!m) return;
+  m.material = selGroup().includes(m) ? selMats.get(m.userData.baseMat) : m === hovered ? hoverMats.get(m.userData.baseMat) : m.userData.baseMat;
+}
+function select(m){
+  const before = selGroup();
+  selected = m && m.parent === build ? m : null;
+  before.forEach(refreshMat); selGroup().forEach(refreshMat);
+  if (!selected) setMode('move', true);
+  else syncGizmo();
+  $('selActs').classList.toggle('show', !!selected);
+}
+const isUpright = m => { const up = Math.abs(Y.clone().applyQuaternion(m.quaternion).y) > 0.7; return isFry(m.userData.type) ? up : !up; };
+function syncTwin(){
+  const t = selected && selected.userData.twin;
+  if (!t || t.parent !== build) return;
+  const mp = mirrorOf({ pos: selected.position, quat: selected.quaternion });
+  t.position.copy(mp.pos); t.quaternion.copy(mp.quat);
+  t.scale.copy(selected.scale); t.userData.size = selected.userData.size;
+}
+
+/* pieces stuck onto a piece travel with it */
+function attachedTo(roots){
+  const set = new Set(roots); let grew = true;
+  while (grew){ grew = false;
+    for (const m of build.children){
+      const o = m.userData.rest && m.userData.rest.obj;
+      if (!set.has(m) && o && set.has(o)) { set.add(m); grew = true; }
+    }
+  }
+  return [...set];
+}
+const _s = new THREE.Vector3();
+function beginCarry(){
+  return [];   // the user wants only the selected piece to change; pieces stuck to it stay put
+  return selGroup().map(r => {
+    r.updateMatrixWorld();
+    const inv = r.matrixWorld.clone().invert();
+    return { r, kids: attachedTo([r]).filter(k => k !== r && !selGroup().includes(k)).map(k => { k.updateMatrixWorld(); return { k, rel: inv.clone().multiply(k.matrixWorld) }; }) };
+  });
+}
+function applyCarry(c){
+  c.forEach(({ r, kids }) => { r.updateMatrixWorld(); kids.forEach(({ k, rel }) => r.matrixWorld.clone().multiply(rel).decompose(k.position, k.quaternion, _s)); });
+}
+const carried = () => attachedTo(selGroup());
+function snapshot(){ return carried().map(m => ({ m, q: m.quaternion.clone(), p: m.position.clone(), r: m.userData.rest, s: m.userData.size || 1 })); }
+const camRight = () => new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion).setY(0).normalize();
+const camFwd = () => new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).setY(0).normalize();
+
+// rotate about the point where the piece is attached, then re-seat it
+function rotateSel(q){
+  const m = selected; if (!m) return;
+  const c = beginCarry();
+  m.quaternion.premultiply(q);
+  const rest = m.userData.rest;
+  if (rest && !rest.preset && (rest.type === 'floor' || (rest.obj && rest.obj.parent === build))) m.position.copy(seatPos(m, rest));
+  syncTwin(); applyCarry(c);
+}
+
+function act(a){
+  if (!selected || busy) return;
+  if (a === 'done') { select(null); blip(700, 0.06, 0.04); return; }
+  if (a === 'del') {
+    const g = selGroup(); select(null);
+    g.forEach(m => build.remove(m));
+    const h = { added:[], removed:g }; history.push(h); settle(h);
+    blip(260, 0.12, 0.06, 'triangle'); changed(); return;
+  }
+  if (a === 'dup') { duplicate(); return; }
+  const snap = snapshot(), m = selected;
+  const axis = Y.clone().applyQuaternion(m.quaternion);
+  if (a === 'spin') rotateSel(new THREE.Quaternion().setFromAxisAngle(Y, Math.PI/4));
+  if (a === 'tiltL') rotateSel(new THREE.Quaternion().setFromAxisAngle(camFwd(), -Math.PI/12));
+  if (a === 'tiltR') rotateSel(new THREE.Quaternion().setFromAxisAngle(camFwd(), Math.PI/12));
+  if (a === 'tiltF') rotateSel(new THREE.Quaternion().setFromAxisAngle(camRight(), Math.PI/12));
+  if (a === 'tiltB') rotateSel(new THREE.Quaternion().setFromAxisAngle(camRight(), -Math.PI/12));
+  if (a === 'stand'){
+    const fry = isFry(m.userData.type);
+    const target = isUpright(m) ? (fry ? camRight() : Y.clone()) : (fry ? Y.clone() : camFwd().negate());
+    if (axis.dot(target) < -0.3) target.negate();
+    rotateSel(new THREE.Quaternion().setFromUnitVectors(axis, target));
+  }
+  history.push({ added:[], removed:[], transforms:snap });
+  blip(a === 'spin' ? 560 : 640, 0.05, 0.04);
+  changed();
+}
+document.querySelectorAll('#selActs [data-act]').forEach(b => b.onclick = () => act(b.dataset.act));
+
+/* free rotation by dragging: the 돌리기 dial in the panel, or Shift/Alt+drag on a piece */
+const SNAP = Math.PI/12;
+function beginRot(){ return { snap: snapshot(), yaw: 0, pitch: 0, ay: 0, ap: 0, moved: false }; }
+function stepRot(r, dx, dy, snap){
+  r.yaw += dx*0.012; r.pitch += dy*0.012;
+  const ty = snap ? Math.round(r.yaw/SNAP)*SNAP : r.yaw, tp = snap ? Math.round(r.pitch/SNAP)*SNAP : r.pitch;
+  if (ty !== r.ay){ rotateSel(new THREE.Quaternion().setFromAxisAngle(Y, ty - r.ay)); r.ay = ty; if (snap) blip(720, 0.03, 0.02); }
+  if (tp !== r.ap){ rotateSel(new THREE.Quaternion().setFromAxisAngle(camRight(), tp - r.ap)); r.ap = tp; if (snap) blip(720, 0.03, 0.02); }
+  r.moved = true;
+}
+function endRot(r){
+  if (r && r.moved && (r.ay || r.ap)) { const h = { added:[], removed:[], transforms: r.snap }; history.push(h); settle(h, selGroup()); changed(); }
+}
+function setMode(mode, quiet){
+  state.mode = mode;
+  document.querySelectorAll('#selActs [data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+  syncGizmo();
+  if (!quiet) blip(mode === 'move' ? 560 : mode === 'rotate' ? 640 : 720, 0.05, 0.04);
+}
+document.querySelectorAll('#selActs [data-mode]').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+
+/* scale mode: drag up = bigger, down = smaller */
+const SMIN = 0.4, SMAX = 2.5;
+function setSize(sz){
+  const m = selected; if (!m) return;
+  m.userData.size = sz; m.scale.setScalar(sz);
+  const rest = m.userData.rest;
+  if (rest && !rest.preset && (rest.type === 'floor' || (rest.obj && rest.obj.parent === build))) m.position.copy(seatPos(m, rest));
+  syncTwin();
+}
+
+
+tc.addEventListener('dragging-changed', e => { controls.enabled = !e.value; });
+let tcSnap = null, tcCarry = null;
+tc.addEventListener('mouseDown', () => { stopFalls(); tcSnap = snapshot(); tcCarry = beginCarry(); blip(640, 0.04, 0.03); });
+tc.addEventListener('objectChange', () => { if (tc.dragging) { syncTwin(); applyCarry(tcCarry); } });
+tc.addEventListener('mouseUp', () => {
+  if (!tcSnap) return;
+  // keep it from sinking into the plate
+  for (const m of carried()){
+    const b = new THREE.Box3().setFromObject(m);
+    if (b.min.y < 0 && (tc.mode === 'translate' || (m.userData.rest && m.userData.rest.type === 'floor'))) m.position.y -= b.min.y;
+  }
+  // moved along an axis: it now floats where it was put, children stay attached to it
+  if (tc.mode === 'translate' && selected) { selected.userData.rest = null; const t = selected.userData.twin; if (t && t.parent === build) t.userData.rest = null; }
+  const h = { added:[], removed:[], transforms: tcSnap }; history.push(h); tcSnap = null; settle(h, selGroup());
+  blip(520, 0.04, 0.03); changed();
+});
+
+/* drop a new piece onto the plate */
+function freeSpot(){
+  const pts = build.children.map(m => m.position);
+  let best = null, bestD = -1;
+  for (let i = 0; i < 40; i++){
+    const k = Math.min(1, camera.aspect*0.9);
+    const x = (Math.random()*2 - 1)*(TW/2 - 0.9)*k, z = (Math.random()*2 - 1)*(TD/2 - 0.9);
+    let d = Infinity; for (const p of pts) d = Math.min(d, Math.hypot(p.x - x, p.z - z));
+    d -= Math.hypot(x, z)*0.25;  // prefer near the middle
+    if (d > bestD) { bestD = d; best = [x, z]; }
+  }
+  return best || [0.8, 0.8];
+}
+function restingQuat(type){
+  const yaw = Math.random()*Math.PI*2;
+  if (isFry(type)) return new THREE.Quaternion().setFromAxisAngle(Y, yaw).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1), -Math.PI/2));
+  return new THREE.Quaternion().setFromAxisAngle(Y, yaw);
+}
+function addPiece(type){
+  if (busy) return;
+  const [x, z] = freeSpot();
+  const m = createPiece(type, newSeed());
+  m.quaternion.copy(restingQuat(type));
+  m.position.set(x, 0, z);
+  m.userData.rest = { point: new THREE.Vector3(m.position.x, 0, m.position.z), normal: Y.clone(), type:'floor' };
+  m.position.copy(seatPos(m, m.userData.rest));
+  const added = [m];
+  dropIn(m);
+  history.push({ added, removed:[] });
+  select(m);
+  blip(900, 0.05, 0.03);
+  changed();
+}
+function duplicate(){
+  const g = selGroup(); if (!g.length) return;
+  const added = [], copies = new Map();
+  for (const m of g){
+    const c = m.userData.stroke ? strokeMesh(m.geometry, { kcal: m.userData.kcal }) : createPiece(m.userData.type, newSeed());
+    c.quaternion.copy(m.quaternion); c.userData.size = m.userData.size || 1;
+    const off = new THREE.Vector3(m.position.x >= 0 ? 0.45 : -0.45, 0, 0.45);
+    if (g.length === 1) off.x = 0.45;
+    c.position.copy(m.position).add(off);
+    c.userData.rest = m.userData.rest ? { ...m.userData.rest, point: m.userData.rest.point.clone().add(off) } : null;
+    copies.set(m, c); added.push(c); spawn(c);
+  }
+  if (g.length === 2){ const [a, b] = added; a.userData.twin = b; b.userData.twin = a; }
+  const h = { added, removed:[] }; history.push(h); settle(h);
+  select(copies.get(selected));
+  blip(760, 0.07, 0.05);
+  changed();
+}
+
+const redoStack = [];
+const _push = Array.prototype.push;
+history.push = function(...a){ redoStack.length = 0; return _push.apply(this, a); };   // any new action clears the redo trail
+function redo(){
+  if (busy) return;
+  const h = redoStack.pop(); if (!h) return;
+  stopFalls(); select(null);
+  h.removed.forEach(m => { if (m.parent) m.parent.remove(m); });
+  h.added.forEach(m => { m.material = m.userData.baseMat; m.visible = true; spawn(m); });
+  (h.redoT || []).forEach(t => { t.m.quaternion.copy(t.q); t.m.position.copy(t.p); t.m.userData.rest = t.r; t.m.userData.size = t.s; t.m.scale.setScalar(t.s); });
+  _push.call(history, h);
+  blip(460, 0.08, 0.05, 'triangle');
+  changed();
+}
+function undo(){
+  if (busy) return;
+  stopFalls();
+  const h = history.pop(); if (!h) return;
+  select(null);
+  h.redoT = (h.transforms || []).map(t => ({ m: t.m, q: t.m.quaternion.clone(), p: t.m.position.clone(), r: t.m.userData.rest, s: t.m.userData.size || 1 }));
+  redoStack.push(h);
+  h.added.forEach(m => build.remove(m));
+  h.removed.forEach(m => { m.material = m.userData.baseMat; m.visible = true; spawn(m); });
+  (h.transforms || []).forEach(t => { t.m.quaternion.copy(t.q); t.m.position.copy(t.p); t.m.userData.rest = t.r; t.m.userData.size = t.s; t.m.scale.setScalar(t.s); });
+  blip(380, 0.08, 0.05, 'triangle');
+  changed();
+}
+function replaceAll(newMeshes, stagger = 45){
+  select(null);
+  const removed = [...build.children];
+  removed.forEach(m => build.remove(m));
+  newMeshes.forEach((m, i) => spawn(m, i*stagger));
+  history.push({ added:newMeshes, removed });
+  changed();
+}
+
+function changed(){
+  $('undoBtn').disabled = history.length === 0;
+  $('redoBtn').disabled = redoStack.length === 0;
+  $('saveBtn').disabled = build.children.length === 0;
+}
+
+/* ---------- presets ---------- */
+// like P, but at a given size (the fry's base still lands on x,y,z)
+function PS(type, size, x, y, z, ux, uy, uz, spin = 0){
+  const m = P(type, x, y, z, ux, uy, uz, spin);
+  if (isFry(type)) m.position.sub(m.geometry.userData.mid.clone().applyQuaternion(m.quaternion).multiplyScalar(1 - size));
+  m.scale.setScalar(size); m.userData.size = size; m.updateMatrixWorld();
+  return m;
+}
+function P(type, x, y, z, ux, uy, uz, spin = 0){
+  const m = createPiece(type, newSeed());
+  m.quaternion.copy(orient(new THREE.Vector3(ux, uy, uz), spin));
+  m.position.set(x, y, z);
+  if (isFry(type)) m.position.add(m.geometry.userData.mid.clone().applyQuaternion(m.quaternion));  // x,y,z is the fry's base
+  m.updateMatrixWorld();
+  return m;
+}
+const H = Math.PI/2;
+const PRESETS = {
+  dino(){   // triceratops: a nugget body lying flat on four stubby legs, an upright nugget frill, three pointy-fry horns and a pointy tail
+    const a = [];
+    for (const sx of [-1, 1]) for (const z of [-0.36, 0.34]) a.push(PS('stub', 1.15, 0.26*sx, 0, z, 0.16*sx, 1, z > 0 ? 0.06 : -0.06));
+    a.push(P('nugget', 0, 0.98, -0.02, 0, 1, 0, H));                           // body, lying flat with its long side front to back
+    a.push(PS('nugget', 1.1, 0, 1.28, 0.62, 0, 0.55, 1, 0));                   // frill, facing forward and leaning back
+    a.push(P('horn', 0.22, 1.52, 0.8, 0.3, 1, 0.75, H));                       // brow horns
+    a.push(P('horn', -0.22, 1.52, 0.8, -0.3, 1, 0.75, -H));
+    a.push(PS('horn', 0.8, 0, 1.02, 0.92, 0, 0.6, 1, H));                      // nose horn
+    a.push(PS('horn', 1.15, 0, 1.0, -0.6, 0, 0.6, -1, H));                     // tail
+    return a;
+  },
+  stego(){   // stegosaurus: three nuggets on edge in a row, a fan of fry plates along the back, a fry tail and a little nugget head
+    const a = [];
+    for (const sx of [-1, 1]) for (const z of [-0.55, 0.5]) a.push(PS('short', 1.08, 0.26*sx, 0, z, 0.08*sx, 1, 0));   // full-thickness fries, like real legs
+    for (const [z, x, sp] of [[-0.62, 0.06, 0.2], [0.0, -0.05, -0.15], [0.6, 0.05, 0.1]]) a.push(PS('nugget', 0.92, x, 1.5, z, 1, 0.05, 0, H + sp));
+    // plates: two staggered rows fanning out along the back, tallest in the middle
+    const plates = [[-0.95, 0.5], [-0.7, 0.62], [-0.42, 0.72], [-0.15, 0.8], [0.12, 0.8], [0.4, 0.72], [0.66, 0.6], [0.9, 0.48]];
+    plates.forEach(([z, sz], i) => {
+      const sx = i % 2 ? 1 : -1, lean = z*0.55;
+      a.push(PS(i % 3 === 1 ? 'tip' : 'short', sz, 0.1*sx, 1.85 - Math.abs(z)*0.35, z, 0.22*sx, 1, lean));
+    });
+    for (const z of [-0.5, 0.05, 0.55]) a.push(P('ketchup', 0, 1.95 - Math.abs(z)*0.2, z, 0, 1, 0));   // ketchup glue between the plates
+    a.push(PS('short', 0.95, 0, 1.45, -0.95, 0, 0.55, -1));                   // tail
+    a.push(PS('tip', 0.55, 0.08, 1.7, -1.3, 0.1, 1, -0.6, H));                // tail spike
+    a.push(PS('stub', 1.05, 0, 1.3, 0.92, 0, -0.15, 1));                     // neck, full fry thickness
+    a.push(PS('nugget', 0.55, 0, 1.22, 1.62, 1, 0.05, 0, H + 0.3));           // head, standing on its edge like the body
+    return a;
+  },
+  giraffe(){
+    const a = [];
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) a.push(P('long', 0.36*sx, 0, 0.5*sz, 0.05*sx, 1, 0.03*sz));
+    a.push(P('nugget', 0, 2.15, -0.38, 0, 1, 0, H+0.15));
+    a.push(P('nugget', 0, 2.17, 0.42, 0, 1, 0, H-0.1));
+    const neck = P('bent', 0, 2.25, 0.85, 0, 1, 0, -H);
+    a.push(neck);
+    const tip = neck.localToWorld(CURVES.bent.getPointAt(1).sub(neck.geometry.userData.mid));
+    a.push(P('nugget', tip.x, tip.y + 0.03, tip.z + 0.2, 0, 1, 0.25, H));
+    a.push(P('ketchup', 0.45, tip.y + 0.12, tip.z + 0.35, 1, 0.5, 0.2)); a.push(P('ketchup', -0.45, tip.y + 0.12, tip.z + 0.35, -1, 0.5, 0.2));
+    a.push(P('short', 0.16, tip.y + 0.14, tip.z - 0.05, 0.25, 1, -0.4)); a.push(P('short', -0.16, tip.y + 0.14, tip.z - 0.05, -0.25, 1, -0.4));
+    a.push(P('short', 0, 2.15, -0.98, 0, -0.5, -1));
+    a.push(P('ketchup', 0.2, 2.36, -0.42, 0, 1, 0)); a.push(P('ketchup', -0.22, 2.38, 0.4, 0, 1, 0));
+    return a;
+  },
+  car(){
+    const a = [];
+    for (const z of [-0.75, 0.75]){
+      a.push(P('short', -0.575, 0.62, z, 1, 0, 0));
+      for (const sx of [-1, 1]) a.push(P('onion', 0.66*sx, 0.6, z, sx, 0, 0));   // onion-ring wheels
+    }
+    a.push(P('nugget', 0, 1.02, -0.48, 0, 1, 0, H));
+    a.push(P('nugget', 0, 1.02, 0.48, 0, 1, 0, H));
+    a.push(P('nugget', 0, 1.36, -0.2, 0, 1, 0, H+0.1));
+    a.push(P('ketchup', 0.3, 1.03, 1.12, 0, 0.2, 1)); a.push(P('ketchup', -0.3, 1.03, 1.12, 0, 0.2, 1));
+    a.push(P('short', 0.25, 0.82, -0.7, 0.05, 0.12, -1)); a.push(P('short', -0.25, 0.82, -0.7, -0.05, 0.12, -1));   // exhaust pipes, low and pointing back
+    return a;
+  },
+};
+// a preset is built by hand: hook every piece onto a lower piece it touches, so it holds together
+function linkPreset(arr){
+  const boxes = new Map(arr.map(m => { m.updateMatrixWorld(); return [m, new THREE.Box3().setFromObject(m).expandByScalar(0.03)]; }));
+  const cy = m => boxes.get(m).getCenter(_gv).y;
+  for (const m of arr){
+    const b = boxes.get(m);
+    if (b.min.y < 0.12) { m.userData.rest = { point: new THREE.Vector3(m.position.x, 0, m.position.z), normal: Y.clone(), type:'floor', preset:true }; continue; }
+    let best = null, by = Infinity;
+    for (const o of arr) if (o !== m && cy(o) < cy(m) - 0.01 && boxes.get(o).intersectsBox(b) && cy(o) < by) { best = o; by = cy(o); }
+    if (!best){   // hung off the side (a tail, an ear): hook it to the nearest piece that doesn't already hang on it
+      let bd = Infinity;
+      for (const o of arr){ if (o === m || (o.userData.rest && o.userData.rest.obj === m)) continue;
+        const d = boxes.get(o).distanceToPoint(boxes.get(m).getCenter(new THREE.Vector3())); if (d < bd) { bd = d; best = o; } }
+    }
+    if (best) m.userData.rest = { point: m.position.clone(), normal: Y.clone(), type: best.userData.type, obj: best, preset:true };
+  }
+}
+function loadPreset(name){
+  if (busy) return;
+  const arr = PRESETS[name]();
+  const turn = new THREE.Quaternion().setFromAxisAngle(Y, Math.PI/2);
+  arr.forEach(m => { m.position.applyQuaternion(turn); m.quaternion.premultiply(turn); m.updateMatrixWorld(); });
+  const box = new THREE.Box3(); arr.forEach(m => box.expandByObject(m));
+  linkPreset(arr);
+  replaceAll(arr);
+  blip(520, 0.12, 0.06);
+  const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  camTween = { t0: performance.now(), from: controls.target.clone(), to: new THREE.Vector3(0, c.y*0.9, 0),
+               d0: camera.position.distanceTo(controls.target), d1: Math.max(12, Math.max(s.x, s.y, s.z)*3.1 / Math.min(1, camera.aspect*1.6)) };
+}
+let camTween = null;
+
+/* ---------- save a photo of the tray ---------- */
+let toastT = 0;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1800); }
+function shutter(){
+  if (!state.sound) return; const a = audio(); if (!a) return;
+  for (const [d, f] of [[0, 2400], [0.07, 1600]]){
+    const len = 0.05, buf = a.createBuffer(1, a.sampleRate*len, a.sampleRate), x = buf.getChannelData(0);
+    for (let i = 0; i < x.length; i++) x[i] = (Math.random()*2-1)*Math.pow(1 - i/x.length, 2);
+    const s = a.createBufferSource(); s.buffer = buf;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = 1.2;
+    const g = a.createGain(); g.gain.value = 0.25;
+    s.connect(bp).connect(g).connect(a.destination); s.start(a.currentTime + d);
+  }
+}
+function snapPhoto(){
+  // render without the selection highlight or gizmo, and grab the frame in the same task
+  const sel = selected; select(null);
+  const helper = tc.getHelper(), hv = helper.visible; helper.visible = false;
+  camera.clearViewOffset(); camera.updateProjectionMatrix();   // centre the tray, ignoring the side panel
+  renderer.render(scene, camera);
+  const src = renderer.domElement, out = document.createElement('canvas');
+  out.width = src.width; out.height = src.height;
+  const x = out.getContext('2d');
+  x.drawImage(src, 0, 0);
+  resize();
+  helper.visible = hv; if (sel && sel.parent === build) select(sel);
+  const k = out.width/innerWidth;
+  x.font = `700 ${Math.round(15*k)}px Outfit, "Noto Sans KR", sans-serif`; x.fillStyle = 'rgba(60,80,74,.85)';
+  x.textBaseline = 'bottom'; x.fillText('감튀블록', 20*k, out.height - 18*k);
+  return out;
+}
+async function savePhoto(){
+  if (busy || !build.children.length) return;
+  audio(); shutter();
+  const f = $('flash'); f.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => f.classList.remove('on')));
+  const canvas = snapPhoto();
+  const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+  if (!blob) { toast('사진을 만들지 못했어요'); return; }
+  const d = new Date(), z = n => String(n).padStart(2, '0');
+  const filename = `gamtwi-block-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}.png`;
+  let downloads = null;
+  try { downloads = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch(e) {}
+  if (downloads) {
+    try { await downloads.save({ filename, data: blob }); toast('사진을 저장했어요'); }
+    catch (e) { if (e && e.code === 'declined') return; toast(e && e.code === 'rate_limited' ? '잠시 후 다시 눌러주세요' : '여기서는 저장할 수 없어요'); }
+    return;
+  }
+  // opened as a plain file: ordinary browser download
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast('사진을 저장했어요');
+}
+
+/* ---------- UI ---------- */
+function buildThumbs(){
+  const size = 160;
+  const r2 = new THREE.WebGLRenderer({ antialias:true, alpha:true, preserveDrawingBuffer:true });
+  r2.setSize(size, size); r2.toneMapping = THREE.NeutralToneMapping;
+  const sc = new THREE.Scene(); addLights(sc, false);
+  const pm2 = new THREE.PMREMGenerator(r2);
+  sc.environment = pm2.fromScene(new RoomEnvironment(), 0.04).texture; sc.environmentIntensity = 0.45;
+  const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+  const out = {};
+  for (const t of TYPES){
+    const m = createPiece(t, 12345 + t.length*77);
+    const box = new THREE.Box3().setFromObject(m), c = box.getCenter(new THREE.Vector3());
+    m.position.sub(c);
+    const g = new THREE.Group(); g.add(m);
+    if (isFry(t)) { g.rotation.z = t === 'bent' ? -0.35 : -0.75; g.rotation.x = 0.25; }
+    else if (t === 'nugget' || t === 'onion') { g.rotation.x = 0.95; g.rotation.y = 0.3; }
+    else { g.rotation.x = 0.7; }
+    sc.add(g);
+    const s = new THREE.Box3().setFromObject(g).getSize(new THREE.Vector3());
+    const dist = Math.max(s.x, s.y, s.z) * 2.15;
+    cam.position.set(0, 0, dist); cam.lookAt(0, 0, 0);
+    r2.render(sc, cam);
+    out[t] = r2.domElement.toDataURL('image/png');
+    sc.remove(g);
+  }
+  r2.dispose(); r2.forceContextLoss?.();
+  return out;
+}
+
+const thumbs = buildThumbs();
+const piecesEl = $('pieces');
+TILES.forEach((t, i) => {
+  const b = document.createElement('button');
+  b.className = 'tile'; b.dataset.type = t.id;
+  b.innerHTML = `<i class="num">${i+1}</i><img alt="" src="${thumbs[t.thumb]}"><span>${t.name}</span>`;
+  b.onclick = () => { audio(); useTile(t.id); b.classList.remove('tap'); void b.offsetWidth; b.classList.add('tap'); };
+  piecesEl.appendChild(b);
+});
+function syncUI(){
+  $('soundBtn').classList.toggle('on', !!state.sound);
+  $('sndOn').style.display = state.sound ? '' : 'none';
+  $('sndOff').style.display = state.sound ? 'none' : '';
+}
+$('sqDone').onclick = () => setSqueeze(false);
+function setGravity(on, quiet){
+  state.gravity = on;
+  $('gravBtn').classList.toggle('off', !on); $('gravBtn').setAttribute('aria-pressed', on);
+  $('gravBtn').title = on ? '중력 켜짐 (G)' : '중력 꺼짐 (G)';
+  try { localStorage.setItem('gamtwi-gravity', on ? '1' : '0'); } catch(e){}
+  if (quiet) return;
+  if (on){ const h = { added:[], removed:[] }; if (settle(h)) { history.push(h); changed(); } toast('중력 켜짐'); blip(520, 0.07, 0.04); }
+  else { stopFalls(); toast('중력 꺼짐: 놓은 자리에 그대로 떠 있어요'); blip(760, 0.07, 0.04); }
+}
+$('moreBtn').onclick = () => { const w=$('moreWrap'); const o=!w.classList.contains('open'); w.classList.toggle('open', o); $('moreBtn').setAttribute('aria-expanded', o); blip(640,0.04,0.03); };
+addEventListener('pointerdown', e => { const w=$('moreWrap'); if (w.classList.contains('open') && !w.contains(e.target)) { w.classList.remove('open'); $('moreBtn').setAttribute('aria-expanded', false); } }, true);
+$('gravBtn').onclick = () => { audio(); setGravity(!state.gravity); };
+try { if (localStorage.getItem('gamtwi-gravity') === '0') setGravity(false, true); } catch(e){}
+$('nightBtn').onclick = () => { audio(); setNight(!state.night); lampClick(state.night); };
+{ let n = false; try { n = localStorage.getItem('gamtwi-night') === '1'; } catch(e){} if (n) setNight(true, true); }
+$('undoBtn').onclick = undo;
+$('redoBtn').onclick = redo;
+$('clearBtn').onclick = () => { if (build.children.length && !busy) flickTray(); };
+
+/* 비우기: lift the tray, flick it back so everything flies off, then set it down again */
+const flying = [];
+function whoosh(){
+  if (!state.sound) return; const a = audio(); if (!a) return;
+  const len = 0.45, buf = a.createBuffer(1, a.sampleRate*len, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++){ const t = i/d.length; d[i] = (Math.random()*2 - 1)*Math.sin(Math.PI*Math.pow(t, 0.6)); }
+  const s = a.createBufferSource(); s.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.4;
+  f.frequency.setValueAtTime(300, a.currentTime); f.frequency.exponentialRampToValueAtTime(2200, a.currentTime + len*0.6); f.frequency.exponentialRampToValueAtTime(700, a.currentTime + len);
+  const g = a.createGain(); g.gain.value = 0.07;
+  s.connect(f).connect(g).connect(a.destination); s.start();
+}
+let flick = null;
+function flickTray(){
+  stopFalls(); select(null); setHover(null); if (state.squeeze) setSqueeze(false);
+  const removed = [...build.children];
+  const entry = { added:[], removed, transforms: removed.map(m => ({ m, q: m.quaternion.clone(), p: m.position.clone(), r: m.userData.rest, s: m.userData.size || 1 })) };
+  history.push(entry);
+  busy = true;
+  const d0 = camera.position.distanceTo(controls.target), d1 = controls.maxDistance;   // pull all the way back
+  const zoom = d1 - d0 > 0.5 || controls.target.lengthSq() > 0.05;
+  if (zoom) camTween = { t0: performance.now(), from: controls.target.clone(), to: new THREE.Vector3(0, 0, 0), d0, d1 };
+  flick = { t0: performance.now() + (zoom ? 520 : 0), thrown: false, landed: false, removed };
+  blip(300, 0.08, 0.04, 'triangle');
+}
+function stepFlick(now){
+  if (!flick) return;
+  const t = (now - flick.t0)/1000;
+  if (t < 0) return;   // still pulling the camera back
+  // 0–0.28s lift and tip the near edge up, snap at the top, then glide back down with a little settle
+  let lift, tip;
+  if (t < 0.28){ const k = t/0.28, e = k*k*(3 - 2*k); lift = 0.9*e; tip = -0.55*e*e; }
+  else if (t < 0.4){ const k = (t - 0.28)/0.12; lift = 0.9 + 0.1*Math.sin(k*Math.PI/2); tip = -0.55 - 0.25*Math.sin(k*Math.PI/2); }
+  else { const k = Math.min(1, (t - 0.4)/0.75), e = 1 - Math.pow(1 - k, 3);
+    lift = 1.0*(1 - e) + Math.sin(k*Math.PI)*0.0; tip = -0.8*(1 - e) + 0.05*Math.sin(k*Math.PI*2)*(1 - k); }
+  // pivot on the far edge so the near edge swings up (the tray never dips into the table)
+  const pz = -TD/2;
+  trayRig.rotation.x = tip; trayRig.position.set(0, lift + pz*Math.sin(tip), pz - pz*Math.cos(tip));
+  if (!flick.thrown && t >= 0.3){
+    flick.thrown = true; whoosh();
+    trayRig.updateMatrixWorld(true);
+    for (const m of flick.removed){
+      if (m.parent !== build) continue;
+      scene.attach(m);
+      const w = m.getWorldPosition(new THREE.Vector3());
+      // scatter every which way: outward from the middle in a random direction, with a kick up and a little back
+      const a = Math.atan2(w.z + 0.01, w.x) + (Math.random() - 0.5)*2.6, sp = 4.5 + Math.random()*5.5;
+      flying.push({ m, v: new THREE.Vector3(Math.cos(a)*sp, 4.5 + Math.random()*3.5, Math.sin(a)*sp - 1.5 - Math.random()*2),
+                    w: new THREE.Vector3((Math.random() - 0.5)*14, (Math.random() - 0.5)*10, -6 - Math.random()*8), t0: now });
+    }
+    changed();
+  }
+  if (!flick.landed && t >= 1.05){ flick.landed = true; thud(); }
+  if (t >= 1.2){ trayRig.position.set(0, 0, 0); trayRig.rotation.x = 0; flick = null; busy = false; }
+}
+const _q = new THREE.Quaternion(), _e = new THREE.Euler();
+function stepFlying(now){
+  for (let i = flying.length - 1; i >= 0; i--){
+    const f = flying[i];
+    if (f.m.parent !== scene) { flying.splice(i, 1); continue; }   // undone: it went back on the tray
+    const dt = f.last ? Math.min(0.05, (now - f.last)/1000) : 0; f.last = now;
+    f.v.y -= 20*dt; f.m.position.addScaledVector(f.v, dt);
+    _q.setFromEuler(_e.set(f.w.x*dt, f.w.y*dt, f.w.z*dt)); f.m.quaternion.premultiply(_q);
+    if (now - f.t0 > 2200) { scene.remove(f.m); flying.splice(i, 1); }
+  }
+}
+$('soundBtn').onclick = () => { state.sound = !state.sound; syncUI(); if (state.sound) blip(660, 0.08, 0.05); };
+$('saveBtn').onclick = savePhoto;
+document.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => loadPreset(b.dataset.ex));
+
+addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+  const k = e.key.toLowerCase();
+  if (k === 'escape' && state.squeeze) { setSqueeze(false); return; }
+  if (k === 'p') { savePhoto(); return; }
+  if (k === 'n') { $('nightBtn').click(); return; }
+  if (k === 'g') { $('gravBtn').click(); return; }
+  const map = { d:'dup', delete:'del', backspace:'del', escape:'done' }, modes = { w:'move', e:'rotate', r:'scale' };
+  if (map[k]) act(map[k]);
+  else if (modes[k] && selected) setMode(modes[k]);
+  else if (k >= '1' && k <= String(TILES.length)) { audio(); useTile(TILES[+k - 1].id); }
+});
+
+/* ---------- panel tiles ---------- */
+function useTile(id){
+  if (id === 'ketchup') { setSqueeze(!state.squeeze); return; }
+  if (state.squeeze) setSqueeze(false);
+  addPiece(id === 'fry' ? FRIES[Math.floor(Math.random()*FRIES.length)] : id);
+}
+
+/* ---------- ketchup: press and drag to squeeze ---------- */
+// ketchup mode cursor: a glossy red dot so it's obvious you're about to squeeze
+const KCUR = `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><defs><radialGradient id="g" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#ff6a55"/><stop offset=".45" stop-color="#d42a1e"/><stop offset="1" stop-color="#7c0e09"/></radialGradient><radialGradient id="s" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs><ellipse cx="12.6" cy="14.2" rx="7.4" ry="6.6" fill="url(#s)"/><circle cx="12" cy="12" r="6.2" fill="url(#g)" stroke="#6a0c08" stroke-opacity=".35" stroke-width=".6"/><ellipse cx="10" cy="9.6" rx="2.1" ry="1.4" fill="#fff" fill-opacity=".7" transform="rotate(-30 10 9.6)"/><circle cx="14.6" cy="15" r=".9" fill="#fff" fill-opacity=".18"/></svg>')}") 12 12, crosshair`;
+function setSqueeze(on){
+  state.squeeze = on;
+  if (on) select(null);
+  document.querySelector('.tile[data-type="ketchup"]').classList.toggle('on', on);
+  $('squeezeTip').classList.toggle('show', on);
+  cv.style.cursor = on ? KCUR : 'default';
+  blip(on ? 700 : 480, 0.06, 0.04);
+}
+function squish(){
+  if (!state.sound) return; const a = audio(); if (!a) return;
+  // a soft wet "bloop": a sine bubble gliding up, plus a quiet resonant squelch
+  const t0 = a.currentTime, f0 = 170 + Math.random()*70, dur = 0.12 + Math.random()*0.04;
+  const o = a.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(f0, t0);
+  o.frequency.exponentialRampToValueAtTime(f0*(2.6 + Math.random()*0.8), t0 + dur*0.7);
+  const og = a.createGain();
+  og.gain.setValueAtTime(0.0001, t0);
+  og.gain.exponentialRampToValueAtTime(0.1, t0 + 0.012);
+  og.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(og).connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+  const len = 0.1, buf = a.createBuffer(1, a.sampleRate*len, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++){ const t = i/d.length; d[i] = (Math.random()*2-1) * Math.sin(Math.PI*t) * (1 - t); }
+  const s = a.createBufferSource(); s.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 6;
+  f.frequency.setValueAtTime(380, t0); f.frequency.exponentialRampToValueAtTime(1300, t0 + len);
+  const g = a.createGain(); g.gain.value = 0.045;
+  s.connect(f).connect(g).connect(a.destination); s.start(t0);
+}
+// ketchup is one continuous glossy bead laid along the finger, not a row of dots
+const KR = 0.052;   // bead radius
+function strokeMesh(geo, extra){
+  const m = new THREE.Mesh(geo, ketMat);
+  m.castShadow = true; m.receiveShadow = true;
+  m.userData = { type:'ketchup', seed:0, piece:true, baseMat:ketMat, stroke:true, size:1, ...extra };
+  return m;
+}
+const _perp = n => { const a = Math.abs(n.y) < 0.9 ? Y : new THREE.Vector3(1, 0, 0); return a.clone().cross(n).normalize(); };
+function beadGeo(pts, seed = 0){
+  if (pts.length === 1){
+    const { p, n, r } = pts[0];
+    const g = new THREE.SphereGeometry(1, 22, 14);
+    g.scale(r*1.25, r*0.85, r*1.25);
+    g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(Y, n)); g.translate(p.x, p.y, p.z);
+    return g;
+  }
+  const curve = new THREE.CatmullRomCurve3(pts.map(q => q.p), false, 'centripetal');
+  const len = curve.getLength(), M = 14;
+  const S = Math.max(10, Math.min(700, Math.ceil(len/0.012)));
+  const pos = [], idx = [], N = pts[0].n.clone();
+  for (let i = 0; i <= S; i++){
+    const t = i/S, c = curve.getPointAt(t), T = curve.getTangentAt(t).normalize();
+    const f = t*(pts.length - 1), i0 = Math.floor(f), i1 = Math.min(i0 + 1, pts.length - 1), k = f - i0;
+    const nn = pts[i0].n.clone().lerp(pts[i1].n, k).normalize(), rr = pts[i0].r + (pts[i1].r - pts[i0].r)*k;
+    // keep the cross-section frame smooth; lean it toward the surface normal where it can
+    if (Math.abs(nn.dot(T)) < 0.85) N.lerp(nn, 0.35);
+    N.addScaledVector(T, -N.dot(T)); if (N.lengthSq() < 1e-6) N.copy(_perp(T)); N.normalize();
+    const B = T.clone().cross(N).normalize();
+    // rounded ends + a slight uneven squeeze
+    const s = t*len, e = len - s;
+    let cap = 1; if (s < rr) cap = Math.sqrt(1 - (1 - s/rr)**2); if (e < rr) cap = Math.min(cap, Math.sqrt(1 - (1 - e/rr)**2));
+    const R = Math.max(0.003, rr*cap*(1 + 0.06*Math.sin(s*7 + seed) + 0.03*Math.sin(s*17 + seed*2)));
+    for (let j = 0; j < M; j++){
+      const a = j/M*Math.PI*2, ca = Math.cos(a), sa = Math.sin(a);
+      pos.push(c.x + B.x*ca*R*1.12 + N.x*sa*R*0.86, c.y + B.y*ca*R*1.12 + N.y*sa*R*0.86, c.z + B.z*ca*R*1.12 + N.z*sa*R*0.86);
+    }
+  }
+  for (let i = 0; i < S; i++) for (let j = 0; j < M; j++){
+    const a = i*M + j, b = i*M + (j + 1)%M, c2 = (i + 1)*M + j, d = (i + 1)*M + (j + 1)%M;
+    idx.push(a, c2, b, b, c2, d);
+  }
+  const c0 = pos.length/3; { const q = curve.getPointAt(0); pos.push(q.x, q.y, q.z); }
+  const c1 = pos.length/3; { const q = curve.getPointAt(1); pos.push(q.x, q.y, q.z); }
+  for (let j = 0; j < M; j++){ idx.push(c0, (j + 1)%M, j); idx.push(c1, S*M + j, S*M + (j + 1)%M); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+function redrawBead(sq){
+  if (sq.mesh) { scene.remove(sq.mesh); sq.mesh.geometry.dispose(); }
+  sq.mesh = new THREE.Mesh(beadGeo(sq.pts, sq.seed), ketMat);
+  sq.mesh.castShadow = true; sq.mesh.receiveShadow = true;
+  scene.add(sq.mesh);
+}
+function squirt(hit, sq){
+  if (hit.object.userData.type === 'floor' && !inTray(hit.point)) return;
+  if (hit.object.userData.type === 'ketchup') return;
+  const rest = restFromHit(hit);
+  if (!sq.rest) sq.rest = rest;
+  const r = KR*(0.94 + Math.random()*0.1);
+  sq.pts.push({ p: rest.point.clone().addScaledVector(rest.normal, r*0.62), n: rest.normal.clone(), r });
+  sq.last = rest.point.clone(); sq.lastN = rest.normal.clone();
+  sq.t = performance.now(); sq.piled = 0;
+  redrawBead(sq);
+  if (sq.pts.length === 1) squish();   // one soft squelch when the squeeze starts, then quiet
+}
+// holding still keeps squeezing: the bead rises into a horn, and every horn comes out a little different
+function hornStyle(){
+  const R = Math.random;
+  return {
+    K: 12 + Math.floor(R()*11),               // how tall it gets
+    step: KR*(0.42 + R()*0.2),                 // rise per step
+    base: 1.45 + R()*0.5,                     // how fat the bottom is
+    lean: (R() < 0.3 ? 0 : R())*0.9,           // some stand straight, some lean over
+    leanA: R()*Math.PI*2,
+    sway: KR*(0.08 + R()*0.3), swayF: 0.25 + R()*0.35, swayP: R()*6,   // a soft wobble, not a spiral
+    curl: R() < 0.4 ? 0.5 + R()*0.5 : 0,       // sometimes the tip flops over
+    tip: 0.3 + R()*0.15,
+  };
+}
+function pileUp(sq){
+  if (!sq.last) return;
+  const st = sq.horn || (sq.horn = hornStyle());
+  const due = Math.floor((performance.now() - sq.t - 220)/70) + 1;
+  let grew = false;
+  while ((sq.piled || 0) < Math.min(due, st.K)){
+    const k = ++sq.piled, u = k/st.K, n0 = sq.lastN, U = _perp(n0), W = n0.clone().cross(U);
+    const dir = U.clone().multiplyScalar(Math.cos(st.leanA)).addScaledVector(W, Math.sin(st.leanA));
+    const side = dir.clone().cross(n0);
+    const H = st.K*st.step;
+    let up = KR*0.4 + k*st.step, out = st.lean*H*0.35*u*u;
+    if (st.curl && u > 0.6){ const c = (u - 0.6)/0.4; out += st.curl*KR*1.8*c*c; up -= st.curl*KR*0.8*c*c*c; }
+    const wob = st.sway*Math.sin(k*st.swayF + st.swayP)*(1 - u);
+    const p = sq.last.clone().addScaledVector(n0, up).addScaledVector(dir, out).addScaledVector(side, wob);
+    sq.pts.push({ p, n: n0.clone(), r: KR*Math.max(st.tip, st.base*Math.pow(1 - u, 0.85)) });
+    grew = true;
+  }
+  if (grew) redrawBead(sq);
+}
+function finishBead(sq){
+  if (sq.mesh) { scene.remove(sq.mesh); sq.mesh.geometry.dispose(); sq.mesh = null; }
+  if (!sq.pts.length) return null;
+  const O = sq.pts[0].p.clone(), geo = beadGeo(sq.pts, sq.seed);
+  geo.translate(-O.x, -O.y, -O.z);
+  let len = 0; for (let i = 1; i < sq.pts.length; i++) len += sq.pts[i].p.distanceTo(sq.pts[i - 1].p);
+  const m = strokeMesh(geo, { kcal: Math.max(3, Math.round(3 + len*5)), rest: sq.rest });
+  m.position.copy(O);
+  build.add(m);
+  return m;
+}
+
+/* pointer: drag a piece to move it, drag the rings to rotate, drag elsewhere to look around */
+const cv = renderer.domElement;
+let down = null;
+cv.addEventListener('pointerleave', () => { if (!down) setHover(null); });
+cv.addEventListener('pointerdown', e => {
+  audio(); setHover(null);
+  down = { x:e.clientX, y:e.clientY, t:performance.now(), b:e.button, moved:false, drag:null, tc: tc.dragging };
+  if (busy || tc.dragging) return;
+  const hit = pick(e.clientX, e.clientY);
+  if (state.squeeze && hit && e.button === 0) {
+    controls.enabled = false;
+    down.sq = { pts: [], last: null, sx: e.clientX, sy: e.clientY, seed: Math.random()*100 };
+    squirt(hit, down.sq);
+    const sq = down.sq; sq.timer = setInterval(() => pileUp(sq), 80);
+    return;
+  }
+  if (!hit || !hit.object.userData.piece) return;
+  if (e.button === 2) return;
+  stopFalls();
+  const m = hit.object;
+  if (m !== selected) select(m);
+  controls.enabled = false;
+  if (state.mode === 'rotate' || e.shiftKey || e.altKey) {
+    down.rot = beginRot(); down.lx = e.clientX; down.ly = e.clientY;
+    cv.style.cursor = 'move';
+    return;
+  }
+  if (state.mode === 'scale') {
+    down.scl = { snap: snapshot(), s0: m.userData.size || 1, carry: beginCarry() };
+    cv.style.cursor = 'ns-resize';
+    return;
+  }
+  const o = m.position.clone().project(camera);
+  const r = cv.getBoundingClientRect();
+  const ox = (o.x + 1)/2*r.width + r.left, oy = (1 - o.y)/2*r.height + r.top;
+  down.drag = { m, dx: ox - e.clientX, dy: oy - e.clientY, snap: snapshot(), lifted: false, carry: beginCarry(), ex: selGroup() };
+  cv.style.cursor = 'grabbing';
+});
+
+cv.addEventListener('pointermove', e => {
+  if (!down) {
+    if (state.squeeze) { setHover(null); cv.style.cursor = KCUR; return; }
+    if (e.pointerType === 'mouse') {
+      if (tc.axis) { setHover(null); cv.style.cursor = 'pointer'; return; }
+      const h = pick(e.clientX, e.clientY);
+      setHover(!busy && h && h.object.userData.piece ? h.object : null); cv.style.cursor = h && h.object.userData.piece ? (state.mode === 'scale' && selected ? 'ns-resize' : state.mode === 'rotate' && selected || e.shiftKey || e.altKey ? 'move' : 'grab') : 'default';
+    }
+    return;
+  }
+  if (down.tc) return;
+  if (down.sq) {
+    down.moved = true;
+    const sq = down.sq;
+    if (Math.hypot(e.clientX - sq.sx, e.clientY - sq.sy) < 6) return;   // tiny wobble while holding: keep piling
+    const hit = pick(e.clientX, e.clientY);
+    if (hit && (!sq.last || hit.point.distanceTo(sq.last) > 0.035)) { squirt(hit, sq); sq.sx = e.clientX; sq.sy = e.clientY; }
+    return;
+  }
+  if (down.scl) {
+    if (!down.moved && Math.abs(e.clientY - down.y) > 3) { down.moved = true; $('selActs').classList.add('drag'); }
+    if (down.moved) {
+      const sz = Math.round(THREE.MathUtils.clamp(down.scl.s0*Math.exp((down.y - e.clientY)*0.006), SMIN, SMAX)*100)/100;
+      if (sz !== selected.userData.size) { setSize(sz); applyCarry(down.scl.carry); }
+    }
+    return;
+  }
+  if (down.rot) {
+    if (!down.moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 3) { down.moved = true; tc.getHelper().visible = false; $('selActs').classList.add('drag'); }
+    if (down.moved) { stepRot(down.rot, e.clientX - down.lx, e.clientY - down.ly, !e.ctrlKey); down.lx = e.clientX; down.ly = e.clientY; }
+    return;
+  }
+  if (!down.moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 5) { down.moved = true; if (down.drag) { tc.getHelper().visible = false; $('selActs').classList.add('drag'); } }
+  const d = down.drag;
+  if (!d || !down.moved) return;
+  const hit = pick(e.clientX + d.dx, e.clientY + d.dy, d.ex);
+  if (!hit) return;
+  if (hit.object.userData.type === 'floor' && !inTray(hit.point)) return;
+  const rest = restFromHit(hit);
+  d.m.userData.rest = rest;
+  d.m.position.copy(seatPos(d.m, rest));
+  if (!d.lifted) { d.lifted = true; blip(500, 0.05, 0.03); }
+  const k2 = rest.type + (rest.obj ? rest.obj.id : '');
+  if (d.lastType !== k2) { if (d.lastType) blip(rest.type === 'floor' ? 380 : 620, 0.05, 0.035); d.lastType = k2; }
+  syncTwin(); applyCarry(d.carry);
+});
+
+function endPointer(e, cancel){
+  const d = down; down = null;
+  if (!tc.dragging) controls.enabled = true;
+  tc.getHelper().visible = !!tc.object;
+  $('selActs').classList.remove('drag');
+  cv.style.cursor = state.squeeze ? KCUR : 'default';
+  if (!d || busy || d.tc) return;
+  if (d.sq) { clearInterval(d.sq.timer); const m = finishBead(d.sq); if (m) { history.push({ added: [m], removed:[] }); changed(); } return; }
+  if (d.rot) { endRot(d.rot); if (d.rot.moved) thud(); return; }
+  if (d.scl) { if (d.moved) { const h = { added:[], removed:[], transforms: d.scl.snap }; history.push(h); settle(h, selGroup()); thud(); changed(); } return; }
+  if (d.drag && d.moved && d.drag.lifted) {
+    const h = { added:[], removed:[], transforms: d.drag.snap }; history.push(h); settle(h, selGroup());
+    thud(); changed(); return;
+  }
+  if (cancel || d.moved || performance.now() - d.t > 700) return;
+  const hit = pick(e.clientX, e.clientY);
+  if (d.b === 2) { if (hit && hit.object.userData.piece) { select(hit.object); act('del'); } return; }
+  if (!hit || !hit.object.userData.piece) select(null);
+}
+cv.addEventListener('pointerup', e => endPointer(e, false));
+cv.addEventListener('pointercancel', e => endPointer(e, true));
+cv.addEventListener('contextmenu', e => e.preventDefault());
+
+/* resize */
+const dockMQ = matchMedia('(max-width:640px) and (orientation:portrait)');
+function resize(){
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w/h;
+  if (dockMQ.matches){
+    // bottom dock: frame the tray in the space above it
+    const dh = $('panel').offsetHeight;
+    document.documentElement.style.setProperty('--dock', dh + 'px');
+    camera.setViewOffset(w, h, 0, dh*0.5 - h*0.02, w, h);
+  } else {
+    const pw = $('panel').offsetWidth;
+    camera.setViewOffset(w, h, pw*0.5, -h*0.03, w, h);
+  }
+  camera.updateProjectionMatrix();
+}
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  const card = b.closest('.card'); card.dataset.tab = b.dataset.tab;
+  card.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  blip(640, 0.04, 0.03);
+});
+addEventListener('resize', resize);
+new ResizeObserver(resize).observe($('panel'));
+resize();
+{ const k = 1.0/Math.min(1, camera.aspect*1.5); camera.position.multiplyScalar(k); }
+
+/* loop */
+function tick(now){
+  stepLook(now); stepFalls(now); stepFlick(now); stepFlying(now);
+  for (let i = anims.length - 1; i >= 0; i--){
+    const a = anims[i]; const t = (now - a.t0)/a.dur;
+    if (a.kind === 'drop'){
+      if (now < a.t0) continue;
+      a.m.visible = true;
+      if (down && down.drag && down.drag.lifted && selGroup().includes(a.m)) { anims.splice(i, 1); continue; }
+      const dt = a.last ? Math.min(0.05, (now - a.last)/1000) : 0; a.last = now;
+      a.v -= 32*dt; a.m.position.y += a.v*dt;
+      if (a.m.position.y <= a.yRest){
+        a.m.position.y = a.yRest;
+        if (a.bounces === 0) thud();
+        a.bounces++; a.v = -a.v*0.32;
+        if (Math.abs(a.v) < 1.2 || a.bounces > 2) anims.splice(i, 1);
+      }
+      continue;
+    }
+    if (t < 0) continue;
+    if (a.kind === 'in'){
+      const sz = a.m.userData.size || 1;
+      a.m.scale.setScalar(Math.max(0.0001, sz*backOut(Math.min(1, t))));
+      if (t >= 1) { a.m.scale.setScalar(sz); anims.splice(i, 1); }
+    } else {
+      if (a.sound) { a.sound = false; crunch(); }
+      const k = Math.min(1, t);
+      const sz = a.m.userData.size || 1;
+      a.m.scale.setScalar(Math.max(0.0001, sz*(1 - k) * (1 + 0.25*Math.sin(k*Math.PI))));
+      if (t >= 1) { build.remove(a.m); a.m.scale.setScalar(sz); anims.splice(i, 1); }
+    }
+  }
+  if (camTween){
+    const t = Math.min(1, (now - camTween.t0)/700), e = 1 - Math.pow(1-t, 3);
+    controls.target.lerpVectors(camTween.from, camTween.to, e);
+    const dir = camera.position.clone().sub(controls.target).normalize();
+    camera.position.copy(controls.target).addScaledVector(dir, camTween.d0 + (camTween.d1 - camTween.d0)*e);
+    if (t >= 1) camTween = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+syncUI(); changed();
+requestAnimationFrame(tick);
+requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => $('loader').classList.add('done'), 350)));
+
+// test hook
+window.__game = { redo, useTile, setSqueeze, loadPreset, state, build, addPiece, pick, camera, controls, tc, setMode, select, act, settle, history, undo, falls };
+</script>
+</body>
+</html>
