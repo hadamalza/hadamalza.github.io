@@ -508,7 +508,7 @@ function makeNuggetGeo(seed){
   const thick = 0.3 + rnd()*0.04;             // half thickness
   const rot = rnd()*Math.PI*2;
 
-  let g = new THREE.SphereGeometry(1, 150, 90);
+  let g = new THREE.SphereGeometry(1, 72, 44);
   g.deleteAttribute('uv'); g.deleteAttribute('normal');
   g = mergeVertices(g);
   const p = g.attributes.position, v = new THREE.Vector3();
@@ -683,6 +683,8 @@ const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false;
+renderer.shadowMap.needsUpdate = true;
 renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.toneMappingExposure = 1.0;
 stage.appendChild(renderer.domElement);
@@ -2019,6 +2021,25 @@ new ResizeObserver(resize).observe($('panel'));
 resize();
 { const k = 1.0/Math.min(1, camera.aspect*1.5); camera.position.multiplyScalar(k); }
 
+// Shadows only need another pass when a caster, tray, or lighting changes.
+const shadowSnapshots = new WeakMap();
+let shadowCasterCount = -1, shadowLook = -1;
+function updateShadowCache(){
+  let count = 0, dirty = lookT !== shadowLook;
+  scene.traverse(o => {
+    if (!o.castShadow && !o.isLight && o !== trayRig && o !== build) return;
+    count++;
+    const old = shadowSnapshots.get(o);
+    if (!old || old.visible !== o.visible || !old.p.equals(o.position) || !old.q.equals(o.quaternion) || !old.s.equals(o.scale)){
+      dirty = true;
+      if (old){ old.p.copy(o.position); old.q.copy(o.quaternion); old.s.copy(o.scale); old.visible = o.visible; }
+      else shadowSnapshots.set(o,{p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone(),visible:o.visible});
+    }
+  });
+  if (dirty || count !== shadowCasterCount) renderer.shadowMap.needsUpdate = true;
+  shadowCasterCount = count; shadowLook = lookT;
+}
+
 /* loop */
 function tick(now){
   stepLook(now); stepFalls(now); stepFlick(now); stepFlying(now);
@@ -2059,6 +2080,7 @@ function tick(now){
     if (t >= 1) camTween = null;
   }
   controls.update();
+  updateShadowCache();
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
@@ -2071,3 +2093,4 @@ window.__game = { redo, useTile, setSqueeze, loadPreset, state, build, addPiece,
 </script>
 </body>
 </html>
+
