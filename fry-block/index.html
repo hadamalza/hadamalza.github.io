@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>감튀블록</title>
-<script>try{if(localStorage.getItem('gamtwi-night')==='1')document.documentElement.dataset.theme='night'}catch(e){}</script>
+<script>try{if(localStorage.getItem('gamtwi-night')!=='0')document.documentElement.dataset.theme='night'}catch(e){document.documentElement.dataset.theme='night'}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
@@ -42,26 +42,28 @@
   .pill .lbl{font-size:13px;font-weight:600;white-space:nowrap}
   .brand{white-space:nowrap}
   @media (max-width:520px){ #clearBtn .lbl{display:none} #gravBtn{padding:0 8px} .top-actions{gap:4px !important} .pill:not(#gravBtn){padding:0 8px} .brand{font-size:15px} }
-  .more-wrap,.more-menu{display:contents}
-  #moreBtn,.mlbl,.msw{display:none}
-  @media (max-width:600px), (pointer:coarse) and (max-width:1100px){
-    .more-wrap{display:block;position:relative}
-    #moreBtn{display:inline-flex}
-    .more-menu{display:none;position:absolute;right:0;top:calc(100% + 8px);min-width:176px;flex-direction:column;gap:2px;padding:6px;
-      background:var(--surface);border:1.5px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(60,40,10,.16);z-index:10}
-    .more-wrap.open .more-menu{display:flex}
-    .top:has(.more-wrap.open){z-index:40}
-    .more-wrap.open #moreBtn{background:var(--line)}
-    .more-menu .pill{border:0;background:none;width:100%;height:42px;padding:0 10px !important;justify-content:flex-start;gap:10px;border-radius:9px;color:var(--ink) !important}
-    .more-menu .pill:active{transform:none;background:var(--line)}
-    .more-menu .pill svg{opacity:1 !important}
-    .more-menu .pill .lbl,.more-menu .mlbl{display:inline;font-size:14px;font-weight:600;flex:1;text-align:left}
-    #gravBtn::before{content:"";width:16px;height:16px;flex:0 0 auto;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v13'/%3E%3Cpath d='m7 11 5 5 5-5'/%3E%3Cpath d='M5 20h14'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v13'/%3E%3Cpath d='m7 11 5 5 5-5'/%3E%3Cpath d='M5 20h14'/%3E%3C/svg%3E") center/contain no-repeat}
-    .more-menu .msw{display:block}
-    .more-menu .pill:not(.on) .msw{background:var(--muted);opacity:.55}
-    .more-menu .pill:not(.on) .msw i{left:2px}
-    #clearBtn .lbl{display:inline !important}
-  }
+  .more-wrap{position:relative}
+  #moreBtn{display:inline-flex;justify-content:center;width:38px;padding:0}
+  #moreBtn svg{width:18px;height:18px}
+  .more-menu{display:none;position:absolute;right:0;top:calc(100% + 10px);width:272px;max-width:calc(100vw - 28px);
+    padding:10px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;box-shadow:0 12px 36px var(--shadow);z-index:10}
+  .more-wrap.open .more-menu{display:block}
+  .top:has(.more-wrap.open){z-index:40}
+  .more-wrap.open #moreBtn{background:var(--line)}
+  .settings-heading{display:flex;align-items:center;justify-content:space-between;padding:2px 6px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .settings-heading h2{font-size:15px;font-weight:700;margin:0}
+  #settingsClose{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:var(--muted)}
+  #settingsClose svg{width:16px;height:16px}
+  .more-menu .pill{border:0;background:none;width:100%;height:52px;padding:0 10px !important;justify-content:flex-start;gap:12px;border-radius:10px;color:var(--ink)}
+  .more-menu .pill:hover,#settingsClose:hover{background:var(--tile)}
+  .more-menu .pill:active{transform:none;background:var(--line)}
+  .more-menu .pill svg{opacity:1;width:18px;height:18px;flex:0 0 auto}
+  .more-menu .mlbl,.more-menu .lbl{display:inline;flex:1;text-align:left;font-size:14px;font-weight:600}
+  .setting-value{font-size:12px;color:var(--muted)}
+  .more-menu .sw{display:block;margin-left:0}
+  .more-menu .pill:not(.on) .sw{background:var(--muted);opacity:.55}
+  .more-menu .pill:not(.on) .sw i{left:2px}
+  button:focus-visible{outline:2px solid var(--green);outline-offset:3px}
   .pill.off{color:var(--muted)}
   .pill.off svg{opacity:.45}
   .pill .sw{position:relative;width:28px;height:16px;border-radius:8px;background:var(--green);margin-left:2px;flex:0 0 auto;transition:background-color .2s}
@@ -181,7 +183,10 @@
   .tile img{width:54px;height:54px}
   .rule{height:1px;background:var(--line);margin:2px 4px}
   .panel .chip{justify-content:center;height:38px;padding:0;width:100%;font-size:13px}
-  .panel .examples{flex-direction:column;align-items:stretch;gap:5px;margin:0}
+  .panel .examples{flex-direction:column;align-items:stretch;gap:5px;margin:0;flex-shrink:0;
+    max-height:var(--preset-max-height,none);overflow-y:auto;scrollbar-width:none}
+  .panel .examples::-webkit-scrollbar{display:none}
+  .panel .examples > *{flex-shrink:0}
   .panel .examples .lbl{text-align:center;margin:2px 0 0;font-size:11px}
   .panel .examples button{padding:6px 0;font-size:11px}
   .panel .primary{pointer-events:auto;flex:0 0 auto;height:56px;margin:0;border-radius:18px;font-size:15px;flex-direction:column;gap:0;line-height:1.1;box-shadow:0 4px 0 var(--green-d), 0 12px 28px rgba(60,80,74,.18)}
@@ -244,7 +249,6 @@
     .kcal{left:16px;bottom:calc(var(--dock, 140px) + 10px) !important;font-size:32px}
     .kcal small{font-size:19px}
     .selbar,.selbar.show,#squeezeTip{bottom:calc(var(--dock, 140px) + 10px) !important}
-    .selbar,.selbar.show{left:10px;right:10px}
     #squeezeTip{left:50%}
     #toast{left:50%}
   }
@@ -281,6 +285,15 @@
     .selbar .sep{margin:0 1px}
     .selbar .ok{flex:0 0 auto;padding:0 8px}
   }
+  /* Keep docked toolbar rules after the shared centered toolbar styles. */
+  @media (max-width:640px) and (orientation:portrait){
+    .selbar,.selbar.show{left:max(10px, env(safe-area-inset-left));right:max(10px, env(safe-area-inset-right));gap:0;padding:3px}
+    .selbar{transform:translateY(12px)}
+    .selbar.show{transform:translateY(0)}
+    .selbar button,.selbar .txt{flex:1 1 0;width:auto;min-width:0;height:38px;justify-content:center}
+    .selbar .sep{flex:0 0 1px;margin:0 3px}
+    body:has(.selbar.show) .kcal{opacity:0}
+  }
   #loader{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
     transition:opacity .5s ease, visibility .5s}
   #loader.done{opacity:0;visibility:hidden;pointer-events:none}
@@ -313,24 +326,30 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg><span class="lbl">비우기</span>
     </button>
     <div class="more-wrap" id="moreWrap">
-    <button class="pill" id="moreBtn" title="더보기" aria-label="더보기" aria-haspopup="true" aria-expanded="false">
-      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
-    </button>
-    <div class="more-menu" id="moreMenu">
-    <button class="pill" id="gravBtn" title="중력 (G)" aria-pressed="true">
-      <span class="lbl">중력</span><span class="sw" aria-hidden="true"><i></i></span>
-    </button>
-    <button class="pill" id="nightBtn" title="야간 모드 (N)">
-      <svg id="icMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
-      <svg id="icSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-      <span class="mlbl">다크 모드</span><span class="sw msw" aria-hidden="true"><i></i></span>
-    </button>
-    <button class="pill" id="soundBtn" title="소리">
-      <svg id="sndOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
-      <svg id="sndOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>
-      <span class="mlbl">사운드</span><span class="sw msw" aria-hidden="true"><i></i></span>
-    </button>
-    </div>
+      <button class="pill" id="moreBtn" title="설정" aria-label="설정" aria-haspopup="dialog" aria-controls="moreMenu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9.2 3-.6 2.1-1.8 1-2.1-.5L2 10.3l1.5 1.6v2L2 15.5l2.7 4.7 2.1-.5 1.8 1 .6 2.1h5.5l.6-2.1 1.8-1 2.1.5 2.7-4.7-1.5-1.6v-2l1.5-1.6-2.7-4.7-2.1.5-1.8-1-.6-2.1z" transform="translate(1 0) scale(.92)"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <div class="more-menu" id="moreMenu" role="dialog" aria-labelledby="settingsTitle">
+        <div class="settings-heading"><h2 id="settingsTitle">설정</h2><button id="settingsClose" aria-label="설정 닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+        <button class="pill on" id="soundBtn" title="사운드" role="switch" aria-checked="true">
+          <svg id="sndOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+          <svg id="sndOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5 6 9H3v6h3l5 4zM22 9l-6 6M16 9l6 6"/></svg>
+          <span class="mlbl">사운드</span><span class="sw" aria-hidden="true"><i></i></span>
+        </button>
+        <button class="pill" id="nightBtn" title="밤낮 (N)" role="switch" aria-label="밤 모드" aria-checked="false">
+          <svg id="icMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+          <svg id="icSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <span class="mlbl">밤낮</span><span class="setting-value" id="nightStatus">낮</span><span class="sw" aria-hidden="true"><i></i></span>
+        </button>
+        <button class="pill on" id="gravBtn" title="중력 (G)" role="switch" aria-checked="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m-5-5 5 5 5-5M5 20h14"/></svg>
+          <span class="lbl">중력</span><span class="sw" aria-hidden="true"><i></i></span>
+        </button>
+        <button class="pill on" id="blurBtn" title="배경 블러" role="switch" aria-checked="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3h.01M5.6 5.6h.01M3 12h.01M5.6 18.4h.01M12 21h.01M18.4 18.4h.01M21 12h.01M18.4 5.6h.01" stroke-width="3"/></svg>
+          <span class="mlbl">배경 블러</span><span class="sw" aria-hidden="true"><i></i></span>
+        </button>
+      </div>
     </div>
   </div>
 </header>
@@ -385,6 +404,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { mergeVertices, mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 const Y = new THREE.Vector3(0, 1, 0);
 const $ = id => document.getElementById(id);
@@ -400,7 +420,7 @@ function noise3(x, y, z, o){
 
 /* ---------- materials ---------- */
 const bumpU = { value: 1 };     // crumb relief strength (softened at night so the crust doesn't look like black blotches)
-const deepU = { value: 0.26 };   // how much deeper cast shadows get (day only)
+const deepU = { value: 0.12 };   // how much deeper cast shadows get (day only)
 const fryMat = new THREE.MeshStandardMaterial({ vertexColors:true, roughness:0.6, metalness:0 });
 const nugMat = new THREE.MeshStandardMaterial({ vertexColors:true, roughness:0.9, metalness:0 });
 const ketMat = new THREE.MeshPhysicalMaterial({ color:0xb8231b, roughness:0.2, clearcoat:0.8, clearcoatRoughness:0.15 });
@@ -571,12 +591,12 @@ function patchSurface(mat, kind){
         float pxw = length(fwidth(vObjPos));
         float fade = 1.0 - smoothstep(0.004, 0.018, pxw);
         float hC = ${crust ? 'fbm(sp*9.0)*0.7 + mix(0.5, vnoise(sp*24.0), fade)*0.3' : 'fbm(sp*5.0)'};
-        diffuseColor.rgb *= ${crust ? 'mix(0.84, 1.12, smoothstep(0.25, 0.75, hC))' : 'mix(0.97, 1.03, hC)'};
+        diffuseColor.rgb *= ${crust ? 'mix(0.95, 1.05, smoothstep(0.25, 0.75, hC))' : 'mix(0.97, 1.03, hC)'};
         ${crust ? `
         vec3 cc = floor(vObjPos*26.0), fp = fract(vObjPos*26.0);
         vec3 off = vec3(hash3(cc+1.3), hash3(cc+2.7), hash3(cc+5.9))*0.6 + 0.2;
         float speck = step(0.8, hash3(cc+7.1)) * (1.0 - smoothstep(0.06, 0.11, length(fp - off)));
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.16, 0.1, 0.06), speck*0.85*fade);` : ''}`)
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.46, 0.25, 0.09), speck*0.3*fade);` : ''}`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         roughnessFactor = ${crust ? 'mix(0.92, 0.62, smoothstep(0.4, 0.8, hC))' : 'mix(0.68, 0.55, hC)'};`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
@@ -586,7 +606,7 @@ function patchSurface(mat, kind){
           vec3 r1 = cross(dpdy, normal), r2 = cross(normal, dpdx);
           float det = dot(dpdx, r1);
           vec3 grad = sign(det) * (hx*r1 + hy*r2);
-          normal = normalize(abs(det)*normal - grad * ${crust ? '0.45' : '0.04'} * uBump * (0.35 + 0.65*fade));
+          normal = normalize(abs(det)*normal - grad * ${crust ? '0.12' : '0.04'} * uBump * (0.35 + 0.65*fade));
         }`);
   };
   mat.customProgramCacheKey = () => 'surf-' + kind;
@@ -692,7 +712,7 @@ stage.appendChild(renderer.domElement);
 const BG = 0xfdf7ec;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(BG);
-scene.fog = new THREE.Fog(BG, 30, 60);
+scene.fog = new THREE.Fog(BG, 34, 180);   // subtle aerial perspective behind the sharp tabletop
 const pmrem = new THREE.PMREMGenerator(renderer);
 const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environment = envTex;
@@ -706,7 +726,7 @@ function addLights(sc, shadows){
     d.castShadow = true;
     d.shadow.mapSize.set(2048, 2048);
     const s = d.shadow.camera; s.left = s.bottom = -6; s.right = s.top = 6; s.near = 1; s.far = 25;
-    d.shadow.bias = -0.0004; d.shadow.normalBias = 0.02;
+    d.shadow.bias = -0.0004; d.shadow.normalBias = 0.02; d.shadow.intensity = 0.76;
   }
   sc.add(d);
   const f = new THREE.DirectionalLight(0xe8efe0, 0.6); f.position.set(-5, 3, -4); sc.add(f);
@@ -716,7 +736,7 @@ function addLights(sc, shadows){
   if (shadows){
     d2.castShadow = true; d2.shadow.mapSize.set(1024, 1024); d2.shadow.radius = 4;
     const s2 = d2.shadow.camera; s2.left = s2.bottom = -6; s2.right = s2.top = 6; s2.near = 1; s2.far = 25;
-    d2.shadow.bias = -0.0005; d2.shadow.normalBias = 0.03;
+    d2.shadow.bias = -0.0005; d2.shadow.normalBias = 0.03; d2.shadow.intensity = 0.55;
   }
   sc.add(d2);
   return { h, d, f, d2 };
@@ -727,14 +747,14 @@ const L = addLights(scene, true);
 const lamp = new THREE.SpotLight(0xffd6a3, 0, 0, 0.55, 0.85, 0);
 lamp.position.set(0.4, 10, 1.2); lamp.target.position.set(0, 0, 0);
 lamp.castShadow = true; lamp.shadow.mapSize.set(2048, 2048); lamp.shadow.bias = -0.0004; lamp.shadow.normalBias = 0.02;
-lamp.shadow.camera.near = 4; lamp.shadow.camera.far = 16;
+lamp.shadow.camera.near = 4; lamp.shadow.camera.far = 16; lamp.shadow.intensity = 0.65;
 scene.add(lamp, lamp.target); lamp.visible = false;
 const rimLight = new THREE.DirectionalLight(0x7fa6ff, 0); rimLight.position.set(-6, 4, -7); scene.add(rimLight); rimLight.visible = false;
 // soft warm fill from the viewer's side: lifts the shadows so food stays appetizing at night (no shadow of its own)
 const fillLight = new THREE.DirectionalLight(0xffcf98, 0); fillLight.position.set(3, 5, 8); scene.add(fillLight); fillLight.visible = false;
 const C = (h) => new THREE.Color(h);
 const LOOK = {
-  day:   { bg:C(0xfdf7ec), hs:C(0xffdcae), hg:C(0xe0a466), hi:1.5, dc:C(0xfff6ea), di:2.0, fi:0.5, d2:0.8, lamp:0, rim:0, fill:0, env:0.45, shadow:0.09, exp:1.0, deep:0.26, bump:1 },
+  day:   { bg:C(0xfdf7ec), hs:C(0xffdcae), hg:C(0xe0a466), hi:1.5, dc:C(0xfff6ea), di:2.0, fi:0.5, d2:0.8, lamp:0, rim:0, fill:0, env:0.45, shadow:0.09, exp:1.0, deep:0.12, bump:1 },
   night: { bg:C(0x14171d), hs:C(0xe0a46c), hg:C(0xa8622a), hi:1.05, dc:C(0xc8bfc8), di:0.12, fi:0.12, d2:0, lamp:2.2, rim:0.4, fill:1.0, env:0.26, shadow:0.15, exp:1.05, deep:0, bump:0.45 },
 };
 let lookT = 0, lookFrom = 0, lookTo = 0, lookT0 = 0;   // 0 = day, 1 = night
@@ -749,12 +769,15 @@ function applyLook(k){
   scene.environmentIntensity = mix(a.env, b.env); deepU.value = mix(a.deep, b.deep); bumpU.value = mix(a.bump, b.bump);
   renderer.toneMappingExposure = mix(a.exp, b.exp);
   if (typeof ground !== 'undefined') ground.material.opacity = mix(a.shadow, b.shadow);
+  if (window.__restLook) window.__restLook(k);   // the burger-joint backdrop follows day / night
 }
 function setNight(on, instant){
   state.night = on;
   document.documentElement.dataset.theme = on ? 'night' : 'day';
   $('nightBtn').classList.toggle('on', !!on);
-  $('icMoon').style.display = on ? 'none' : ''; $('icSun').style.display = on ? '' : 'none';
+  $('nightBtn').setAttribute('aria-checked', String(!!on));
+  $('nightStatus').textContent = on ? '밤' : '낮';
+  $('icMoon').style.display = on ? '' : 'none'; $('icSun').style.display = on ? 'none' : '';
   lookFrom = lookT; lookTo = on ? 1 : 0; lookT0 = performance.now();
   if (instant) { lookT = lookTo; applyLook(lookT); }
   try { localStorage.setItem('gamtwi-night', on ? '1' : '0'); } catch(e){}
@@ -773,8 +796,8 @@ function lampClick(on){
   o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + 0.05);
 }
 
-const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
-camera.position.set(8.2, 7.0, 10.8);
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 400);   // far enough for the whole dining room
+camera.position.set(8.2, 7.6, 10.8);   // framed a little higher, so less of the table base and chair legs shows
 // rotation gizmo (registered before OrbitControls so it gets the pointer first)
 const tc = new TransformControls(camera, renderer.domElement);
 tc.setMode('rotate'); tc.setSpace('local'); tc.setSize(0.9);
@@ -812,7 +835,7 @@ function syncGizmo(){
   else tc.detach();
 }
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0.9, 0);
+controls.target.set(0, 1.6, 0);
 controls.enableDamping = true; controls.dampingFactor = 0.08;
 controls.enablePan = false;
 controls.minDistance = 5; controls.maxDistance = 26;
@@ -895,7 +918,9 @@ liner.rotation.x = -Math.PI/2; liner.rotation.z = 0.012; liner.position.y = 0.00
 liner.receiveShadow = true; liner.userData.type = 'floor';
 scene.add(liner);
 document.fonts && document.fonts.load('600 30px "Noto Sans KR"').then(() => { linerTex.image = linerTexture(); linerTex.needsUpdate = true; }).catch(() => {});
-const inTray = p => Math.abs(p.x) < TW/2 - 0.12 && Math.abs(p.z) < TD/2 - 0.12;
+let trayAngle = 0;   // how far the tray has been turned (pieces are turned with it, in world space)
+const inTray = p => { const c = Math.cos(trayAngle), s = Math.sin(trayAngle), x = p.x*c - p.z*s, z = p.x*s + p.z*c;
+  return Math.abs(x) < TW/2 - 0.12 && Math.abs(z) < TD/2 - 0.12; };
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ color:0x8a4316, opacity:0.09 }));
 ground.rotation.x = -Math.PI/2; ground.position.y = -0.085; ground.receiveShadow = true; scene.add(ground);
 
@@ -948,6 +973,811 @@ const table = new THREE.Group(); scene.add(table);
   const col = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, LEG, 36), steel); col.position.y = yTop - LEG/2; table.add(col);
 }
 ground.visible = false;   // no room floor: the table just stands in the page
+/* ---------- burger-joint backdrop ----------
+   a modern fast-food dining room around the table (gray tile floor, dark wood feature wall with a lit
+   kitchen window and menu screens, white brick wall, light wood tables with black chairs, kiosks,
+   louvered windows, downlights). generic look only: no real brand names or logos.
+   nothing here casts or takes shadows; soft baked contact shadows sit under the furniture instead. */
+let backdropRevision = 0;
+const restaurant = new THREE.Group(); restaurant.name = 'restaurant'; scene.add(restaurant);
+{
+  const FY = TBY - TBT - 0.1 - LEG;          // floor height: where the table pedestal ends
+  const R = 75, HH = 36;                     // half room size, ceiling height
+  const rnd = mulberry32(2024);
+  const restLook = [];   // callbacks run with the day(0)..night(1) mix
+  window.__restLook = (k) => restLook.forEach(fn => fn(k));
+  const cv = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+  const tex = (c, rx = 1, ry = 1) => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+    if (rx !== 1 || ry !== 1){ t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); } return t; };
+  const mat = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.8, metalness: 0 }, o));
+  const add = (geo, m, x, y, z, ry = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.y = ry; restaurant.add(o); return o; };
+  // furniture is built from many small parts: collect them per material and merge into one mesh each
+  const buckets = new Map(), _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(1, 1, 1);
+  const put = (m, geo, x, y, z, ry = 0, parent) => {
+    const g = geo.index ? geo.toNonIndexed() : geo.clone();
+    for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
+    _m4.compose(new THREE.Vector3(x, y, z), _q.setFromEuler(_e.set(0, ry, 0)), _s);
+    if (parent) _m4.premultiply(parent);
+    g.applyMatrix4(_m4);
+    if (!buckets.has(m)) buckets.set(m, []); buckets.get(m).push(g);
+  };
+  // every box gets softly rounded edges (radius scales with the part, capped)
+  const box = (w, h, d, r) => new RoundedBoxGeometry(w, h, d, 2, r ?? Math.min(0.28, Math.min(w, h, d)*0.42));
+  const cyl = (r1, r2, h, n = 16) => new THREE.CylinderGeometry(r1, r2, h, n);
+
+  // ---------- materials ----------
+  function woodCanvas(base, dark, n, w = 1024, h = 1024, vertical = true){
+    const [c, x] = cv(w, h);
+    x.fillStyle = base; x.fillRect(0, 0, w, h);
+    const pw = (vertical ? w : h)/n;
+    for (let k = 0; k < n; k++){
+      const t = (rnd() - 0.5)*0.22;
+      x.fillStyle = t > 0 ? `rgba(255,235,210,${t})` : `rgba(40,20,8,${-t})`;
+      vertical ? x.fillRect(k*pw, 0, pw, h) : x.fillRect(0, k*pw, w, pw);
+      for (let i = 0; i < 26; i++){
+        const o = k*pw + rnd()*pw, amp = 0.6 + rnd()*2.2, fr = 0.006 + rnd()*0.012, ph = rnd()*9;
+        x.strokeStyle = dark.replace('A', (0.05 + rnd()*0.12).toFixed(3)); x.lineWidth = 0.6 + rnd()*1.4; x.beginPath();
+        for (let s = 0; s <= (vertical ? h : w); s += 10){ const d = Math.sin(s*fr + ph)*amp; vertical ? x.lineTo(o + d, s) : x.lineTo(s, o + d); }
+        x.stroke();
+      }
+      x.fillStyle = 'rgba(20,10,4,.45)'; vertical ? x.fillRect(k*pw, 0, 2, h) : x.fillRect(0, k*pw, w, 2);
+    }
+    return c;
+  }
+  const featureWood = mat({ map: tex(woodCanvas('#5a3a26', 'rgba(25,12,5,A)', 14), 3, 1), roughness: 0.7 });
+  const lightWood = mat({ map: tex(woodCanvas('#d6a466', 'rgba(120,70,30,A)', 4, 512, 512)), roughness: 0.55 });
+  const slatWood = mat({ color: 0xb0703f, roughness: 0.6 });
+  const louverM = mat({ color: 0xc8693a, roughness: 0.55 });
+  const blackM = mat({ color: 0x1f1f22, roughness: 0.45, metalness: 0.5 });
+  const whiteM = mat({ color: 0xf4f3ef, roughness: 0.5 });
+  const cushionM = mat({ color: 0xd6ad7c, roughness: 0.85 });
+  const steelM = mat({ color: 0xbfc3c7, roughness: 0.35, metalness: 0.7 });
+
+  // ---------- floor: big gray porcelain tiles, a lighter field in the middle (like the photo) ----------
+  {
+    const [c, x] = cv(2048, 2048), T = 2048/12;   // 12 x 12 tiles over the texture
+    for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++){
+      const light = i >= 4 && j >= 3 && j <= 9;
+      const v = (light ? 186 : 140) + (rnd() - 0.5)*8;
+      x.fillStyle = `rgb(${v},${v - 1},${v - 3})`; x.fillRect(i*T, j*T, T, T);
+      for (let s = 0; s < 120; s++){ const a = rnd()*0.05; x.fillStyle = `rgba(${rnd() < .5 ? '255,255,255' : '0,0,0'},${a})`; x.fillRect(i*T + rnd()*T, j*T + rnd()*T, 2 + rnd()*6, 2 + rnd()*6); }
+    }
+    x.strokeStyle = 'rgba(70,70,70,.35)'; x.lineWidth = 3;
+    for (let k = 0; k <= 12; k++){ x.beginPath(); x.moveTo(k*T, 0); x.lineTo(k*T, 2048); x.moveTo(0, k*T); x.lineTo(2048, k*T); x.stroke(); }
+    const fl = add(new THREE.PlaneGeometry(2*R, 2*R), mat({ map: tex(c), roughness: 0.5, metalness: 0.02 }), 0, FY, 0);
+    fl.rotation.x = -Math.PI/2; fl.material.userData.noAO = true;
+  }
+  // soft contact shadows (baked) under furniture
+  const blobTex = (() => { const [c, x] = cv(128, 128); const g = x.createRadialGradient(64, 64, 4, 64, 64, 62);
+    g.addColorStop(0, 'rgba(30,22,15,.42)'); g.addColorStop(0.55, 'rgba(30,22,15,.18)'); g.addColorStop(1, 'rgba(30,22,15,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
+  const blobM = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+  const blob = () => {};   // (contact shadows are now baked from the real furniture silhouettes, see bakeFloorShadow below)
+  blob(0, 0, 16, 16);   // under our own table
+
+  // ---------- walls ----------
+  const plain = mat({ color: 0xf3f1ec, roughness: 0.9 });
+  const brick = (() => {
+    const [c, x] = cv(1024, 1024);
+    x.fillStyle = '#e9e6df'; x.fillRect(0, 0, 1024, 1024);
+    const bw = 128, bh = 42;
+    for (let r = 0, y = 0; y < 1024; r++, y += bh) for (let xx = (r % 2) ? -bw/2 : 0; xx < 1024; xx += bw){
+      const v = 244 + (rnd() - 0.5)*10; x.fillStyle = `rgb(${v},${v - 1},${v - 4})`; x.fillRect(xx + 3, y + 3, bw - 6, bh - 6);
+    }
+    return mat({ map: tex(c, 6, 5), roughness: 0.95 });
+  })();
+  const wallGeo = new THREE.PlaneGeometry(2*R, HH);
+  const BZ = -70;                                            // the counter wall sits closer than the others
+  add(wallGeo, plain, 0, FY + HH/2, BZ);                     // back (behind the counter)
+  add(wallGeo, brick, R, FY + HH/2, 0, -Math.PI/2);          // right: white brick
+  add(wallGeo, plain, 0, FY + HH/2, R, Math.PI);             // front
+  // skirting along the walls
+  [[0, BZ + 0.15, 0], [R - 0.15, 0, Math.PI/2], [0, R - 0.15, 0]].forEach(([x, z, ry]) => add(box(2*R, 0.9, 0.3), mat({ color: 0x55504a }), x, FY + 0.45, z, ry));
+
+  // ---------- ceiling: white with recessed downlights ----------
+  {
+    const cl = add(new THREE.PlaneGeometry(2*R, 2*R), mat({ color: 0xfbfaf7, roughness: 1, emissive: 0xffffff, emissiveIntensity: 0.12 }), 0, FY + HH, 0);
+    cl.rotation.x = Math.PI/2;
+    const dl = new THREE.MeshBasicMaterial({ color: 0xfff6e2 });
+    for (let i = -6; i <= 6; i++) for (let j = -6; j <= 6; j++){
+      const x = i*12, z = j*12; if (z < BZ + 26) continue;   // the counter has its own soffit
+      const o = add(new THREE.CircleGeometry(0.75, 24), dl, x, FY + HH - 0.02, z); o.rotation.x = Math.PI/2;
+    }
+  }
+
+  // ---------- order counter (after the user's reference): long white counter on a dark plinth, POS terminals,
+  // a dark bulkhead with a row of bright menu screens, an open stainless kitchen behind, a warm-lit soffit above ----------
+  {
+    const CX = 4, CW = 52, CZ = BZ + 16, CH = 10.6;        // counter centre x, length, front line z, height
+    const KL = CX - 31, KR = CX + 31;                      // kitchen side walls
+    const charcoal = mat({ color: 0x29292c, roughness: 0.7 });
+    // kitchen back wall: small white tiles
+    {
+      const [c, x] = cv(1024, 512);
+      x.fillStyle = '#f4f4f1'; x.fillRect(0, 0, 1024, 512);
+      x.strokeStyle = 'rgba(150,150,145,.5)'; x.lineWidth = 2;
+      for (let k = 0; k <= 1024; k += 32){ x.beginPath(); x.moveTo(k, 0); x.lineTo(k, 512); x.stroke(); }
+      for (let k = 0; k <= 512; k += 32){ x.beginPath(); x.moveTo(0, k); x.lineTo(1024, k); x.stroke(); }
+      add(new THREE.PlaneGeometry(KR - KL, HH), mat({ map: tex(c, 4, 4), roughness: 0.4, emissive: 0xffffff, emissiveIntensity: 0.08 }), CX, FY + HH/2, BZ + 0.08);
+    }
+    // dark side walls closing the kitchen, and the dark bulkhead over the opening
+    put(charcoal, box(1.2, HH, CZ - BZ + 1, 0.3), KL, FY + HH/2, (BZ + CZ)/2);
+    put(charcoal, box(1.2, HH, CZ - BZ + 1, 0.3), KR, FY + HH/2, (BZ + CZ)/2);
+    put(charcoal, box(KR - KL, HH - 21, 1.2, 0.3), CX, FY + 21 + (HH - 21)/2, CZ - 3);
+    // Landscape displays retain their original footprint; the reference informs only the artwork.
+    const menuPhoto = new Image(), menuDisplays = [];
+    const menuItems = [
+      { layout:'promo', title:'오늘은 더 맛있게', sub:'갓 구운 버거로 즐겨요!' },
+      { layout:'burgers', title:'든든하게 즐기는 시그니처 버거', rows:[['더블 치즈버거','단품 6,900','세트 9,500'],['크리스피 치킨버거','단품 5,900','세트 8,500'],['클래식 비프버거','단품 5,500','세트 8,100']] },
+      { layout:'combo', title:'좋아하는 메뉴를 세트로!', rows:[['더블 치즈버거 세트','9,500',''],['크리스피 치킨 세트','8,500',''],['클래식 비프 세트','8,100','']] },
+      { layout:'sides', title:'바삭한 사이드, 더 즐겁게', rows:[['프렌치프라이','M 3,200','L 3,900'],['크리스피 너겟','6조각 4,500',''],['어니언링','3,800',''],['디핑 소스','500','']] },
+      { layout:'cafe', title:'시원하게 기분 좋은 한 잔', rows:[['콜라 · 제로 콜라','M 2,400','L 2,900'],['스프라이트','M 2,400','L 2,900'],['아이스 아메리카노','3,000',''],['아이스 카페라테','3,800',''],['바닐라 크림 라테','4,300','']] },
+    ];
+    const drawMenu = (c, item) => {
+      const k = c.getContext('2d'), W = c.width, H = c.height;
+      const font = (weight, size) => `${weight} ${size}px "Noto Sans KR", Arial, sans-serif`;
+      const text = (value, x, y, size, color = '#fff', weight = 700, align = 'left') => {
+        k.font = font(weight, size); k.fillStyle = color; k.textAlign = align; k.fillText(value, x, y); k.textAlign = 'left';
+      };
+      const food = (photo, x, y, w, h) => {
+        if (menuPhoto.complete && menuPhoto.naturalWidth){
+          const pw = menuPhoto.naturalWidth/2, ph = menuPhoto.naturalHeight/2;
+          k.drawImage(menuPhoto, photo%2*pw, Math.floor(photo/2)*ph, pw, ph, x, y, w, h);
+        } else {
+          k.save(); k.translate(x + w/2, y + h/2); k.scale(w/230, h/230); drawFood(k, photo === 3 ? 'drink' : photo === 2 ? 'combo' : 'burger'); k.restore();
+        }
+      };
+      k.clearRect(0, 0, W, H); k.textBaseline = 'alphabetic';
+      if (item.layout === 'promo'){
+        const g = k.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#fff2b6'); g.addColorStop(1, '#ffc51e');
+        k.fillStyle = g; k.fillRect(0, 0, W, H);
+        text('FRESHLY MADE  /  매일 더 맛있게', 38, 48, 20, '#587441');
+        text('오늘은 더 맛있게!', 38, 108, 48, '#283747', 900);
+        text('더블 치즈버거', 38, 205, 29, '#60371b', 800);
+        text('6,900', 38, 263, 57, '#60371b', 900);
+        text('크리스피 치킨버거', 38, 437, 26, '#60371b', 800);
+        text('5,900', 38, 489, 50, '#60371b', 900);
+        food(0, 430, 115, 580, 387);
+        food(1, 270, 323, 410, 273);
+      } else {
+        const dark = k.createLinearGradient(0, 0, W, H);
+        dark.addColorStop(0, '#292420'); dark.addColorStop(1, '#131112');
+        k.fillStyle = dark; k.fillRect(0, 0, W, H);
+        const warm = item.layout === 'sides', g = k.createLinearGradient(0, 125, 0, H);
+        g.addColorStop(0, warm ? '#fff0c3' : '#e4f2f9'); g.addColorStop(1, warm ? '#ffd86c' : '#b5d4e8');
+        k.fillStyle = g; k.fillRect(475, 125, W - 475, H - 125);
+        k.fillStyle = '#f7c849'; k.fillRect(28, 28, W - 56, 62);
+        text(item.title, 45, 71, 34, '#352713', 800);
+        const step = item.layout === 'cafe' ? 80 : 101;
+        item.rows.forEach(([label, price, set], j) => {
+          const y = 163 + j*step;
+          text(label, 34, y, 25, '#f2f2ec');
+          text(price, 440, y + 34, 30, '#fff9e9', 800, 'right');
+          if (set) text(set, 34, y + 34, 23, '#c5d4db');
+          k.strokeStyle = 'rgba(255,255,255,.14)'; k.lineWidth = 1; k.beginPath(); k.moveTo(34, y + step - 25); k.lineTo(440, y + step - 25); k.stroke();
+        });
+        k.save(); k.beginPath(); k.rect(475, 125, W - 475, H - 160); k.clip();
+        if (item.layout === 'burgers'){
+          text('취향대로 즐기는 클래식', 500, 171, 25, '#314958', 800);
+          food(0, 590, 182, 440, 293);
+          food(1, 460, 345, 410, 273);
+        } else if (item.layout === 'cafe'){
+          text('시원한 즐거움, 잠깐의 여유', 500, 171, 24, '#314958', 800);
+          food(3, 470, 215, 555, 370);
+        } else {
+          text(item.layout === 'combo' ? '한 끼를 더 든든하게' : '함께 즐기면 더 맛있어요', 500, 171, 26, warm ? '#6a4422' : '#314958', 800);
+          food(2, 465, 210, 565, 377);
+        }
+        k.restore();
+      }
+      k.fillStyle = item.layout === 'promo' ? '#fff0ac' : '#221e1c'; k.fillRect(0, H - 36, W, 36);
+      text('모든 가격은 원 · 부가세 포함  |  이미지는 연출된 예입니다', 32, H - 12, 16, item.layout === 'promo' ? '#785419' : '#c7bca9', 500);
+    };
+    const refreshMenus = () => { menuDisplays.forEach(({c, item, texture}) => { drawMenu(c, item); texture.needsUpdate = true; }); backdropRevision++; };
+    menuPhoto.onload = refreshMenus;
+    menuPhoto.src = './assets/menu-cutouts.png';
+    const sw = 10.2, sh = 6.375, gap = 0.48, tilt = 0.1, q = new THREE.Matrix4().makeRotationX(tilt);
+    const sy = FY + 25, sz = CZ - 1.97;
+    put(blackM, box(54.8, 0.28, 0.55, 0.08), CX, FY + 28.5, CZ - 2.8);
+    const ledM = new THREE.MeshBasicMaterial({ color:0xb7d8c3, toneMapped:false });
+    menuItems.forEach((item, i) => {
+      const [c] = cv(1024, 640); drawMenu(c, item);
+      const texture = tex(c); menuDisplays.push({ c, item, texture });
+      const sx = CX + (i - 2)*(sw + gap);
+      put(blackM, box(sw + 0.24, sh + 0.24, 0.42, 0.07).applyMatrix4(q), sx, sy, sz - 0.23);
+      put(new THREE.MeshBasicMaterial({ map:texture, toneMapped:false }), new THREE.PlaneGeometry(sw, sh).applyMatrix4(q), sx, sy, sz);
+      // All trim follows the same tilt as the display glass.
+      const trimY = -sh/2 - 0.09, trimZ = 0.035;
+      put(steelM, box(sw + 0.25, 0.04, 0.025, 0.008).applyMatrix4(q), sx, sy + trimY*Math.cos(tilt) - trimZ*Math.sin(tilt), sz + trimY*Math.sin(tilt) + trimZ*Math.cos(tilt));
+      const [gl, gx] = cv(128, 128), shine = gx.createLinearGradient(0, 0, 128, 128);
+      shine.addColorStop(0, 'rgba(255,255,255,.34)'); shine.addColorStop(0.4, 'rgba(255,255,255,0)'); shine.addColorStop(1, 'rgba(255,255,255,.06)');
+      gx.fillStyle = shine; gx.fillRect(0, 0, 128, 128);
+      const gm = new THREE.MeshBasicMaterial({ map:tex(gl), transparent:true, opacity:0.12, depthWrite:false, toneMapped:false });
+      put(gm, new THREE.PlaneGeometry(sw, sh).applyMatrix4(q), sx, sy, sz + 0.018);
+      put(ledM, box(0.05, 0.025, 0.02, 0.008), sx + sw/2 - 0.16, sy + trimY*Math.cos(tilt), sz + trimY*Math.sin(tilt) + 0.035);
+      for (const dx of [-2.4, 2.4]) put(blackM, box(0.16, 0.5, 0.65, 0.04), sx + dx, FY + 28.4, CZ - 2.7);
+    });
+    if (document.fonts) document.fonts.load('800 43px "Noto Sans KR"').then(refreshMenus).catch(() => {});
+    // open kitchen: back line, heat-lamp pass, prep line, machines (all stainless)
+    put(steelM, box(KR - KL - 2, 7.6, 3.6, 0.2), CX, FY + 3.8, BZ + 2.2);
+    put(steelM, box(KR - KL - 2, 0.3, 2.2, 0.1), CX, FY + 15, BZ + 1.3);
+    for (let i = 0; i < 10; i++) put(i % 3 ? whiteM : mat({ color: 0xe8b04a }), box(1.6, 1.4 + (i % 2), 1.2, 0.2), KL + 6 + i*4.6, FY + 15.9, BZ + 1.3);
+    put(mat({ color: 0xe9e6df, roughness: 0.35 }), box(6, 7.5, 2.8, 0.4), KL + 9, FY + 11.4, BZ + 2.2);     // drink tower
+    put(blackM, box(3.2, 4.6, 2.6, 0.3), KR - 10, FY + 9.9, BZ + 2.2);                                      // coffee machine
+    put(steelM, box(9, 4.2, 3, 0.3), CX + 2, FY + 9.7, BZ + 2.2);                                            // fryer hood front
+    put(steelM, box(36, 7, 4, 0.2), CX, FY + 3.5, BZ + 8.5);                                                // prep line
+    put(steelM, box(36, 0.6, 3, 0.15), CX, FY + 11.8, BZ + 8.5);                                            // heat-lamp shelf
+    put(new THREE.MeshBasicMaterial({ color: 0xffb35a }), new THREE.PlaneGeometry(34, 2).rotateX(Math.PI/2), CX, FY + 11.48, BZ + 8.5);
+    for (const lx of [-17, 0, 17]) put(steelM, cyl(0.15, 0.15, 4.8, 8), CX + lx, FY + 9.4, BZ + 8.5);
+    for (let i = 0; i < 9; i++) put(mat({ color: [0xe8b04a, 0xc8372d, 0xf2e2c4][i % 3], roughness: 0.5 }), box(1.8, 1.1, 1.6, 0.35), CX - 15 + i*3.8, FY + 7.6, BZ + 8.3);
+    // the counter: long white body on a dark recessed plinth, white top with a small overhang
+    put(blackM, box(CW - 1, 1.6, 3.2, 0.2), CX, FY + 0.8, CZ + 1.6);
+    put(whiteM, box(CW, CH - 1.6, 3.8, 0.4), CX, FY + 1.6 + (CH - 1.6)/2, CZ + 1.9);
+    put(mat({ color: 0xfbfbf9, roughness: 0.3 }), box(CW + 0.6, 0.5, 4.6, 0.22), CX, FY + CH + 0.25, CZ + 2);
+    // POS terminals and a tray stack on the counter
+    [-16, -5, 6, 17].forEach((dx, i) => {
+      put(blackM, box(1.6, 0.4, 1.4, 0.15), CX + dx, FY + CH + 0.7, CZ + 2.2);
+      put(blackM, cyl(0.15, 0.15, 1.2, 8), CX + dx, FY + CH + 1.3, CZ + 2.2);
+      const q = new THREE.Matrix4().makeRotationX(-0.45);
+      put(blackM, box(2.8, 2, 0.25, 0.1).applyMatrix4(q), CX + dx, FY + CH + 2.4, CZ + 2.3);
+      put(new THREE.MeshBasicMaterial({ color: 0xdfe9f2 }), new THREE.PlaneGeometry(2.4, 1.6).applyMatrix4(q).rotateY(0), CX + dx, FY + CH + 2.47, CZ + 2.43);
+    });
+    for (let i = 0; i < 6; i++) put(mat({ color: 0xc8372d, roughness: 0.5 }), box(3, 0.13, 2.2, 0.05), CX + 23, FY + CH + 0.6 + i*0.15, CZ + 2);
+    blob(CX, CZ + 2.5, CW + 6, 8);
+    // soffit over the counter with warm cove lighting and warm spots
+    put(whiteM, box(KR - KL + 4, 2.2, 10, 0.3), CX, FY + HH - 1.1, CZ + 3.2);
+    put(new THREE.MeshBasicMaterial({ color: 0xffe1ad }), box(KR - KL + 2, 0.25, 0.3, 0.1), CX, FY + HH - 2.3, CZ + 8.1);   // cove strip
+    for (let i = 0; i < 9; i++){ const o = add(new THREE.CircleGeometry(0.5, 20), new THREE.MeshBasicMaterial({ color: 0xffd9a0 }), KL + 3 + i*((KR - KL - 6)/8), FY + HH - 2.24, CZ + 3.2); o.rotation.x = Math.PI/2; }
+    // dark wall continues on both sides of the kitchen, white beyond
+    put(charcoal, box(12, HH, 0.6, 0.2), KR + 6, FY + HH/2, BZ + 0.3);
+    put(charcoal, box(10, HH, 0.6, 0.2), KL - 5, FY + HH/2, BZ + 0.3);
+  }
+
+  // ---------- furniture helpers ----------
+  const M4 = (x, z, ry) => new THREE.Matrix4().compose(new THREE.Vector3(x, 0, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(1, 1, 1));
+  const leatherM = mat({ color: 0xc99a68, roughness: 0.55 });
+  const frameWood = mat({ color: 0x4a3122, roughness: 0.6 });
+  // an upholstered sofa: wood plinth on short legs, separate plump seat and back cushions, rounded arms.
+  // local: length along x, it faces +z, the back is at -z
+  function sofa(x, z, ry, L, arms = true){
+    const p = M4(x, z, ry), n = Math.max(1, Math.round(L/5.2)), cw = (L - (arms ? 1.8 : 0))/n;
+    put(frameWood, box(L, 1.8, 4.8, 0.3), 0, FY + 2.3, 0.1, 0, p);
+    for (const lx of [-L/2 + 0.6, L/2 - 0.6]) for (const lz of [-1.9, 2.1]) put(blackM, cyl(0.16, 0.11, 1.4, 10), lx, FY + 0.7, lz, 0, p);
+    put(frameWood, box(L, 7.2, 1.0, 0.35), 0, FY + 6.6, -2.3, 0, p);                       // back frame
+    for (let i = 0; i < n; i++){
+      const cx = -L/2 + (arms ? 0.9 : 0) + cw*(i + 0.5);
+      put(leatherM, box(cw - 0.12, 1.7, 4.1, 0.62), cx, FY + 4.05, 0.35, 0, p);          // seat cushion
+      put(leatherM, box(cw - 0.12, 4.8, 1.5, 0.62).rotateX(-0.14), cx, FY + 7.4, -1.3, 0, p);  // back cushion, leaning back
+    }
+    if (arms) for (const s of [-1, 1]) put(leatherM, box(0.95, 4.4, 4.9, 0.45), s*(L/2 - 0.47), FY + 4.4, 0.05, 0, p);
+    const v = new THREE.Vector3(0, 0, 0.2).applyMatrix4(p); blob(v.x, v.z, L + 3, 8, -ry);
+  }
+  // café chair: light wood seat and curved-ish back on a black steel frame
+  function chair(x, z, ry){
+    const p = M4(x, z, ry);
+    put(lightWood, box(4, 0.5, 3.8, 0.22), 0, FY + 5.6, 0, 0, p);
+    put(lightWood, box(4, 2.4, 0.4, 0.18).rotateX(-0.12), 0, FY + 9.2, -1.85, 0, p);
+    for (const [lx, lz] of [[-1.7, -1.55], [1.7, -1.55], [-1.7, 1.55], [1.7, 1.55]]) put(blackM, cyl(0.13, 0.11, 5.4, 10), lx, FY + 2.7, lz, 0, p);
+    for (const lx of [-1.7, 1.7]) put(blackM, cyl(0.11, 0.11, 4.6, 10), lx, FY + 8.0, -1.7, 0, p);
+    put(blackM, box(3.4, 0.25, 0.25, 0.1), 0, FY + 2.2, -1.55, 0, p);
+    blob(x, z, 6, 6);
+  }
+  // the hall uses the very same table as the one the tray sits on
+  function gameTable(x, z, ry = 0){
+    const t = table.clone(); t.position.set(x, 0, z); t.rotation.y = ry; restaurant.add(t);
+    blob(x, z, 17, 17, ry);
+  }
+  // a table with chairs: 2 per side, facing it
+  function dining(x, z, ry = 0, sides = [1, -1]){
+    gameTable(x, z, ry);
+    const a = M4(x, z, ry), v = new THREE.Vector3(), j = () => (rnd() - 0.5)*0.3;
+    for (const s of sides) for (const cx of [-3.1, 3.1]){
+      v.set(cx + (rnd() - 0.5)*0.6, 0, s*(8.4 + rnd()*0.8)).applyMatrix4(a);
+      chair(v.x, v.z, ry + (s > 0 ? Math.PI : 0) + j());
+    }
+  }
+
+  // ---------- right: white brick wall with big friendly lettering and a long banquette ----------
+  {
+    const [c, x] = cv(1024, 256);
+    x.fillStyle = '#b8352b'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = '900 70px "Arial Black", "Helvetica Neue", Arial, sans-serif'; x.fillText('FRESH BURGERS', 512, 82);
+    x.font = '900 104px "Arial Black", "Helvetica Neue", Arial, sans-serif'; x.fillText('& HOT FRIES', 512, 180);
+    add(new THREE.PlaneGeometry(30, 7.5), new THREE.MeshStandardMaterial({ map: tex(c), transparent: true, roughness: 0.6 }), R - 0.08, FY + 22, 40, -Math.PI/2);
+    for (let k = 0; k < 4; k++){ const z = -42 + k*30; sofa(R - 3, z, -Math.PI/2, 26, k === 0 || k === 3); }
+    [-46, -18, 12, 40].forEach(z => dining(R - 15.5, z, Math.PI/2, [-1]));
+  }
+
+  // ---------- left: a glass storefront with slim dark frames, frosted glass, and red louver screens ----------
+  {
+    const X = -R, SILL = FY + 2.2, HEAD = FY + 29, GH = HEAD - SILL;
+    // knee wall under the glass and the plain wall over it
+    put(mat({ color: 0xeeebe4, roughness: 0.8 }), box(1.4, SILL - FY, 2*R, 0.2), X + 0.4, (SILL + FY)/2, 0);
+    put(whiteM, box(2.2, 0.5, 2*R, 0.2), X + 0.8, SILL + 0.25, 0);                                          // window sill
+    add(new THREE.PlaneGeometry(2*R, FY + HH - HEAD), plain, X, (HEAD + FY + HH)/2, 0, Math.PI/2);
+    // frosted glass: bright and milky, no scenery; a soft daylight gradient with a faint glow where the sun falls
+    const [fc, f] = cv(256, 512);
+    const fg = f.createLinearGradient(0, 0, 0, 512); fg.addColorStop(0, '#ffffff'); fg.addColorStop(0.6, '#f7f8f6'); fg.addColorStop(1, '#e9ece8');
+    f.fillStyle = fg; f.fillRect(0, 0, 256, 512);
+    const fr = f.createRadialGradient(128, 140, 10, 128, 140, 260); fr.addColorStop(0, 'rgba(255,250,235,.55)'); fr.addColorStop(1, 'rgba(255,250,235,0)');
+    f.fillStyle = fr; f.fillRect(0, 0, 256, 512);
+    for (let i = 0; i < 4000; i++){ f.fillStyle = `rgba(${rnd() < .5 ? '255,255,255' : '210,214,210'},${rnd()*0.08})`; f.fillRect(rnd()*256, rnd()*512, 1.5, 1.5); }
+    const frostM = new THREE.MeshBasicMaterial({ map: tex(fc), color: 0xffffff, fog: false });
+    restLook.push(k => frostM.color.setRGB(1 - 0.72*k, 1 - 0.68*k, 1 - 0.56*k));   // at night the glass goes dusky blue
+    add(new THREE.PlaneGeometry(2*R, GH), frostM, X + 0.1, SILL + GH/2, 0, Math.PI/2);
+    // slim dark aluminium frames with rounded profiles: mullions every bay, a transom near the top, head and sill rails
+    const alu = mat({ color: 0x2c2e31, roughness: 0.38, metalness: 0.65 });
+    const BAY = 12.5;
+    for (let z = -R; z <= R + 0.01; z += BAY) put(alu, box(0.9, GH + 0.6, 0.55, 0.22), X + 0.3, SILL + GH/2, z);
+    put(alu, box(0.9, 0.55, 2*R, 0.22), X + 0.3, HEAD, 0);
+    put(alu, box(0.9, 0.55, 2*R, 0.22), X + 0.3, SILL + 0.6, 0);
+    put(alu, box(0.8, 0.4, 2*R, 0.18), X + 0.3, HEAD - 5.2, 0);
+    // louver screens in the tray's red, floor to ceiling: a rounded frame with angled vertical slats, standing inside the glass
+    const louverWood = mat({ map: tex(woodCanvas('#c93d2d', 'rgba(80,14,8,A)', 3, 256, 512)), roughness: 0.5 });
+    for (const z0 of [-56, -28, 0, 28, 56]){
+      const W = 11, Hh = HH, y0 = FY, lx = X + 3.2;
+      put(louverWood, box(1.6, 0.7, W, 0.25), lx, y0 + Hh - 0.35, z0);
+      put(louverWood, box(1.6, 0.7, W, 0.25), lx, y0 + 0.35, z0);
+      put(louverWood, box(1.6, Hh, 0.7, 0.25), lx, y0 + Hh/2, z0 - W/2 + 0.35);
+      put(louverWood, box(1.6, Hh, 0.7, 0.25), lx, y0 + Hh/2, z0 + W/2 - 0.35);
+      for (let i = 0; i < 12; i++) put(louverWood, box(1.5, Hh - 1.4, 0.32, 0.12), lx, y0 + Hh/2, z0 - W/2 + 1.25 + i*0.77, 0.75);
+    }
+    [-42, -14, 14, 42].forEach(z => { sofa(-R + 7, z, Math.PI/2, 15); dining(-R + 18, z, Math.PI/2, [1]); });
+  }
+
+  // ---------- dining field (kept clear of our own table and of the way to the counter) ----------
+  [[-34, -48], [34, -46], [-36, 30], [0, 44], [36, 34], [-20, 64], [22, 64]].forEach(([x, z]) => dining(x, z, 0));
+
+  // self-order kiosks by the counter
+  [[40, -62], [47, -62]].forEach(([x, z], i) => {
+    const p = M4(x, z, -0.25 - i*0.15);
+    put(whiteM, box(3.2, 15, 1.6, 0.5), 0, FY + 7.5, 0, 0, p);
+    put(blackM, box(3.6, 0.4, 2.4, 0.15), 0, FY + 0.2, 0, 0, p);
+    put(new THREE.MeshBasicMaterial({ color: 0xffe0a8 }), new THREE.PlaneGeometry(2.6, 4.4), 0, FY + 12, 0.81, 0, p);
+    put(new THREE.MeshBasicMaterial({ color: 0xc8372d }), new THREE.PlaneGeometry(2.6, 0.9), 0, FY + 10.1, 0.81, 0, p);
+    blob(x, z, 6, 5);
+  });
+  // black pendant lamps over the window sofas and the banquette
+  const lampAt = (x, z, y, top = FY + HH) => {
+    put(blackM, cyl(0.04, 0.04, top - y, 6), x, (top + y)/2, z);
+    put(blackM, new THREE.ConeGeometry(1.3, 1.4, 24, 1, true), x, y + 0.7, z);
+    put(new THREE.MeshBasicMaterial({ color: 0xfff1cf }), new THREE.CircleGeometry(1.2, 24).rotateX(Math.PI/2), x, y + 0.02, z);
+  };
+  [-42, -14, 14, 42].forEach(z => lampAt(-R + 18, z, FY + 21, FY + HH - 5.6)); [-46, -18, 12, 40].forEach(z => lampAt(R - 15.5, z, FY + 21));
+
+  // ---------- wall details (after the user's reference photos) ----------
+  {
+    // front wall: warm wood-grain panels with vertical seams, up to a red soffit band
+    const panelM = mat({ map: tex(woodCanvas('#a8743f', 'rgba(70,38,14,A)', 8, 1024, 1024), 5, 1), roughness: 0.6 });
+    add(new THREE.PlaneGeometry(2*R, HH - 3), panelM, 0, FY + (HH - 3)/2, R - 0.06, Math.PI);
+    // red / orange soffit band around the front and brick walls, with its own downlights
+    const soffitM = mat({ color: 0xc8462f, roughness: 0.7 });
+    put(soffitM, box(2*R, 3, 7, 0.3), 0, FY + HH - 1.5, R - 3.5);
+    put(soffitM, box(7, 3, 2*R - 7, 0.3), R - 3.5, FY + HH - 1.5, -3.5);
+    const spotM = new THREE.MeshBasicMaterial({ color: 0xfff2d8 });
+    for (let x = -R + 6; x <= R - 10; x += 10) put(spotM, new THREE.CircleGeometry(0.45, 18).rotateX(Math.PI/2), x, FY + HH - 3.02, R - 3.5);
+    for (let z = BZ + 8; z <= R - 10; z += 10) put(spotM, new THREE.CircleGeometry(0.45, 18).rotateX(Math.PI/2), R - 3.5, FY + HH - 3.02, z);
+
+    // brick wall: a bold supergraphic mural (abstract shapes, fries and a burger in simple lines; no brand marks)
+    {
+      const [c, x] = cv(2048, 768);
+      x.fillStyle = '#c23f2c'; x.fillRect(0, 0, 2048, 768);
+      x.fillStyle = '#e8762d'; x.beginPath(); x.moveTo(0, 768); x.lineTo(760, 0); x.lineTo(1160, 0); x.lineTo(400, 768); x.fill();
+      x.fillStyle = '#f2b632'; x.beginPath(); x.arc(1600, 330, 300, 0, 7); x.fill();
+      x.fillStyle = '#9e2f20'; x.beginPath(); x.arc(240, 150, 190, 0, 7); x.fill();
+      x.strokeStyle = '#fff4e2'; x.lineWidth = 22; x.lineCap = 'round'; x.lineJoin = 'round';
+      // fries in a carton
+      x.save(); x.translate(560, 440);
+      for (let i = 0; i < 6; i++){ x.beginPath(); x.moveTo(-90 + i*36, 0); x.lineTo(-100 + i*38, -220 + (i % 2)*40); x.stroke(); }
+      x.beginPath(); x.moveTo(-140, -10); x.lineTo(140, -10); x.lineTo(110, 230); x.lineTo(-110, 230); x.closePath(); x.stroke(); x.restore();
+      // burger
+      x.save(); x.translate(1600, 340);
+      x.beginPath(); x.ellipse(0, -40, 230, 150, 0, Math.PI, 0); x.closePath(); x.stroke();
+      x.beginPath(); x.moveTo(-240, 10); for (let i = 0; i <= 12; i++) x.lineTo(-240 + i*40, 10 + (i % 2)*26); x.stroke();
+      x.beginPath(); x.roundRect(-235, 60, 470, 60, 30); x.stroke();
+      x.beginPath(); x.roundRect(-220, 140, 440, 70, [8, 8, 40, 40]); x.stroke();
+      x.restore();
+      // dots
+      x.fillStyle = 'rgba(255,244,226,.85)'; for (let i = 0; i < 40; i++){ x.beginPath(); x.arc(1000 + (i % 8)*44, 520 + Math.floor(i/8)*44, 8, 0, 7); x.fill(); }
+      add(new THREE.PlaneGeometry(64, 24), mat({ map: tex(c), roughness: 0.75 }), R - 0.1, FY + 8 + 12, -32, -Math.PI/2);
+    }
+
+    // big black poster panels with white line drawings on the wood wall
+    ['burger', 'fries', 'cup'].forEach((k, i) => {
+      const xx = -40 + i*13;
+      put(blackM, box(10.6, 15.6, 0.5, 0.2), xx, FY + 17, R - 0.35);
+      add(new THREE.PlaneGeometry(10, 15), mat({ map: tex(linePosterCanvas(k)), roughness: 0.45 }), xx, FY + 17, R - 0.62, Math.PI);
+    });
+
+    // gray stacked-tile wall behind a pickup counter (left of the kitchen), with three lit menu posters
+    {
+      const [c, x] = cv(1024, 1024);
+      x.fillStyle = '#7d7f82'; x.fillRect(0, 0, 1024, 1024);
+      for (let r = 0; r < 32; r++) for (let k = 0; k < 4; k++){ const v = 118 + (rnd() - 0.5)*14; x.fillStyle = `rgb(${v},${v + 2},${v + 5})`; x.fillRect(k*256 + 3, r*32 + 3, 250, 26); }
+      const KLw = 4 - 31 - 10, w = KLw + R;
+      add(new THREE.PlaneGeometry(w, HH), mat({ map: tex(c, w/14, HH/14), roughness: 0.55 }), -R + w/2, FY + HH/2, BZ + 0.1);
+      ['burger', 'combo', 'fries'].forEach((f, i) => {
+        const px = -R + w/2 - 7 + i*7;
+        put(mat({ color: 0xf4f1ea, roughness: 0.4 }), box(5.8, 8.0, 0.3, 0.12), px, FY + 19, BZ + 0.25);      // light-box frame
+        put(new THREE.MeshBasicMaterial({ map: tex(menuPosterCanvas(f)) }), new THREE.PlaneGeometry(5.4, 7.56), px, FY + 19, BZ + 0.42);
+      });
+      // pickup counter: wood front, white top, a small dark sign
+      put(mat({ color: 0xc9a173, roughness: 0.6 }), box(20, 9.6, 3.4, 0.3), -R + w/2, FY + 4.8, BZ + 6);
+      put(whiteM, box(20.6, 0.5, 4, 0.2), -R + w/2, FY + 9.85, BZ + 6);
+      const [sc, sx] = cv(256, 64); sx.fillStyle = '#1b1b1d'; sx.fillRect(0, 0, 256, 64); sx.fillStyle = '#fff'; sx.font = '800 34px "Helvetica Neue", Arial, sans-serif'; sx.textAlign = 'center'; sx.textBaseline = 'middle'; sx.fillText('PICK UP', 128, 34);
+      put(new THREE.MeshBasicMaterial({ map: tex(sc) }), new THREE.PlaneGeometry(4, 1), -R + w/2 + 6, FY + 7.5, BZ + 7.72);
+      blob(-R + w/2, BZ + 7, 24, 7);
+    }
+
+    // dark structural columns
+    const colM = mat({ color: 0x3a3a3d, roughness: 0.6 });
+    [[-46, -28], [46, -30], [-46, 28], [46, 22]].forEach(([x, z]) => { put(colM, box(3.4, HH, 3.4, 0.4), x, FY + HH/2, z); put(mat({ color: 0x8a5a34 }), box(3.6, 1, 3.6, 0.3), x, FY + 0.5, z); blob(x, z, 7, 7); });
+
+    // suspended wood ceiling panel over the window sofas
+    const slatM = mat({ map: tex(woodCanvas('#b98a58', 'rgba(90,55,25,A)', 12, 512, 512, false), 1, 6), roughness: 0.6 });
+    put(slatM, box(16, 1.2, 116, 0.4), -R + 16, FY + HH - 5, 0);
+    for (const z of [-50, -10, 30, 54]) for (const dx of [-6, 6]) put(blackM, cyl(0.06, 0.06, 4.4, 6), -R + 16 + dx, FY + HH - 2.2, z);
+  }
+
+  // ---------- lighting: baked-looking light and shade (no extra real lights, so the game stays fast) ----------
+  {
+    const AB = THREE.AdditiveBlending;
+    const radial = (stops) => { const [c, x] = cv(256, 256), g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+      stops.forEach(([o, a]) => g.addColorStop(o, `rgba(255,255,255,${a})`)); x.fillStyle = g; x.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(c); };
+    const decal = (map, color, opacity, blending = AB) => new THREE.MeshBasicMaterial({ map, color, opacity, transparent: true, depthWrite: false, blending, fog: false,
+      polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
+    const flat = (w, d) => new THREE.PlaneGeometry(w, d).rotateX(-Math.PI/2);
+    // 1) warm pools of light on the floor under each downlight
+    const poolM = decal(radial([[0, 1], [0.35, 0.55], [1, 0]]), 0xffd9a8, 0.10);
+    restLook.push(k => poolM.opacity = 0.10 + 0.22*k);
+    // 2) glow halos around the downlights themselves
+    const haloM = decal(radial([[0, 1], [0.15, 0.6], [1, 0]]), 0xfff0d0, 0.55);
+    for (let i = -6; i <= 6; i++) for (let j = -6; j <= 6; j++){
+      const x = i*12, z = j*12; if (z < BZ + 26) continue;
+      put(poolM, flat(15, 15), x, FY + 0.07, z);
+      put(haloM, new THREE.PlaneGeometry(3.4, 3.4).rotateX(Math.PI/2), x, FY + HH - 0.06, z);
+    }
+    // the counter soffit spots also pool light on the counter top and the floor in front
+    put(poolM, flat(70, 12), 4, FY + 0.08, BZ + 24);
+    // 3) scallops: the classic cone of light that downlights paint down the walls
+    const [sc, sx] = cv(128, 256);
+    { const g = sx.createRadialGradient(64, -40, 10, 64, -40, 250); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.45, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      sx.fillStyle = g; sx.fillRect(0, 0, 128, 256); }
+    const scallopM = decal(new THREE.CanvasTexture(sc), 0xffe2b8, 0.28);
+    restLook.push(k => scallopM.opacity = 0.28 + 0.25*k);
+    const scallop = (x, z, ry) => put(scallopM, new THREE.PlaneGeometry(9, 20), x, FY + HH - 10, z, ry);
+    for (let z = -54; z <= 66; z += 12) scallop(R - 0.12, z, -Math.PI/2);            // brick wall
+    for (let x = -66; x <= 66; x += 12) scallop(x, R - 0.12, Math.PI);               // front wall
+    // 4) daylight from the windows spilling across the floor, broken by the mullions and louvers
+    const [dc, d] = cv(512, 64);
+    { const g = d.createLinearGradient(0, 0, 512, 0); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); d.fillStyle = g; d.fillRect(0, 0, 512, 64); }
+    const dayM = decal(new THREE.CanvasTexture(dc), 0xfffaf0, 0.16);
+    restLook.push(k => { dayM.opacity = 0.16*(1 - k); dayM.visible = dayM.opacity > 0.01; });
+    put(dayM, flat(26, 2*R), -R + 13, FY + 0.09, 0);
+    // 5) soft ambient occlusion: darker where floor meets wall, where walls meet the ceiling, and in the corners
+    const [ac, ax] = cv(16, 256);
+    { const g = ax.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ax.fillStyle = g; ax.fillRect(0, 0, 16, 256); }
+    const aoTex = new THREE.CanvasTexture(ac);
+    const aoM = decal(aoTex, 0x3a2c20, 0.22, THREE.NormalBlending);
+    // floor strips along the walls (gradient runs away from the wall)
+    const aoFloor = (x, z, len, ry) => put(aoM, new THREE.PlaneGeometry(len, 5).rotateX(-Math.PI/2).translate(0, 0, 2.5), x, FY + 0.06, z, ry);
+    aoFloor(0, BZ, 2*R, 0); aoFloor(R, 0, 2*R, -Math.PI/2); aoFloor(0, R, 2*R, Math.PI); aoFloor(-R, 0, 2*R, Math.PI/2);
+    // wall strips under the ceiling and above the floor
+    const aoWall = (x, z, len, ry, top) => put(aoM, new THREE.PlaneGeometry(len, top ? 6 : 3).rotateZ(top ? 0 : Math.PI).translate(0, top ? -3 : 1.5, 0),
+      x, top ? FY + HH : FY, z, ry);
+    [[0, BZ + 0.1, 0], [R - 0.1, 0, -Math.PI/2], [0, R - 0.1, Math.PI]].forEach(([x, z, ry]) => { aoWall(x, z, 2*R, ry, true); aoWall(x, z, 2*R, ry, false); });
+    // 6) a gentle darkening of the far floor so the room has depth instead of flat even light
+    const vigM = decal(radial([[0, 0], [0.55, 0.0], [1, 1]]), 0x2a2018, 0.18, THREE.NormalBlending);
+    put(vigM, flat(2*R*1.15, 2*R*1.15), 0, FY + 0.05, 0);
+  }
+
+  // merge the collected parts
+  for (const [m, list] of buckets){ const g = mergeGeometries(list, false); g.computeBoundingSphere(); restaurant.add(new THREE.Mesh(g, m)); }
+  restaurant.traverse(o => { if (o.isMesh){ o.castShadow = false; o.receiveShadow = false; o.raycast = () => {}; o.matrixAutoUpdate = false; o.updateMatrix(); } });
+
+  // ---------- soft ambient occlusion near the floor on walls and furniture ----------
+  // the room has many ceiling lights, so things get darker toward the floor and under themselves.
+  // (materials shared with the game's own table are left alone)
+  {
+    const keep = new Set(); table.traverse(o => { if (o.material) keep.add(o.material); });
+    const fyU = { value: FY };
+    const patched = new Set();
+    restaurant.traverse(o => {
+      const m = o.material;
+      if (!o.isMesh || !m || !m.isMeshStandardMaterial || keep.has(m) || patched.has(m) || m.userData.noAO || m.onBeforeCompile.toString() !== THREE.Material.prototype.onBeforeCompile.toString()) return;
+      patched.add(m);
+      m.onBeforeCompile = (sh) => {
+        sh.uniforms.uFY = fyU;
+        sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vWY;')
+          .replace('#include <project_vertex>', '#include <project_vertex>\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;');
+        sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vWY;\nuniform float uFY;')
+          .replace('#include <aomap_fragment>', '#include <aomap_fragment>\nfloat gAO = smoothstep(uFY - 0.5, uFY + 7.0, vWY);\nreflectedLight.indirectDiffuse *= mix(0.45, 1.0, gAO);\nreflectedLight.directDiffuse *= mix(0.72, 1.0, gAO);\nreflectedLight.indirectSpecular *= mix(0.5, 1.0, gAO);');
+      };
+      m.customProgramCacheKey = () => 'restAO';
+      m.needsUpdate = true;
+    });
+  }
+
+  // ---------- baked contact shadows on the floor ----------
+  // render the room once from straight above (only what stands on the floor), blur it at two widths,
+  // and lay it on the floor as a multiply layer: sharp and dark right under legs and bases, wide and soft under table tops and sofas,
+  // nudged slightly away from the main light so it agrees with the tray's own shadows.
+  function bakeFloorShadow(){
+    const N = 1024, top = FY + 16;
+    const cam = new THREE.OrthographicCamera(-R, R, R, -R, 0.01, 16 - 0.1);
+    cam.position.set(0, top, 0); cam.up.set(0, 0, -1); cam.lookAt(0, FY, 0); cam.updateMatrixWorld();
+    const rt = new THREE.WebGLRenderTarget(N, N);
+    const black = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+    const prev = { bg: scene.background, fog: scene.fog, om: scene.overrideMaterial, rt: renderer.getRenderTarget(), sh: renderer.shadowMap.enabled, tm: renderer.toneMapping };
+    scene.background = new THREE.Color(0xffffff); scene.fog = null; scene.overrideMaterial = black; renderer.shadowMap.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
+    const hidden = []; restaurant.traverse(o => { if (o.isMesh && o.material && o.material.transparent && o.visible){ o.visible = false; hidden.push(o); } });
+    const grab = (near) => {
+      cam.near = near; cam.updateProjectionMatrix();
+      renderer.setRenderTarget(rt); renderer.clear(); renderer.render(scene, cam);
+      const px = new Uint8Array(N*N*4); renderer.readRenderTargetPixels(rt, 0, 0, N, N, px);
+      const [c, x] = cv(N, N), img = x.createImageData(N, N);
+      for (let r = 0; r < N; r++) img.data.set(px.subarray((N - 1 - r)*N*4, (N - r)*N*4), r*N*4);
+      x.putImageData(img, 0, 0); return c;
+    };
+    const low = grab(16 - 3.2);    // legs, feet, bases, sofa plinths: the lowest 3 units
+    const all = grab(0.01);        // everything up to table-top height
+    hidden.forEach(o => o.visible = true);
+    scene.background = prev.bg; scene.fog = prev.fog; scene.overrideMaterial = prev.om; renderer.setRenderTarget(prev.rt);
+    renderer.shadowMap.enabled = prev.sh; renderer.toneMapping = prev.tm; renderer.shadowMap.needsUpdate = true;
+    rt.dispose(); black.dispose();
+    // compose: white base, multiply in the blurred silhouettes
+    const [out, o] = cv(N, N);
+    o.fillStyle = '#fff'; o.fillRect(0, 0, N, N);
+    o.globalCompositeOperation = 'multiply';
+    const layer = (src, blur, alpha, dx = 0, dy = 0) => { o.filter = `blur(${blur}px)`; o.globalAlpha = alpha; o.drawImage(src, dx, dy); };
+    layer(all, 20, 0.55, -4, -5);   // wide soft occlusion (1px is about 0.15 units)
+    layer(all, 7, 0.32, -2, -2);
+    layer(low, 2, 0.85);            // tight contact right at the feet
+    o.filter = 'none'; o.globalAlpha = 1;
+    const t = new THREE.CanvasTexture(out); t.colorSpace = THREE.SRGBColorSpace;
+    const m = new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.MultiplyBlending, premultipliedAlpha: true, depthWrite: false, fog: false,
+      polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(2*R, 2*R).rotateX(-Math.PI/2), m);
+    p.position.y = FY + 0.04; p.renderOrder = 1; p.raycast = () => {}; restaurant.add(p);
+  }
+  bakeFloorShadow();
+
+  // ---------- food illustrations (canvas 2D) for posters and menu screens ----------
+  // drawn around the origin, about 180 units wide; callers translate / scale.
+  function lg(x, x0, y0, x1, y1, stops){ const g = x.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, c]) => g.addColorStop(o, c)); return g; }
+  function rg(x, cx, cy, r0, r1, stops){ const g = x.createRadialGradient(cx, cy, r0, cx, cy, r1); stops.forEach(([o, c]) => g.addColorStop(o, c)); return g; }
+  function artBurger(x){
+    const R2 = mulberry32(11);
+    x.save();
+    // soft drop shadow
+    x.fillStyle = rg(x, 0, 66, 4, 100, [[0, 'rgba(60,30,10,.28)'], [1, 'rgba(60,30,10,0)']]); x.beginPath(); x.ellipse(0, 66, 100, 14, 0, 0, 7); x.fill();
+    // bottom bun
+    x.fillStyle = lg(x, 0, 30, 0, 62, [[0, '#f0b062'], [1, '#c87a32']]);
+    x.beginPath(); x.moveTo(-80, 32); x.lineTo(80, 32); x.quadraticCurveTo(84, 60, 62, 62); x.lineTo(-62, 62); x.quadraticCurveTo(-84, 60, -80, 32); x.fill();
+    x.fillStyle = 'rgba(255,240,210,.35)'; x.fillRect(-74, 33, 148, 4);
+    // patty with grill texture
+    x.fillStyle = lg(x, 0, 4, 0, 34, [[0, '#7a4424'], [0.5, '#5a2e16'], [1, '#3f1f0d']]);
+    x.beginPath(); x.roundRect(-88, 4, 176, 30, 15); x.fill();
+    x.fillStyle = 'rgba(25,10,4,.35)'; for (let i = 0; i < 70; i++){ x.beginPath(); x.arc(-80 + R2()*160, 8 + R2()*22, 0.8 + R2()*1.6, 0, 7); x.fill(); }
+    x.fillStyle = 'rgba(255,190,140,.18)'; for (let i = 0; i < 40; i++){ x.beginPath(); x.arc(-80 + R2()*160, 8 + R2()*20, 0.6 + R2()*1.2, 0, 7); x.fill(); }
+    x.fillStyle = 'rgba(255,220,180,.22)'; x.beginPath(); x.roundRect(-80, 6, 160, 5, 3); x.fill();
+    // cheese with drips
+    x.fillStyle = lg(x, 0, -8, 0, 26, [[0, '#ffd457'], [1, '#f0a81f']]);
+    x.beginPath(); x.moveTo(-90, -6); x.lineTo(90, -6); x.lineTo(92, 4);
+    const drips = [[64, 13], [22, 19], [-34, 11]];
+    for (const [dx, dl] of drips){ x.lineTo(dx + 15, 4); x.bezierCurveTo(dx + 10, 6, dx + 9, 4 + dl, dx, 4 + dl); x.bezierCurveTo(dx - 9, 4 + dl, dx - 10, 6, dx - 15, 4); }
+    x.lineTo(-92, 4); x.closePath(); x.fill();
+    x.fillStyle = 'rgba(255,255,255,.35)'; x.fillRect(-84, -5, 168, 2.5);
+    // tomato slices
+    x.fillStyle = lg(x, 0, -16, 0, -4, [[0, '#f0614c'], [1, '#c3301f']]);
+    for (const tx of [-44, 4, 50]){ x.beginPath(); x.ellipse(tx, -10, 30, 7, 0, 0, 7); x.fill(); }
+    x.fillStyle = 'rgba(255,220,200,.45)'; for (const tx of [-44, 4, 50]){ x.beginPath(); x.ellipse(tx - 6, -12, 10, 2, 0, 0, 7); x.fill(); }
+    // lettuce: a wavy frilly band
+    x.fillStyle = lg(x, 0, -26, 0, -6, [[0, '#9bd65a'], [1, '#4f9a2c']]);
+    x.beginPath(); x.moveTo(-94, -18);
+    for (let i = 0; i <= 16; i++){ const xx = -94 + i*11.75; x.quadraticCurveTo(xx + 5.9, (i % 2 ? -30 : -4), xx + 11.75, -16 + (i % 3) - 1); }
+    x.lineTo(94, -22); x.lineTo(-94, -22); x.closePath(); x.fill();
+    x.strokeStyle = 'rgba(40,90,20,.35)'; x.lineWidth = 1.4; for (let i = 0; i < 9; i++){ x.beginPath(); x.moveTo(-80 + i*20, -24); x.lineTo(-76 + i*20, -10); x.stroke(); }
+    // top bun dome
+    x.fillStyle = rg(x, -28, -66, 6, 120, [[0, '#ffd08a'], [0.45, '#eea24f'], [1, '#bf6f2a']]);
+    x.beginPath(); x.moveTo(-86, -22); x.bezierCurveTo(-90, -96, 90, -96, 86, -22); x.quadraticCurveTo(0, -14, -86, -22); x.fill();
+    x.fillStyle = 'rgba(120,60,20,.25)'; x.beginPath(); x.moveTo(-86, -22); x.quadraticCurveTo(0, -14, 86, -22); x.quadraticCurveTo(0, -26, -86, -22); x.fill();
+    // sesame seeds
+    for (let i = 0; i < 22; i++){
+      const a = R2()*Math.PI, rr = 20 + R2()*52, sx = Math.cos(a)*rr*1.05, sy = -40 - Math.sin(a)*rr*0.55;
+      if (sy > -30) continue;
+      x.save(); x.translate(sx, sy); x.rotate(R2()*3);
+      x.fillStyle = 'rgba(120,60,20,.35)'; x.beginPath(); x.ellipse(1, 1.4, 4.6, 2.3, 0, 0, 7); x.fill();
+      x.fillStyle = '#fff5dc'; x.beginPath(); x.ellipse(0, 0, 4.4, 2.2, 0, 0, 7); x.fill(); x.restore();
+    }
+    // shine
+    x.fillStyle = 'rgba(255,255,255,.28)'; x.beginPath(); x.ellipse(-34, -66, 26, 9, -0.35, 0, 7); x.fill();
+    x.restore();
+  }
+  function artFries(x){
+    const R2 = mulberry32(5);
+    x.save();
+    x.fillStyle = rg(x, 0, 92, 4, 90, [[0, 'rgba(60,30,10,.28)'], [1, 'rgba(60,30,10,0)']]); x.beginPath(); x.ellipse(0, 92, 80, 12, 0, 0, 7); x.fill();
+    // fries behind the carton front
+    const fries = []; for (let i = 0; i < 15; i++) fries.push([-54 + i*7.8 + (R2() - 0.5)*5, -96 + R2()*38 + (Math.abs(i - 7)*3), (R2() - 0.5)*0.22, 9 + R2()*2]);
+    fries.sort(() => R2() - 0.5).forEach(([fx, top, rot, w]) => {
+      x.save(); x.translate(fx, 0); x.rotate(rot);
+      x.fillStyle = lg(x, -w/2, 0, w/2, 0, [[0, '#f7c24a'], [0.5, '#ffe08a'], [1, '#e2a22c']]); x.beginPath(); x.roundRect(-w/2, top, w, 120, 2.5); x.fill();
+      x.fillStyle = 'rgba(190,110,30,.55)'; x.fillRect(-w/2, top, w, 3);
+      x.restore();
+    });
+    // carton: tapered red box with a scalloped top edge and a fold shade
+    x.fillStyle = lg(x, -66, 0, 66, 0, [[0, '#b52a1c'], [0.45, '#e4473a'], [1, '#a32417']]);
+    x.beginPath(); x.moveTo(-68, -12); x.quadraticCurveTo(-34, 4, 0, -14); x.quadraticCurveTo(34, 4, 68, -12); x.lineTo(50, 90); x.lineTo(-50, 90); x.closePath(); x.fill();
+    x.fillStyle = 'rgba(0,0,0,.12)'; x.beginPath(); x.moveTo(30, -6); x.lineTo(68, -12); x.lineTo(50, 90); x.lineTo(28, 90); x.closePath(); x.fill();
+    x.fillStyle = 'rgba(255,255,255,.18)'; x.beginPath(); x.moveTo(-56, -6); x.lineTo(-44, -4); x.lineTo(-34, 90); x.lineTo(-46, 90); x.closePath(); x.fill();
+    // a simple wave mark on the carton
+    x.strokeStyle = '#ffe9c9'; x.lineWidth = 6; x.lineCap = 'round'; x.beginPath(); x.moveTo(-26, 46); x.bezierCurveTo(-12, 32, 6, 60, 26, 42); x.stroke();
+    x.restore();
+  }
+  function artDrink(x){
+    x.save();
+    x.fillStyle = rg(x, 0, 98, 4, 80, [[0, 'rgba(60,30,10,.28)'], [1, 'rgba(60,30,10,0)']]); x.beginPath(); x.ellipse(0, 98, 70, 11, 0, 0, 7); x.fill();
+    // straw
+    x.save(); x.translate(16, -70); x.rotate(0.22);
+    x.fillStyle = '#ffffff'; x.fillRect(-5, -62, 10, 66); x.fillStyle = '#d8392b'; for (let i = 0; i < 6; i++){ x.save(); x.beginPath(); x.rect(-5, -62, 10, 66); x.clip(); x.translate(0, -60 + i*12); x.rotate(-0.5); x.fillRect(-10, 0, 20, 5); x.restore(); }
+    x.restore();
+    // cup body
+    x.fillStyle = lg(x, -56, 0, 56, 0, [[0, '#e6e1d8'], [0.4, '#ffffff'], [1, '#d4cec3']]);
+    x.beginPath(); x.moveTo(-56, -60); x.lineTo(56, -60); x.lineTo(42, 96); x.quadraticCurveTo(0, 102, -42, 96); x.closePath(); x.fill();
+    // band
+    x.fillStyle = lg(x, -56, 0, 56, 0, [[0, '#b72c1e'], [0.45, '#e34638'], [1, '#a92517']]);
+    x.beginPath(); x.moveTo(-52, -14); x.lineTo(52, -14); x.lineTo(47, 40); x.lineTo(-47, 40); x.closePath(); x.fill();
+    x.strokeStyle = '#ffe9c9'; x.lineWidth = 5; x.lineCap = 'round'; x.beginPath(); x.moveTo(-24, 14); x.bezierCurveTo(-10, 2, 8, 26, 26, 10); x.stroke();
+    // lid
+    x.fillStyle = lg(x, 0, -76, 0, -56, [[0, '#ffffff'], [1, '#cfc9be']]);
+    x.beginPath(); x.roundRect(-62, -66, 124, 10, 5); x.fill();
+    x.beginPath(); x.moveTo(-50, -66); x.quadraticCurveTo(0, -88, 50, -66); x.fill();
+    // condensation
+    x.fillStyle = 'rgba(255,255,255,.7)'; const R2 = mulberry32(3); for (let i = 0; i < 14; i++){ x.beginPath(); x.ellipse(-40 + R2()*80, 48 + R2()*40, 1.6, 2.4, 0, 0, 7); x.fill(); }
+    x.restore();
+  }
+  // menu-screen / poster wrapper: same names as before
+  function drawFood(x, kind){
+    if (kind === 'burger') return artBurger(x);
+    if (kind === 'fries') return artFries(x);
+    if (kind === 'drink') return artDrink(x);
+    // combo: burger in front of fries and a drink
+    x.save(); x.translate(70, -6); x.scale(0.62, 0.62); artDrink(x); x.restore();
+    x.save(); x.translate(-62, -4); x.scale(0.62, 0.62); artFries(x); x.restore();
+    x.save(); x.translate(0, 22); x.scale(0.72, 0.72); artBurger(x); x.restore();
+  }
+
+  // line-art versions for the black posters: one even line weight, rounded joins
+  function lineArt(x, kind){
+    x.save(); x.lineCap = 'round'; x.lineJoin = 'round';
+    if (kind === 'burger'){
+      x.beginPath(); x.moveTo(-86, -22); x.bezierCurveTo(-90, -96, 90, -96, 86, -22); x.quadraticCurveTo(0, -14, -86, -22); x.stroke();
+      for (const [sx, sy, r] of [[-40, -56, -0.4], [-10, -66, 0.2], [24, -62, -0.2], [50, -48, 0.5], [-58, -38, 0.3], [6, -44, -0.6], [36, -36, 0.1], [-26, -36, 0.6]]){
+        x.save(); x.translate(sx, sy); x.rotate(r); x.beginPath(); x.moveTo(-4, 0); x.lineTo(4, 0); x.stroke(); x.restore(); }
+      x.beginPath(); x.moveTo(-94, -14); for (let i = 0; i <= 16; i++){ const xx = -94 + i*11.75; x.quadraticCurveTo(xx + 5.9, (i % 2 ? -24 : -2), xx + 11.75, -12); } x.stroke();
+      x.beginPath(); x.moveTo(-90, 0); x.lineTo(90, 0); x.stroke();
+      x.beginPath(); x.moveTo(30, 0); x.quadraticCurveTo(26, 18, 20, 18); x.quadraticCurveTo(14, 18, 12, 0); x.stroke();
+      x.beginPath(); x.roundRect(-88, 8, 176, 28, 14); x.stroke();
+      x.beginPath(); x.moveTo(-80, 46); x.lineTo(80, 46); x.quadraticCurveTo(84, 70, 62, 72); x.lineTo(-62, 72); x.quadraticCurveTo(-84, 70, -80, 46); x.stroke();
+    } else if (kind === 'fries'){
+      const tops = [-60, -86, -70, -96, -76, -88, -64];
+      tops.forEach((t, i) => { const fx = -42 + i*14; x.beginPath(); x.moveTo(fx - 5, -4); x.lineTo(fx - 5 + (i - 3)*1.5, t); x.lineTo(fx + 5 + (i - 3)*1.5, t); x.lineTo(fx + 5, -4); x.stroke(); });
+      x.beginPath(); x.moveTo(-68, -10); x.quadraticCurveTo(-34, 6, 0, -12); x.quadraticCurveTo(34, 6, 68, -10); x.lineTo(50, 92); x.lineTo(-50, 92); x.closePath(); x.stroke();
+      x.beginPath(); x.moveTo(-24, 48); x.bezierCurveTo(-10, 34, 8, 62, 26, 44); x.stroke();
+    } else {
+      x.beginPath(); x.moveTo(-54, -58); x.lineTo(54, -58); x.lineTo(42, 96); x.lineTo(-42, 96); x.closePath(); x.stroke();
+      x.beginPath(); x.roundRect(-62, -70, 124, 12, 6); x.stroke();
+      x.beginPath(); x.moveTo(-48, -70); x.quadraticCurveTo(0, -90, 48, -70); x.stroke();
+      x.beginPath(); x.moveTo(12, -84); x.lineTo(28, -150); x.lineTo(54, -156); x.stroke();
+      x.beginPath(); x.moveTo(-50, -12); x.lineTo(50, -12); x.moveTo(-46, 40); x.lineTo(46, 40); x.stroke();
+      x.beginPath(); x.moveTo(-22, 16); x.bezierCurveTo(-8, 4, 8, 28, 24, 12); x.stroke();
+    }
+    x.restore();
+  }
+  function spaced(x, text, cx, y, sp){ // letter-spaced centred text
+    const w = [...text].reduce((a, ch) => a + x.measureText(ch).width + sp, -sp); let xx = cx - w/2;
+    x.textAlign = 'left'; for (const ch of text){ x.fillText(ch, xx, y); xx += x.measureText(ch).width + sp; }
+  }
+  // black poster with white line art, big title and a thin inner frame
+  function linePosterCanvas(kind){
+    const W = 768, H = 1152, [c, x] = cv(W, H);
+    x.fillStyle = lg(x, 0, 0, 0, H, [[0, '#1c1c1d'], [1, '#111112']]); x.fillRect(0, 0, W, H);
+    x.strokeStyle = 'rgba(245,241,232,.55)'; x.lineWidth = 3; x.strokeRect(34, 34, W - 68, H - 68);
+    x.fillStyle = '#f5f1e8'; x.textBaseline = 'middle';
+    x.font = `600 26px "Helvetica Neue", "Arial Black", Arial, sans-serif`; spaced(x, { burger: 'NO. 01 \u2014 GRILLED', fries: 'NO. 02 \u2014 CRISPY', cup: 'NO. 03 \u2014 ICE COLD' }[kind], W/2, 96, 6);
+    x.strokeStyle = '#f5f1e8'; x.lineWidth = 9;
+    x.save(); x.translate(W/2, 520); x.scale(2.35, 2.35); x.lineWidth = 9/2.35; lineArt(x, kind === 'cup' ? 'drink' : kind); x.restore();
+    x.font = `800 118px "Helvetica Neue", "Arial Black", Arial, sans-serif`; spaced(x, { burger: 'BURGER', fries: 'FRIES', cup: 'SODA' }[kind], W/2, 900, 10);
+    x.fillRect(W/2 - 60, 976, 120, 3);
+    x.font = `500 26px "Helvetica Neue", "Arial Black", Arial, sans-serif`; spaced(x, { burger: 'FLAME \u00b7 FRESH \u00b7 STACKED', fries: 'GOLDEN \u00b7 SALTED \u00b7 HOT', cup: 'FIZZY \u00b7 COLD \u00b7 REFILL' }[kind], W/2, 1030, 5);
+    return c;
+  }
+  // bright menu poster: cream card, title, big illustration, price badge, red footer
+  function menuPosterCanvas(kind){
+    const W = 600, H = 840, [c, x] = cv(W, H);
+    x.fillStyle = rg(x, W/2, 380, 40, 520, [[0, '#fff9ee'], [1, '#f3e3c6']]); x.fillRect(0, 0, W, H);
+    x.fillStyle = 'rgba(232,80,50,.10)'; x.beginPath(); x.arc(W/2, 400, 230, 0, 7); x.fill();
+    x.fillStyle = '#c93d2d'; x.textBaseline = 'middle';
+    x.font = `800 30px "Helvetica Neue", "Arial Black", Arial, sans-serif`; spaced(x, 'NEW', W/2, 70, 10);
+    x.font = `800 58px "Helvetica Neue", "Arial Black", Arial, sans-serif`; spaced(x, { burger: 'CLASSIC', combo: 'COMBO SET', fries: 'BIG FRIES' }[kind], W/2, 128, 4);
+    x.save(); x.translate(W/2, 420); x.scale(1.8, 1.8); drawFood(x, kind); x.restore();
+    // price badge
+    x.fillStyle = '#f2b632'; x.beginPath(); x.arc(W - 120, 600, 62, 0, 7); x.fill();
+    x.fillStyle = '#3a2416'; x.font = `800 40px "Helvetica Neue", "Arial Black", Arial, sans-serif`; x.textAlign = 'center'; x.fillText({ burger: '5.9', combo: '8.9', fries: '2.9' }[kind], W - 120, 604);
+    x.fillStyle = '#c93d2d'; x.fillRect(0, H - 120, W, 120);
+    x.fillStyle = '#fff6e4'; x.font = `600 28px "Helvetica Neue", "Arial Black", Arial, sans-serif`; spaced(x, 'ORDER AT THE COUNTER', W/2, H - 60, 4);
+    return c;
+  }
+
+}
+/* The room is a soft photographic backdrop; food, tray, table and editing handles stay sharp.
+   Cache the room while the camera and lighting are still, so editing adds no room redraws. */
+restaurant.traverse(o => o.layers.set(1));
+scene.traverse(o => { if (o.isLight) o.layers.enable(1); });
+const roomFocus = (() => {
+  const options = { type:THREE.HalfFloatType, depthBuffer:false, stencilBuffer:false };
+  const source = new THREE.WebGLRenderTarget(1, 1, { ...options, depthBuffer:true });
+  const horizontal = new THREE.WebGLRenderTarget(1, 1, options);
+  const blurred = new THREE.WebGLRenderTarget(1, 1, options);
+  const material = new THREE.ShaderMaterial({
+    depthTest:false, depthWrite:false, toneMapped:false,
+    uniforms:{ map:{value:source.texture}, step:{value:new THREE.Vector2()} },
+    vertexShader:`varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+    fragmentShader:`uniform sampler2D map; uniform vec2 step; varying vec2 vUv;
+      void main(){
+        vec4 c = texture2D(map, vUv) * 0.2270270270;
+        c += texture2D(map, vUv + step * 1.3846153846) * 0.3162162162;
+        c += texture2D(map, vUv - step * 1.3846153846) * 0.3162162162;
+        c += texture2D(map, vUv + step * 3.2307692308) * 0.0702702703;
+        c += texture2D(map, vUv - step * 3.2307692308) * 0.0702702703;
+        gl_FragColor = c;
+      }`,
+  });
+  const pass = new THREE.Scene(), passCamera = new THREE.Camera();
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material); quad.frustumCulled = false; pass.add(quad);
+  const oldView = new THREE.Matrix4(), oldProjection = new THREE.Matrix4();
+  let width = 0, height = 0, lastLook = -1, revision = -1;
+  return {
+    texture:blurred.texture,
+    update(){
+      camera.updateMatrixWorld();
+      const w = Math.max(1, Math.round(innerWidth*0.8)), h = Math.max(1, Math.round(innerHeight*0.8));
+      const resized = width !== w || height !== h;
+      if (!resized && revision === backdropRevision && lastLook === lookT && oldView.equals(camera.matrixWorld) && oldProjection.equals(camera.projectionMatrix)) return;
+      if (resized){ width = w; height = h; for (const target of [source, horizontal, blurred]) target.setSize(w, h); }
+      const layer = camera.layers.mask, shadowEnabled = renderer.shadowMap.enabled;
+      // Background receives room lighting, without consuming the foreground shadow update.
+      renderer.shadowMap.enabled = false;
+      try {
+        camera.layers.set(1); renderer.setRenderTarget(source); renderer.render(scene, camera);
+        material.uniforms.map.value = source.texture;
+        material.uniforms.step.value.set(1.25/innerWidth, 0);
+        renderer.setRenderTarget(horizontal); renderer.render(pass, passCamera);
+        material.uniforms.map.value = horizontal.texture;
+        material.uniforms.step.value.set(0, 1.25/innerHeight);
+        renderer.setRenderTarget(blurred); renderer.render(pass, passCamera);
+      } finally {
+        camera.layers.mask = layer; renderer.shadowMap.enabled = shadowEnabled; renderer.setRenderTarget(null);
+      }
+      oldView.copy(camera.matrixWorld); oldProjection.copy(camera.projectionMatrix);
+      lastLook = lookT; revision = backdropRevision;
+    },
+  };
+})();
+function renderFrame(){
+  if (!state.blur){
+    const layers = camera.layers.mask; camera.layers.enable(1);
+    try { renderer.render(scene, camera); } finally { camera.layers.mask = layers; }
+    return;
+  }
+  roomFocus.update();
+  const background = scene.background;
+  scene.background = roomFocus.texture;
+  try { renderer.render(scene, camera); }
+  finally { scene.background = background; }
+}
+
 // the tray and everything on it can be lifted as one (for the 비우기 flick)
 /* deeper cast shadows: where a lit surface is shadowed by something else, the soft fill light is dimmed too.
    faces that simply turn away from the light keep their current shading. */
@@ -967,10 +1797,12 @@ function deepShadow(mat){
   mat.customProgramCacheKey = () => 'deep-' + (prevKey ? prevKey.call(mat) : '');
 }
 [fryMat, nugMat, ketMat, trayMat, liner.material, woodMat].forEach(deepShadow);
-const trayRig = new THREE.Group(); scene.add(trayRig); trayRig.add(plate, under, rim, liner, build);
+const trayRig = new THREE.Group(); scene.add(trayRig);
+const trayTurn = new THREE.Group(); trayTurn.add(plate, under, rim, liner); trayRig.add(trayTurn, build);   // the tray itself, turned by 쟁반 돌리기
 
 /* ---------- state ---------- */
-const state = { sound:true, mode:'move', squeeze:false, night:false, gravity:true };
+const state = { sound:true, mode:'move', squeeze:false, night:false, gravity:true, blur:true };
+try { state.sound = localStorage.getItem('gamtwi-sound') !== '0'; state.blur = localStorage.getItem('gamtwi-blur') !== '0'; } catch(e){}
 const history = [];
 let busy = false;
 
@@ -1337,7 +2169,8 @@ function freeSpot(){
   let best = null, bestD = -1;
   for (let i = 0; i < 40; i++){
     const k = Math.min(1, camera.aspect*0.9);
-    const x = (Math.random()*2 - 1)*(TW/2 - 0.9)*k, z = (Math.random()*2 - 1)*(TD/2 - 0.9);
+    const x0 = (Math.random()*2 - 1)*(TW/2 - 0.9)*k, z0 = (Math.random()*2 - 1)*(TD/2 - 0.9);
+    const x = x0*Math.cos(trayAngle) + z0*Math.sin(trayAngle), z = -x0*Math.sin(trayAngle) + z0*Math.cos(trayAngle);   // in the turned tray
     let d = Infinity; for (const p of pts) d = Math.min(d, Math.hypot(p.x - x, p.z - z));
     d -= Math.hypot(x, z)*0.25;  // prefer near the middle
     if (d > bestD) { bestD = d; best = [x, z]; }
@@ -1390,6 +2223,7 @@ function redo(){
   if (busy) return;
   const h = redoStack.pop(); if (!h) return;
   stopFalls(); select(null);
+  if (h.turn) { _push.call(history, h); startTurn(h.turn); changed(); return; }
   h.removed.forEach(m => { if (m.parent) m.parent.remove(m); });
   h.added.forEach(m => { m.material = m.userData.baseMat; m.visible = true; spawn(m); });
   (h.redoT || []).forEach(t => { t.m.quaternion.copy(t.q); t.m.position.copy(t.p); t.m.userData.rest = t.r; t.m.userData.size = t.s; t.m.scale.setScalar(t.s); });
@@ -1402,6 +2236,7 @@ function undo(){
   stopFalls();
   const h = history.pop(); if (!h) return;
   select(null);
+  if (h.turn) { redoStack.push(h); startTurn(-h.turn); changed(); return; }
   h.redoT = (h.transforms || []).map(t => ({ m: t.m, q: t.m.quaternion.clone(), p: t.m.position.clone(), r: t.m.userData.rest, s: t.m.userData.size || 1 }));
   redoStack.push(h);
   h.added.forEach(m => build.remove(m));
@@ -1551,7 +2386,7 @@ function snapPhoto(){
   const sel = selected; select(null);
   const helper = tc.getHelper(), hv = helper.visible; helper.visible = false;
   camera.clearViewOffset(); camera.updateProjectionMatrix();   // centre the tray, ignoring the side panel
-  renderer.render(scene, camera);
+  renderFrame();
   const src = renderer.domElement, out = document.createElement('canvas');
   out.width = src.width; out.height = src.height;
   const x = out.getContext('2d');
@@ -1627,28 +2462,82 @@ TILES.forEach((t, i) => {
 });
 function syncUI(){
   $('soundBtn').classList.toggle('on', !!state.sound);
+  $('soundBtn').setAttribute('aria-checked', String(state.sound));
+  $('blurBtn').classList.toggle('on', !!state.blur);
+  $('blurBtn').setAttribute('aria-checked', String(state.blur));
   $('sndOn').style.display = state.sound ? '' : 'none';
   $('sndOff').style.display = state.sound ? 'none' : '';
 }
 $('sqDone').onclick = () => setSqueeze(false);
 function setGravity(on, quiet){
   state.gravity = on;
-  $('gravBtn').classList.toggle('off', !on); $('gravBtn').setAttribute('aria-pressed', on);
+  $('gravBtn').classList.toggle('off', !on); $('gravBtn').classList.toggle('on', !!on); $('gravBtn').setAttribute('aria-checked', String(!!on));
   $('gravBtn').title = on ? '중력 켜짐 (G)' : '중력 꺼짐 (G)';
   try { localStorage.setItem('gamtwi-gravity', on ? '1' : '0'); } catch(e){}
   if (quiet) return;
   if (on){ const h = { added:[], removed:[] }; if (settle(h)) { history.push(h); changed(); } toast('중력 켜짐'); blip(520, 0.07, 0.04); }
   else { stopFalls(); toast('중력 꺼짐: 놓은 자리에 그대로 떠 있어요'); blip(760, 0.07, 0.04); }
 }
-$('moreBtn').onclick = () => { const w=$('moreWrap'); const o=!w.classList.contains('open'); w.classList.toggle('open', o); $('moreBtn').setAttribute('aria-expanded', o); blip(640,0.04,0.03); };
-addEventListener('pointerdown', e => { const w=$('moreWrap'); if (w.classList.contains('open') && !w.contains(e.target)) { w.classList.remove('open'); $('moreBtn').setAttribute('aria-expanded', false); } }, true);
+function setSettingsOpen(open, restoreFocus = false){
+  $('moreWrap').classList.toggle('open', open);
+  $('moreBtn').setAttribute('aria-expanded', String(open));
+  if (restoreFocus) $('moreBtn').focus();
+}
+$('moreBtn').onclick = () => { const open = !$('moreWrap').classList.contains('open'); setSettingsOpen(open); if (open) blip(640,0.04,0.03); };
+$('moreBtn').addEventListener('keydown', e => { if (e.key === 'ArrowDown'){ e.preventDefault(); setSettingsOpen(true); $('soundBtn').focus(); } });
+$('settingsClose').onclick = () => setSettingsOpen(false, true);
+addEventListener('pointerdown', e => { if ($('moreWrap').classList.contains('open') && !$('moreWrap').contains(e.target)) setSettingsOpen(false); }, true);
+$('moreWrap').addEventListener('focusout', e => { if (e.relatedTarget && !$('moreWrap').contains(e.relatedTarget)) setSettingsOpen(false); });
+$('blurBtn').onclick = () => { state.blur = !state.blur; syncUI(); try { localStorage.setItem('gamtwi-blur', state.blur ? '1' : '0'); } catch(e){} blip(640,0.04,0.03); };
 $('gravBtn').onclick = () => { audio(); setGravity(!state.gravity); };
 try { if (localStorage.getItem('gamtwi-gravity') === '0') setGravity(false, true); } catch(e){}
 $('nightBtn').onclick = () => { audio(); setNight(!state.night); lampClick(state.night); };
-{ let n = false; try { n = localStorage.getItem('gamtwi-night') === '1'; } catch(e){} if (n) setNight(true, true); }
+{ let n = true; try { n = localStorage.getItem('gamtwi-night') !== '0'; } catch(e){} setNight(n, true); }   // night is the default; day only once chosen
 $('undoBtn').onclick = undo;
 $('redoBtn').onclick = redo;
 $('clearBtn').onclick = () => { if (build.children.length && !busy) flickTray(); };
+/* ---------- turn the tray (and everything on it) like a turntable ---------- */
+let turnAnim = null;
+function applyTurn(d){   // turn the tray and every piece on it by d around the middle, in world space
+  trayAngle += d; trayTurn.rotation.y = trayAngle;
+  const q = new THREE.Quaternion().setFromAxisAngle(Y, d);
+  for (const m of build.children){
+    m.position.applyQuaternion(q); m.quaternion.premultiply(q); m.updateMatrixWorld();
+    const r = m.userData.rest; if (r){ if (r.point) r.point.applyQuaternion(q); if (r.normal) r.normal.applyQuaternion(q); }
+  }
+}
+function startTurn(d){
+  if (turnAnim) applyTurn(turnAnim.d - turnAnim.done);   // finish one still running
+  stopFalls(); busy = true;
+  turnAnim = { t0: performance.now(), d, done: 0 };
+  blip(620, 0.06, 0.03, 'triangle');
+}
+function stepTurn(now){
+  if (!turnAnim) return;
+  const t = Math.min(1, Math.max(0, (now - turnAnim.t0)/450)), e = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
+  const to = turnAnim.d*e; applyTurn(to - turnAnim.done); turnAnim.done = to;
+  if (t >= 1){ turnAnim = null; busy = false; }
+}
+function turnTray(d){
+  if (busy) return;
+  select(null); setHover(null);
+  history.push({ added:[], removed:[], turn:d });
+  startTurn(d); changed();
+}
+// grab the red tray rim: drag around to turn it, or just click it for a 45° turn
+const _turnPlane = new THREE.Plane(Y, -0.1), _tp = new THREE.Vector3();
+function rimHit(clientX, clientY){
+  rayAt(clientX, clientY);
+  const r = raycaster.intersectObjects([rim, under, plate], false)[0];
+  if (!r) return false;
+  const h = pick(clientX, clientY);
+  return !h || (h.object === plate) || (r.distance < h.distance - 0.01 && !h.object.userData.piece);
+}
+function trayAngleAt(clientX, clientY){
+  rayAt(clientX, clientY);
+  if (!raycaster.ray.intersectPlane(_turnPlane, _tp)) return null;
+  return Math.atan2(-_tp.z, _tp.x);
+}
 
 /* 비우기: lift the tray, flick it back so everything flies off, then set it down again */
 const flying = [];
@@ -1670,8 +2559,9 @@ function flickTray(){
   history.push(entry);
   busy = true;
   const d0 = camera.position.distanceTo(controls.target), d1 = controls.maxDistance;   // pull all the way back
-  const zoom = d1 - d0 > 0.5 || controls.target.lengthSq() > 0.05;
-  if (zoom) camTween = { t0: performance.now(), from: controls.target.clone(), to: new THREE.Vector3(0, 0, 0), d0, d1 };
+  const home = new THREE.Vector3(0, 1.6, 0);   // same height as the default view
+  const zoom = d1 - d0 > 0.5 || controls.target.distanceToSquared(home) > 0.05;
+  if (zoom) camTween = { t0: performance.now(), from: controls.target.clone(), to: home, d0, d1 };
   flick = { t0: performance.now() + (zoom ? 520 : 0), thrown: false, landed: false, removed };
   blip(300, 0.08, 0.04, 'triangle');
 }
@@ -1686,7 +2576,7 @@ function stepFlick(now){
   else { const k = Math.min(1, (t - 0.4)/0.75), e = 1 - Math.pow(1 - k, 3);
     lift = 1.0*(1 - e) + Math.sin(k*Math.PI)*0.0; tip = -0.8*(1 - e) + 0.05*Math.sin(k*Math.PI*2)*(1 - k); }
   // pivot on the far edge so the near edge swings up (the tray never dips into the table)
-  const pz = -TD/2;
+  const pz = -(Math.abs(Math.sin(trayAngle))*TW/2 + Math.abs(Math.cos(trayAngle))*TD/2);   // far edge, even with the tray turned
   trayRig.rotation.x = tip; trayRig.position.set(0, lift + pz*Math.sin(tip), pz - pz*Math.cos(tip));
   if (!flick.thrown && t >= 0.3){
     flick.thrown = true; whoosh();
@@ -1716,7 +2606,7 @@ function stepFlying(now){
     if (now - f.t0 > 2200) { scene.remove(f.m); flying.splice(i, 1); }
   }
 }
-$('soundBtn').onclick = () => { state.sound = !state.sound; syncUI(); if (state.sound) blip(660, 0.08, 0.05); };
+$('soundBtn').onclick = () => { state.sound = !state.sound; syncUI(); try { localStorage.setItem('gamtwi-sound', state.sound ? '1' : '0'); } catch(e){} if (state.sound) blip(660, 0.08, 0.05); };
 $('saveBtn').onclick = savePhoto;
 document.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => loadPreset(b.dataset.ex));
 
@@ -1724,10 +2614,12 @@ addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
   const k = e.key.toLowerCase();
+  if (k === 'escape' && $('moreWrap').classList.contains('open')) { setSettingsOpen(false, true); return; }
   if (k === 'escape' && state.squeeze) { setSqueeze(false); return; }
   if (k === 'p') { savePhoto(); return; }
   if (k === 'n') { $('nightBtn').click(); return; }
   if (k === 'g') { $('gravBtn').click(); return; }
+  if (k === '[' || k === ']') { turnTray(k === ']' ? -Math.PI/4 : Math.PI/4); return; }
   const map = { d:'dup', delete:'del', backspace:'del', escape:'done' }, modes = { w:'move', e:'rotate', r:'scale' };
   if (map[k]) act(map[k]);
   else if (modes[k] && selected) setMode(modes[k]);
@@ -1893,6 +2785,12 @@ cv.addEventListener('pointerdown', e => {
   audio(); setHover(null);
   down = { x:e.clientX, y:e.clientY, t:performance.now(), b:e.button, moved:false, drag:null, tc: tc.dragging };
   if (busy || tc.dragging) return;
+  if (!state.squeeze && e.button === 0 && rimHit(e.clientX, e.clientY)) {
+    select(null); stopFalls(); controls.enabled = false;
+    down.turn = { last: trayAngleAt(e.clientX, e.clientY), total: 0 };
+    cv.style.cursor = 'grabbing';
+    return;
+  }
   const hit = pick(e.clientX, e.clientY);
   if (state.squeeze && hit && e.button === 0) {
     controls.enabled = false;
@@ -1929,12 +2827,23 @@ cv.addEventListener('pointermove', e => {
     if (state.squeeze) { setHover(null); cv.style.cursor = KCUR; return; }
     if (e.pointerType === 'mouse') {
       if (tc.axis) { setHover(null); cv.style.cursor = 'pointer'; return; }
+      if (!busy && rimHit(e.clientX, e.clientY)) { setHover(null); cv.style.cursor = 'grab'; return; }
       const h = pick(e.clientX, e.clientY);
       setHover(!busy && h && h.object.userData.piece ? h.object : null); cv.style.cursor = h && h.object.userData.piece ? (state.mode === 'scale' && selected ? 'ns-resize' : state.mode === 'rotate' && selected || e.shiftKey || e.altKey ? 'move' : 'grab') : 'default';
     }
     return;
   }
   if (down.tc) return;
+  if (down.turn) {
+    if (!down.moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4) down.moved = true;
+    const a = trayAngleAt(e.clientX, e.clientY);
+    if (down.moved && a !== null && down.turn.last !== null){
+      let d = a - down.turn.last; d = Math.atan2(Math.sin(d), Math.cos(d));
+      applyTurn(d); down.turn.total += d;
+    }
+    if (a !== null) down.turn.last = a;
+    return;
+  }
   if (down.sq) {
     down.moved = true;
     const sq = down.sq;
@@ -1978,6 +2887,11 @@ function endPointer(e, cancel){
   $('selActs').classList.remove('drag');
   cv.style.cursor = state.squeeze ? KCUR : 'default';
   if (!d || busy || d.tc) return;
+  if (d.turn) {
+    if (d.moved) { if (Math.abs(d.turn.total) > 1e-4) { history.push({ added:[], removed:[], turn: d.turn.total }); changed(); } thud(); }
+    else if (!cancel) turnTray(-Math.PI/4);
+    return;
+  }
   if (d.sq) { clearInterval(d.sq.timer); const m = finishBead(d.sq); if (m) { history.push({ added: [m], removed:[] }); changed(); } return; }
   if (d.rot) { endRot(d.rot); if (d.rot.moved) thud(); return; }
   if (d.scl) { if (d.moved) { const h = { added:[], removed:[], transforms: d.scl.snap }; history.push(h); settle(h, selGroup()); thud(); changed(); } return; }
@@ -2000,6 +2914,14 @@ function resize(){
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w/h;
+  const examples = document.querySelector('.panel .examples');
+  if (dockMQ.matches) examples.style.removeProperty('--preset-max-height');
+  else {
+    // The initial list ends exactly after the fourth preset; later presets remain scrollable.
+    const car = examples.querySelector('[data-ex="car"]');
+    const height = car.getBoundingClientRect().bottom - examples.getBoundingClientRect().top + examples.scrollTop;
+    examples.style.setProperty('--preset-max-height', Math.ceil(height) + 'px');
+  }
   if (dockMQ.matches){
     // bottom dock: frame the tray in the space above it
     const dh = $('panel').offsetHeight;
@@ -2018,6 +2940,7 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 });
 addEventListener('resize', resize);
 new ResizeObserver(resize).observe($('panel'));
+document.fonts.ready.then(resize);
 resize();
 { const k = 1.0/Math.min(1, camera.aspect*1.5); camera.position.multiplyScalar(k); }
 
@@ -2027,7 +2950,7 @@ let shadowCasterCount = -1, shadowLook = -1;
 function updateShadowCache(){
   let count = 0, dirty = lookT !== shadowLook;
   scene.traverse(o => {
-    if (!o.castShadow && !o.isLight && o !== trayRig && o !== build) return;
+    if (!o.castShadow && !o.isLight && o !== trayRig && o !== trayTurn && o !== build) return;
     count++;
     const old = shadowSnapshots.get(o);
     if (!old || old.visible !== o.visible || !old.p.equals(o.position) || !old.q.equals(o.quaternion) || !old.s.equals(o.scale)){
@@ -2072,8 +2995,9 @@ function tick(now){
       if (t >= 1) { build.remove(a.m); a.m.scale.setScalar(sz); anims.splice(i, 1); }
     }
   }
+  stepTurn(now);
   if (camTween){
-    const t = Math.min(1, (now - camTween.t0)/700), e = 1 - Math.pow(1-t, 3);
+    const t = Math.min(1, Math.max(0, (now - camTween.t0)/700)), e = 1 - Math.pow(1-t, 3);   // rAF time can trail performance.now()
     controls.target.lerpVectors(camTween.from, camTween.to, e);
     const dir = camera.position.clone().sub(controls.target).normalize();
     camera.position.copy(controls.target).addScaledVector(dir, camTween.d0 + (camTween.d1 - camTween.d0)*e);
@@ -2081,7 +3005,7 @@ function tick(now){
   }
   controls.update();
   updateShadowCache();
-  renderer.render(scene, camera);
+  renderFrame();
   requestAnimationFrame(tick);
 }
 syncUI(); changed();
@@ -2093,4 +3017,3 @@ window.__game = { redo, useTile, setSqueeze, loadPreset, state, build, addPiece,
 </script>
 </body>
 </html>
-
